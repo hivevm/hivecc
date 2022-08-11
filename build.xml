@@ -123,7 +123,7 @@
 	<target name="compile-sub">
 
 		<!-- ReGenerate the Java CC Main Parser with the new jar -->
-		<java classname="${javacc-class-name}" classpath="${param-jar}" dir="${basedir}/src/main/javacc" fork="true">
+		<java classname="${javacc-class-name}" classpath="${param-jar}" dir="${basedir}/src/main/resources" fork="true">
 			<arg value="-OUTPUT_DIRECTORY=${basedir}/${parser-generated-src}" />
 			<arg value="JavaCC.jj" />
 		</java>
@@ -132,7 +132,7 @@
 		<delete file="${parser-generated-src}/Token.java" />
 
 		<!-- ReGenerate the JJTree Parser Definition (from the tree definition) -->
-		<java classname="${jjtree-class-name}" classpath="${param-jar}" dir="${basedir}/src/main/jjtree" fork="true">
+		<java classname="${jjtree-class-name}" classpath="${param-jar}" dir="${basedir}/src/main/resources" fork="true">
 			<arg value="-OUTPUT_DIRECTORY=${basedir}/${jjtree-generated-src}" />
 			<arg value="JJTree.jjt" />
 		</java>

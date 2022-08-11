@@ -26,14 +26,6 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * This file contains the grammar and actions that describe
- * JavaCCParser.  When passed as input to JavaCCParser it generates
- * another copy of itself.  Hence JavaCCParser may be modified by
- * modifying this file, and therefore this file is to be considered
- * the master version of JavaCCParser.
- */
-
 options {
   LEGACY = true;
 }
@@ -418,7 +410,7 @@ void javacc_input() :
 void javacc_options() :
 {}
 {
-  [ LOOKAHEAD({ getToken(1).image.equals("options") }) <IDENTIFIER>  "{" ( option_binding() )* "}" ]
+  [ LOOKAHEAD({ getToken(1).image.equals("options") }) <IDENTIFIER> "{" ( option_binding() )* "}" ]
 	{
 	  Options.normalize();
 	}
@@ -476,6 +468,7 @@ List<String> StringList() :
 	}
 	)* ")" {  return strings; }
 }
+
 void production() :
 {}
 {
@@ -675,7 +668,6 @@ void token_manager_decls() :
       getNextToken(); // eat }
     }
   }
-
   [ ClassOrInterfaceBody(false, decls) ]
 	{
 	  add_token_manager_decls(t, decls);
@@ -1298,9 +1290,9 @@ void character_descriptor(Container c) :
 }
 
 String identifier() :
-	{
-	  Token t;
-	}
+{
+  Token t;
+}
 {
   t=<IDENTIFIER>
 	{
@@ -1325,8 +1317,7 @@ String identifier() :
 Token JavaIdentifier() :
 {}
 {
-(
-  <IDENTIFIER>
+( <IDENTIFIER>
 | "LOOKAHEAD"
 | "IGNORE_CASE"
 | "PARSER_BEGIN"
@@ -1356,9 +1347,9 @@ void CompilationUnit() :
  * The <EOF> is deleted since the compilation unit is embedded
  * within grammar code.
  */
-	{
+{
 	  set_initial_cu_token(getToken(1));
-	}
+}
 {
   [ LOOKAHEAD( ( Annotation() )* "package" ) PackageDeclaration() ]
   ( ImportDeclaration() )*
@@ -1388,67 +1379,59 @@ void ImportDeclaration() :
  * better error messages.
  */
 
-int Modifiers():
-{
-   int modifiers = 0;
-}
+void Modifiers():
+{}
 {
  (
   LOOKAHEAD(2)
   (
-   "public" { modifiers |= ModifierSet.PUBLIC; }
+   "public"
   |
-   "static" { modifiers |= ModifierSet.STATIC; }
+   "static"
   |
-   "protected" { modifiers |= ModifierSet.PROTECTED; }
+   "protected"
   |
-   "private" { modifiers |= ModifierSet.PRIVATE; }
+   "private"
   |
-   "final" { modifiers |= ModifierSet.FINAL; }
+   "final"
   |
-   "abstract" { modifiers |= ModifierSet.ABSTRACT; }
+   "abstract"
   |
-   "synchronized" { modifiers |= ModifierSet.SYNCHRONIZED; }
+   "synchronized"
   |
-   "native" { modifiers |= ModifierSet.NATIVE; }
+   "native"
   |
-   "transient" { modifiers |= ModifierSet.TRANSIENT; }
+   "transient"
   |
-   "volatile" { modifiers |= ModifierSet.VOLATILE; }
+   "volatile"
   |
-   "strictfp" { modifiers |= ModifierSet.STRICTFP; }
+   "strictfp"
   |
    Annotation()
   )
  )*
-
- {
-    return modifiers;
- }
 }
 
 /*
  * Declaration syntax follows.
  */
 void TypeDeclaration():
-{
-   int modifiers;
-}
+{}
 {
   ";"
 |
-  modifiers = Modifiers()
+  Modifiers()
   (
-     ClassOrInterfaceDeclaration(modifiers, null)
+     ClassOrInterfaceDeclaration(null)
    |
-     EnumDeclaration(modifiers)
+     EnumDeclaration()
    |
-     AnnotationTypeDeclaration(modifiers)
+     AnnotationTypeDeclaration()
   )
 }
 
 
-void ClassOrInterfaceDeclaration(int modifiers, List<Token> tokens):
+void ClassOrInterfaceDeclaration(List<Token> tokens):
 {
    boolean isInterface = false;
 	  class_nesting++;
@@ -1502,7 +1485,7 @@ void ImplementsList(boolean isInterface):
    }
 }
 
-void EnumDeclaration(int modifiers):
+void EnumDeclaration():
 {}
 {
   "enum" JavaIdentifier()
@@ -1549,11 +1532,11 @@ void ClassOrInterfaceBody(boolean isInterface, List<Token> tokens):
  * Parsing this fills "tokens" with all tokens of the block
  * excluding the braces at each end.
  */
-	{
+{
 	  Token first, last;
 	  if (tokens == null)
 	    tokens = new ArrayList<>();
-	}
+}
 {
   "{"
 	{
@@ -1577,9 +1560,7 @@ void ClassOrInterfaceBody(boolean isInterface, List<Token> tokens):
 }
 
 void ClassOrInterfaceBodyDeclaration(boolean isInterface):
-{
-   int modifiers;
-}
+{}
 {
   LOOKAHEAD(2)
   Initializer()
@@ -1588,26 +1569,26 @@ void ClassOrInterfaceBodyDeclaration(boolean isInterface):
         throw new ParseException("An interface cannot have initializers");
   }
 |
-  modifiers = Modifiers() // Just get all the modifiers out of the way. If you want to do
+  Modifiers() // Just get all the modifiers out of the way. If you want to do
               // more checks, pass the modifiers down to the member
   (
-      ClassOrInterfaceDeclaration(modifiers, null)
+      ClassOrInterfaceDeclaration(null)
     |
-      EnumDeclaration(modifiers)
+      EnumDeclaration()
     |
       LOOKAHEAD( [ TypeParameters() ] JavaIdentifier() "(" )
       ConstructorDeclaration()
     |
       LOOKAHEAD( Type() JavaIdentifier() ( "[" "]" )* ( "," | "=" | ";" ) )
-      FieldDeclaration(modifiers)
+      FieldDeclaration()
     |
-      MethodDeclaration(modifiers)
+      MethodDeclaration()
   )
 |
   ";"
 }
 
-void FieldDeclaration(int modifiers):
+void FieldDeclaration():
 {}
 {
   // Modifiers are already matched in the caller
@@ -1640,7 +1621,7 @@ void ArrayInitializer():
   "{" [ VariableInitializer() ( LOOKAHEAD(2) "," VariableInitializer() )* ] [ "," ] "}"
 }
 
-void MethodDeclaration(int modifiers):
+void MethodDeclaration():
 {}
 {
   // Modifiers already matched in the caller!
@@ -1661,11 +1642,11 @@ void FormalParameters(List<Token> tokens) :
  * Parsing this fills "tokens" with all tokens of the formal
  * parameters excluding the parentheses at each end.
  */
-	{
+{
 	  Token first, last;
 	  if (tokens == null)
 	    tokens = new ArrayList<>();
-	}
+}
 {
   "("
 	{
@@ -1838,11 +1819,11 @@ void PrimitiveType():
 
 
 void ResultType(List<Token> tokens) :
-	{
+{
 	  Token first = getToken(1);
 	  if (tokens == null)
 	    tokens = new ArrayList<>();
-	}
+}
 {
 (
   "void" [ "*" ]
@@ -1869,11 +1850,11 @@ void Name(List<Token> tokens) :
  * A lookahead of 2 is required below since "Name" can be followed
  * by a ".*" when used in the context of an "ImportDeclaration".
  */
-	{
+{
 	  if (tokens == null)
 	    tokens = new ArrayList<>();
 	  Token first = getToken(1);
-	}
+}
 {
   JavaIdentifier()
   ( LOOKAHEAD(2) "." JavaIdentifier()
@@ -2171,14 +2152,14 @@ boolean BooleanLiteral() :
 }
 
 String StringLiteral() :
-	{
-	  Token t;
-	}
+{
+  Token t;
+}
 {
   t=<STRING_LITERAL>
-	{
+{
 	  return remove_escapes_and_quotes(t, t.image);
-	}
+}
 }
 
 void NullLiteral() :
@@ -2192,11 +2173,11 @@ void Arguments(List<Token> tokens) :
  * Parsing this fills "tokens" with all tokens of the arguments
  * excluding the parentheses at each end.
  */
-	{
+{
 	  Token first, last;
 	  if (tokens == null)
 	    tokens = new ArrayList<>();
-	}
+}
 {
   "("
 	{
@@ -2354,7 +2335,7 @@ void BlockStatement():
 |
   Statement()
 |
-  ClassOrInterfaceDeclaration(0, null)
+  ClassOrInterfaceDeclaration(null)
 }
 
 void LocalVariableDeclaration():
@@ -2479,9 +2460,9 @@ void ContinueStatement():
 }
 
 void ReturnStatement() :
-	{
+{
 	  Token t;
-	}
+}
 {
   t="return"
 	{
@@ -2655,7 +2636,7 @@ void  MemberValueArrayInitializer():
 
 /* Annotation Types. */
 
-void AnnotationTypeDeclaration(int modifiers):
+void AnnotationTypeDeclaration():
 {}
 {
   "@" "interface" JavaIdentifier() AnnotationTypeBody()
@@ -2668,22 +2649,20 @@ void AnnotationTypeBody():
 }
 
 void AnnotationTypeMemberDeclaration():
+{}
 {
-   int modifiers;
-}
-{
- modifiers = Modifiers()
+ Modifiers()
  (
    LOOKAHEAD(Type() JavaIdentifier() "(")
    Type() JavaIdentifier() "(" ")" [ DefaultValue() ] ";"
   |
-   ClassOrInterfaceDeclaration(modifiers, null)
+   ClassOrInterfaceDeclaration(null)
   |
-   EnumDeclaration(modifiers)
+   EnumDeclaration()
   |
-   AnnotationTypeDeclaration(modifiers)
+   AnnotationTypeDeclaration()
   |
-   FieldDeclaration(modifiers)
+   FieldDeclaration()
  )
  |
    ( ";" )
