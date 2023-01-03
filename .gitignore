@@ -32,7 +32,7 @@ build-eclipse
 
 /classes/
 .settings/
-/src/main/generated-sources/
+/src/main/generated/
 test.tmp/
 tmp/
 .gradle/

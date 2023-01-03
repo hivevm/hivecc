@@ -37,7 +37,7 @@ options {
 
 PARSER_BEGIN(JJTreeParser)
 
-package org.javacc.jjtree;
+package it.smartio.fastcc.jjtree;
 
 public class JJTreeParser extends AbstractJJTreeParser {
 }
@@ -88,10 +88,8 @@ SPECIAL_TOKEN :
 MORE :
 {
   "//" : IN_SINGLE_LINE_COMMENT
-|
-  <"/**" ~["/"]> { input_stream.backup(1); } : IN_FORMAL_COMMENT
-|
-  "/*" : IN_MULTI_LINE_COMMENT
+| <"/**" ~["/"]> { input_stream.backup(1); } : IN_FORMAL_COMMENT
+| "/*" : IN_MULTI_LINE_COMMENT
 }
 
 
@@ -131,7 +129,6 @@ TOKEN :
 | < CATCH: "catch" >
 | < CHAR: "char" >
 | < CLASS: "class" >
-| < CONST: "const" >
 | < CONTINUE: "continue" >
 | < _DEFAULT: "default" >
 | < DO: "do" >
@@ -151,7 +148,6 @@ TOKEN :
 | < INT: "int" >
 | < INTERFACE: "interface" >
 | < LONG: "long" >
-| < NATIVE: "native" >
 | < NEW: "new" >
 | < NULL: "null" >
 | < PACKAGE: "package">
@@ -163,15 +159,12 @@ TOKEN :
 | < STATIC: "static" >
 | < SUPER: "super" >
 | < SWITCH: "switch" >
-| < SYNCHRONIZED: "synchronized" >
 | < THIS: "this" >
 | < THROW: "throw" >
 | < THROWS: "throws" >
-| < TRANSIENT: "transient" >
 | < TRUE: "true" >
 | < TRY: "try" >
 | < VOID: "void" >
-| < VOLATILE: "volatile" >
 | < WHILE: "while" >
 }
 
@@ -184,35 +177,26 @@ TOKEN :
       | <HEX_LITERAL> (["l","L"])?
       | <OCTAL_LITERAL> (["l","L"])?
   >
-|
-  < #DECIMAL_LITERAL: ["1"-"9"] (["0"-"9"])* >
-|
-  < #HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+ >
-|
-  < #OCTAL_LITERAL: "0" (["0"-"7"])* >
-|
-  < FLOATING_POINT_LITERAL:
+| < #DECIMAL_LITERAL: ["1"-"9"] (["0"-"9"])* >
+| < #HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+ >
+| < #OCTAL_LITERAL: "0" (["0"-"7"])* >
+| < FLOATING_POINT_LITERAL:
         <DECIMAL_FLOATING_POINT_LITERAL>
       | <HEXADECIMAL_FLOATING_POINT_LITERAL>
   >
-|
-  < #DECIMAL_FLOATING_POINT_LITERAL:
+| < #DECIMAL_FLOATING_POINT_LITERAL:
         (["0"-"9"])+ "." (["0"-"9"])* (<DECIMAL_EXPONENT>)? (["f","F","d","D"])?
       | "." (["0"-"9"])+ (<DECIMAL_EXPONENT>)? (["f","F","d","D"])?
       | (["0"-"9"])+ <DECIMAL_EXPONENT> (["f","F","d","D"])?
       | (["0"-"9"])+ (<DECIMAL_EXPONENT>)? ["f","F","d","D"]
   >
-|
-  < #DECIMAL_EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
-|
-  < #HEXADECIMAL_FLOATING_POINT_LITERAL:
+| < #DECIMAL_EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
+| < #HEXADECIMAL_FLOATING_POINT_LITERAL:
         "0" ["x", "X"] (["0"-"9","a"-"f","A"-"F"])+ (".")? <HEXADECIMAL_EXPONENT> (["f","F","d","D"])?
       | "0" ["x", "X"] (["0"-"9","a"-"f","A"-"F"])* "." (["0"-"9","a"-"f","A"-"F"])+ <HEXADECIMAL_EXPONENT> (["f","F","d","D"])?
   >
-|
-  < #HEXADECIMAL_EXPONENT: ["p","P"] (["+","-"])? (["0"-"9"])+ >
-|
-  < CHARACTER_LITERAL:
+| < #HEXADECIMAL_EXPONENT: ["p","P"] (["+","-"])? (["0"-"9"])+ >
+| < CHARACTER_LITERAL:
       "'"
       (   (~["'","\\","\n","\r"])
         | ("\\"
@@ -224,8 +208,7 @@ TOKEN :
       )
       "'"
   >
-|
-  < STRING_LITERAL:
+| < STRING_LITERAL:
       "\""
       (   (~["\"","\\","\n","\r"])
         | ("\\"
@@ -252,7 +235,6 @@ TOKEN :
 | < SEMICOLON: ";" >
 | < COMMA: "," >
 | < DOT: "." >
-| < HASH: "#" >
 }
 
 /* OPERATORS */
@@ -326,15 +308,13 @@ void javacc_input() #Grammar :
 {
   javacc_options()
   {
-    // TODO :: CBA --  Require Unification of output language specific processing into a single Enum class
-    isJavaLanguage = isJavaLanguage();
   }
   (
     "PARSER_BEGIN" "(" t=identifier() ")"
 	{
 	  JJTreeGlobals.parserName = t.image;
 
-          if (!isJavaLanguage) {
+          if (!isJavaLanguage()) {
             while(getToken(1).kind != _PARSER_END) {
               getNextToken();
             }
@@ -980,16 +960,6 @@ void Modifiers():
    "final"
   |
    "abstract"
-  |
-   "synchronized"
-  |
-   "native"
-  |
-   "transient"
-  |
-   "volatile"
-  |
-   "strictfp"
   |
    Annotation()
   )

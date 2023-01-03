@@ -23,7 +23,7 @@ ij_kotlin_name_count_to_use_star_import_for_members = 999
 
 [*.java]
 # Doc: https://youtrack.jetbrains.com/issue/IDEA-170643#focus=streamItem-27-3708697.0-0
-#"static ", "java.", "org.javacc.", ""
-ij_java_imports_layout = $*,|,java.**,|,org.javacc.**,|,*
+#"static ", "java.", "it.smartio.", ""
+ij_java_imports_layout = $*,|,java.**,|,it.smartio.**,|,*
 #ij_java_use_single_class_imports = true
 indent_size = 2

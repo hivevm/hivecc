@@ -2,13 +2,13 @@
 <project name="javacc" default="jar" basedir=".">
 	<property name="java-src" value="src/main/java" />
 	<property name="resources-src" value="src/main/resources" />
-	<property name="generated-src" value="src/main/generated-sources" />
-	<property name="parser-generated-src" value="${generated-src}/org/javacc/parser" />
-	<property name="jjtree-generated-src" value="${generated-src}/org/javacc/jjtree" />
+	<property name="generated-src" value="src/main/generated" />
+	<property name="parser-generated-src" value="${generated-src}/it/smartio/fastcc/parser" />
+	<property name="jjtree-generated-src" value="${generated-src}/it/smartio/fastcc/jjtree" />
 
 	<property name="bootstrap-jar" value="bootstrap/javacc.jar" />
-	<property name="jjtree-class-name" value="org.javacc.JJTree" />
-	<property name="javacc-class-name" value="org.javacc.JJParser" />
+	<property name="jjtree-class-name" value="it.smartio.fastcc.JJTree" />
+	<property name="javacc-class-name" value="it.smartio.fastcc.JJParser" />
 
 	<property name="target-folder" value="target" />
 
@@ -40,7 +40,7 @@
 
 	<!-- Build the new version with the old jar (current bootstrap jar) and create the new version jar
        (named javacc.jar with a copy named javacc-x.y.z.jar)  -->
-	<!-- Here the new version jar does not benefit from enhancements of JavaCC itself (e.g. performance) -->
+	<!-- Here the new version jar does not benefit from enhancements of FastCC itself (e.g. performance) -->
 	<!-- The tests will benefit from these enhancements -->
 	<target name="jar">
 		<antcall target="compile_create-jars" />
@@ -99,7 +99,7 @@
 
 	<!-- Build the new version with the new jar and create another new jar
        (named javacc-last.jar with a copy named javacc-last-x.y.z.jar)  -->
-	<!-- Here the new version jar benefits from enhancements of JavaCC itself (e.g. performance) -->
+	<!-- Here the new version jar benefits from enhancements of FastCC itself (e.g. performance) -->
 	<!-- The bootstrap jar should be regularly manually updated with a stable last jar -->
 	<target name="jar-last" description="build javacc.jar with last jar">
 		<antcall target="compile-last" />

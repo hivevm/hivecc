@@ -32,7 +32,7 @@ options {
 
 PARSER_BEGIN(JavaCCParser)
 
-package org.javacc.parser;
+package it.smartio.fastcc.parser;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -127,15 +127,9 @@ SKIP :
 MORE :
 {
   "//" : IN_SINGLE_LINE_COMMENT
-|
-  <"/**" ~["/"]> { input_stream.backup(1); } : IN_FORMAL_COMMENT
-|
-  "/*" : IN_MULTI_LINE_COMMENT
-|
-  "/*@bgen(jjtree"
-     {
-       saveBeginLineCol();
-     } : IN_MULTI_LINE_COMMENT
+| <"/**" ~["/"]> { input_stream.backup(1); } : IN_FORMAL_COMMENT
+| "/*" : IN_MULTI_LINE_COMMENT
+| "/*@bgen(jjtree" { saveBeginLineCol(); } : IN_MULTI_LINE_COMMENT
 }
 
 
@@ -168,7 +162,6 @@ MORE :
 TOKEN :
 {
   < ABSTRACT: "abstract" >
-| < ASSERT: "assert" >
 | < BOOLEAN: "boolean" >
 | < BREAK: "break" >
 | < BYTE: "byte" >
@@ -176,13 +169,11 @@ TOKEN :
 | < CATCH: "catch" >
 | < CHAR: "char" >
 | < CLASS: "class" >
-| < CONST: "const" >
 | < CONTINUE: "continue" >
 | < _DEFAULT: "default" >
 | < DO: "do" >
 | < DOUBLE: "double" >
 | < ELSE: "else" >
-| < ENUM: "enum" >
 | < EXTENDS: "extends" >
 | < FALSE: "false" >
 | < FINAL: "final" >
@@ -197,7 +188,6 @@ TOKEN :
 | < INT: "int" >
 | < INTERFACE: "interface" >
 | < LONG: "long" >
-| < NATIVE: "native" >
 | < NEW: "new" >
 | < NULL: "null" >
 | < PACKAGE: "package">
@@ -207,18 +197,14 @@ TOKEN :
 | < RETURN: "return" >
 | < SHORT: "short" >
 | < STATIC: "static" >
-| < STRICTFP: "strictfp" >
 | < SUPER: "super" >
 | < SWITCH: "switch" >
-| < SYNCHRONIZED: "synchronized" >
 | < THIS: "this" >
 | < THROW: "throw" >
 | < THROWS: "throws" >
-| < TRANSIENT: "transient" >
 | < TRUE: "true" >
 | < TRY: "try" >
 | < VOID: "void" >
-| < VOLATILE: "volatile" >
 | < WHILE: "while" >
 }
 
@@ -232,38 +218,28 @@ TOKEN :
       | <OCTAL_LITERAL> (["l","L"])?
       | <BINARY_LITERAL> (["l","L"])?
   >
-|
-  < #DECIMAL_LITERAL: ["1"-"9"] (("_")* ["0"-"9"])* >
-|
-  < #HEX_LITERAL: "0" ["x","X"] ["0"-"9","a"-"f","A"-"F"] (("_")* ["0"-"9","a"-"f","A"-"F"])* >
-|
-  < #OCTAL_LITERAL: "0" (("_")* ["0"-"7"])* >
-|
-  < #BINARY_LITERAL: "0" ["b","B"] ["0", "1"] (("_")* ["0","1"])* >
-|
-  < FLOATING_POINT_LITERAL:
+| < #DECIMAL_LITERAL: ["1"-"9"] (("_")* ["0"-"9"])* >
+| < #HEX_LITERAL: "0" ["x","X"] ["0"-"9","a"-"f","A"-"F"] (("_")* ["0"-"9","a"-"f","A"-"F"])* >
+| < #OCTAL_LITERAL: "0" (("_")* ["0"-"7"])* >
+| < #BINARY_LITERAL: "0" ["b","B"] ["0", "1"] (("_")* ["0","1"])* >
+| < FLOATING_POINT_LITERAL:
         <DECIMAL_FLOATING_POINT_LITERAL>
       | <HEXADECIMAL_FLOATING_POINT_LITERAL>
   >
-|
-  < #DECIMAL_FLOATING_POINT_LITERAL:
+| < #DECIMAL_FLOATING_POINT_LITERAL:
         ["0"-"9"] (("_")* ["0"-"9"])* "." (["0"-"9"](("_")*["0"-"9"])*)? (<DECIMAL_EXPONENT>)? (["f","F","d","D"])?
       | "." ["0"-"9"](("_")*["0"-"9"])* (<DECIMAL_EXPONENT>)? (["f","F","d","D"])?
       | ["0"-"9"](("_")*["0"-"9"])* <DECIMAL_EXPONENT> (["f","F","d","D"])?
       | ["0"-"9"](("_")*["0"-"9"])* (<DECIMAL_EXPONENT>)? ["f","F","d","D"]
   >
-|
-  < #DECIMAL_EXPONENT: ["e","E"] (["+","-"])? ["0"-"9"] (("_")*["0"-"9"])* >
-|
-  < #HEXADECIMAL_FLOATING_POINT_LITERAL:
+| < #DECIMAL_EXPONENT: ["e","E"] (["+","-"])? ["0"-"9"] (("_")*["0"-"9"])* >
+| < #HEXADECIMAL_FLOATING_POINT_LITERAL:
         "0" ["x", "X"] ["0"-"9","a"-"f","A"-"F"] (("_")* ["0"-"9","a"-"f","A"-"F"])* (".")? <HEXADECIMAL_EXPONENT> (["f","F","d","D"])?
       | "0" ["x", "X"] (["0"-"9","a"-"f","A"-"F"](("_")* ["0"-"9","a"-"f","A"-"F"])* )? "." 
            ["0"-"9","a"-"f","A"-"F"] (("_")*["0"-"9","a"-"f","A"-"F"])* <HEXADECIMAL_EXPONENT> (["f","F","d","D"])?
   >
-|
-  < #HEXADECIMAL_EXPONENT: ["p","P"] (["+","-"])? ["0"-"9"](("_")*["0"-"9"])* >
-|
-  < CHARACTER_LITERAL:
+| < #HEXADECIMAL_EXPONENT: ["p","P"] (["+","-"])? ["0"-"9"](("_")*["0"-"9"])* >
+| < CHARACTER_LITERAL:
       "'"
       (   (~["'","\\","\n","\r"])
         | ("\\"
@@ -275,8 +251,7 @@ TOKEN :
       )
       "'"
   >
-|
-  < STRING_LITERAL:
+| < STRING_LITERAL:
       "\""
       (   (~["\"","\\","\n","\r"])
         | ("\\"
@@ -1396,16 +1371,6 @@ void Modifiers():
    "final"
   |
    "abstract"
-  |
-   "synchronized"
-  |
-   "native"
-  |
-   "transient"
-  |
-   "volatile"
-  |
-   "strictfp"
   |
    Annotation()
   )
@@ -3322,9 +3287,4 @@ TOKEN :
          "\ufff9"-"\ufffb"
       ]
   >
-}
-
-TOKEN: // just to be safe, in actions, we might get random stuff for non-java?
-{
- <ACT_TOK: ~[]>
 }

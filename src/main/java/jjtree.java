@@ -29,7 +29,7 @@ public final class jjtree {
   private jjtree() {}
 
   public static void main(String[] args) {
-    org.javacc.JJTree.main(args);
+    it.smartio.fastcc.JJTree.main(args);
   }
 
 }

@@ -19,7 +19,6 @@ class ASTMyOtherID extends SimpleNode {
 
   /**
    * {@inheritDoc}
-   * @see org.javacc.examples.jjtree.eg2.SimpleNode#toString()
    */
   public String toString() {
     return "Identifier: " + name;

@@ -29,6 +29,6 @@ public final class jjdoc {
   private jjdoc() {}
 
   public static void main(String[] args) throws Exception {
-    org.javacc.jjdoc.JJDocMain.main(args);
+    it.smartio.fastcc.jjdoc.JJDocMain.main(args);
   }
 }
