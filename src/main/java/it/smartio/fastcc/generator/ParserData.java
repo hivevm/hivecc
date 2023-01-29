@@ -25,6 +25,7 @@ import it.smartio.fastcc.JavaCCRequest;
 import it.smartio.fastcc.parser.Expansion;
 import it.smartio.fastcc.parser.Lookahead;
 import it.smartio.fastcc.parser.NormalProduction;
+import it.smartio.fastcc.parser.Options;
 
 /**
  * These lists are used to maintain expansions for which code generation in phase 2 and phase 3 is
@@ -75,6 +76,10 @@ public class ParserData {
     this.phase2list = new ArrayList<>();
     this.lookaheads = new HashMap<>();
     this.lookaheadIndex = new HashMap<>();
+  }
+
+  public final Options options() {
+    return this.request.options();
   }
 
   public final String getParserName() {

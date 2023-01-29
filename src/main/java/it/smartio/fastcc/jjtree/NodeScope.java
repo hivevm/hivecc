@@ -29,7 +29,7 @@ package it.smartio.fastcc.jjtree;
 
 public class NodeScope {
 
-  public ASTProduction     production;
+  private ASTProduction     production;
   public ASTNodeDescriptor node_descriptor;
 
   public String            closedVar;
@@ -42,10 +42,10 @@ public class NodeScope {
 
     if (n == null) {
       String nm = this.production.name;
-      if (JJTreeOptions.getNodeDefaultVoid()) {
+      if (p.jjtOptions().getNodeDefaultVoid()) {
         nm = "void";
       }
-      this.node_descriptor = ASTNodeDescriptor.indefinite(nm);
+      this.node_descriptor = ASTNodeDescriptor.indefinite(p.parser, nm);
     } else {
       this.node_descriptor = n;
     }

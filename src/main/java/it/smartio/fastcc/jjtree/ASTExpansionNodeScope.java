@@ -4,8 +4,8 @@ package it.smartio.fastcc.jjtree;
 
 public class ASTExpansionNodeScope extends JJTreeNode {
 
-  ASTExpansionNodeScope(int id) {
-    super(id);
+  public ASTExpansionNodeScope(JJTreeParser p, int id) {
+    super(p, id);
   }
 
   public NodeScope  node_scope;

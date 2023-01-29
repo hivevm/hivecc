@@ -39,7 +39,6 @@ import it.smartio.fastcc.generator.LexerStateData;
 import it.smartio.fastcc.lexer.NfaState;
 import it.smartio.fastcc.parser.Action;
 import it.smartio.fastcc.parser.JavaCCErrors;
-import it.smartio.fastcc.parser.Options;
 import it.smartio.fastcc.parser.RStringLiteral.KindInfo;
 import it.smartio.fastcc.parser.Token;
 import it.smartio.fastcc.source.SourceWriter;
@@ -55,9 +54,9 @@ public class JavaLexerGenerator extends LexerGenerator {
 
   @Override
   protected final void dumpAll(LexerData data) throws IOException {
-    SourceWriter writer = new SourceWriter(data.getParserName() + "TokenManager");
+    SourceWriter writer = new SourceWriter(data.getParserName() + "TokenManager", data.options());
 
-    dumpClassHeader(writer, data.getParserName());
+    dumpClassHeader(writer, data);
 
     writer.setOption("stateNames", data.stateNames);
     writer.setOption("lohiBytes", data.lohiByte.keySet());
@@ -96,7 +95,7 @@ public class JavaLexerGenerator extends LexerGenerator {
     writer.setFunction("getLohiBytes", i -> getLohiBytes(data, (int) i));
 
     writer.writeTemplate(JavaLexerGenerator.TEMPLATE_LEXER);
-    saveOutput(writer);
+    saveOutput(writer, data.options().getOutputDirectory());
   }
 
 
@@ -106,17 +105,17 @@ public class JavaLexerGenerator extends LexerGenerator {
         + "0x" + Long.toHexString(data.lohiByte.get(i)[3]) + "L\n}";
   }
 
-  private final void dumpClassHeader(PrintWriter writer, String parserName) {
-    writer.print("package " + Options.getJavaPackage());
+  private final void dumpClassHeader(PrintWriter writer, LexerData data) {
+    writer.print("package " + data.options().getJavaPackage());
     writer.println(";");
 
     writer.println("");
     writer.println("/** Token Manager. */");
 
-    writer.print("class " + parserName + "TokenManager");
-    if (Options.getJavaLexer() != null && !Options.getJavaLexer().isEmpty())
-      writer.print(" extends " + Options.getJavaLexer());
-    writer.print(" implements " + parserName + "Constants");
+    writer.print("class " + data.getParserName() + "TokenManager");
+    if (data.options().getJavaLexer() != null && !data.options().getJavaLexer().isEmpty())
+      writer.print(" extends " + data.options().getJavaLexer());
+    writer.print(" implements " + data.getParserName() + "Constants");
 
     writer.println(" {");
   }
@@ -305,7 +304,7 @@ public class JavaLexerGenerator extends LexerGenerator {
     writer.println("   catch(Exception e)");
     writer.println("   {");
 
-    if (Options.getDebugTokenManager()) {
+    if (data.options().getDebugTokenManager()) {
       writer.println("      debugStream.println(\"Returning the <EOF> token.\\n\");");
     }
 
@@ -365,15 +364,16 @@ public class JavaLexerGenerator extends LexerGenerator {
                   + "L & (1L << curChar)) != 0L) || \n" + prefix + "          (curChar >> 6) == 1" + " && (0x"
                   + Long.toHexString(data.singlesToSkip[i].asciiMoves[1]) + "L & (1L << (curChar & 077))) != 0L)");
         } else if (data.singlesToSkip[i].asciiMoves[1] == 0L) {
-          writer.println(prefix + "   while (curChar <= " + (int) JavaLexerGenerator.MaxChar(data.singlesToSkip[i].asciiMoves[0])
-              + " && (0x" + Long.toHexString(data.singlesToSkip[i].asciiMoves[0]) + "L & (1L << curChar)) != 0L)");
+          writer.println(
+              prefix + "   while (curChar <= " + (int) JavaLexerGenerator.MaxChar(data.singlesToSkip[i].asciiMoves[0])
+                  + " && (0x" + Long.toHexString(data.singlesToSkip[i].asciiMoves[0]) + "L & (1L << curChar)) != 0L)");
         } else if (data.singlesToSkip[i].asciiMoves[0] == 0L) {
           writer.println(prefix + "   while (curChar > 63 && curChar <= "
               + (JavaLexerGenerator.MaxChar(data.singlesToSkip[i].asciiMoves[1]) + 64) + " && (0x"
               + Long.toHexString(data.singlesToSkip[i].asciiMoves[1]) + "L & (1L << (curChar & 077))) != 0L)");
         }
 
-        if (Options.getDebugTokenManager()) {
+        if (data.options().getDebugTokenManager()) {
           writer.println(prefix + "{");
           writer.println("      debugStream.println("
               + (data.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
@@ -381,7 +381,7 @@ public class JavaLexerGenerator extends LexerGenerator {
         }
         writer.println(prefix + "      curChar = input_stream.BeginToken();");
 
-        if (Options.getDebugTokenManager()) {
+        if (data.options().getDebugTokenManager()) {
           writer.println(prefix + "}");
         }
 
@@ -390,7 +390,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       }
 
       if ((data.initMatch[i] != Integer.MAX_VALUE) && (data.initMatch[i] != 0)) {
-        if (Options.getDebugTokenManager()) {
+        if (data.options().getDebugTokenManager()) {
           writer.println("      debugStream.println(\"   Matched the empty string as \" + tokenImage["
               + data.initMatch[i] + "] + \" token.\");");
         }
@@ -403,7 +403,7 @@ public class JavaLexerGenerator extends LexerGenerator {
         writer.println(prefix + "jjmatchedPos = 0;");
       }
 
-      if (Options.getDebugTokenManager()) {
+      if (data.options().getDebugTokenManager()) {
         writer.println("      debugStream.println("
             + (data.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
             + "\"Current character : \" + TokenMgrException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
@@ -420,7 +420,7 @@ public class JavaLexerGenerator extends LexerGenerator {
         }
         writer.println(prefix + "{");
 
-        if (Options.getDebugTokenManager()) {
+        if (data.options().getDebugTokenManager()) {
           writer.println("           debugStream.println(\"   Current character matched as a \" + tokenImage["
               + data.canMatchAnyChar[i] + "] + \" token.\");");
         }
@@ -455,7 +455,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       writer.println(prefix + "   {");
       writer.println(prefix + "      if (jjmatchedPos + 1 < curPos)");
 
-      if (Options.getDebugTokenManager()) {
+      if (data.options().getDebugTokenManager()) {
         writer.println(prefix + "      {");
         writer.println(prefix + "         debugStream.println("
             + "\"   Putting back \" + (curPos - jjmatchedPos - 1) + \" characters into the input stream.\");");
@@ -463,11 +463,11 @@ public class JavaLexerGenerator extends LexerGenerator {
 
       writer.println(prefix + "         input_stream.backup(curPos - jjmatchedPos - 1);");
 
-      if (Options.getDebugTokenManager()) {
+      if (data.options().getDebugTokenManager()) {
         writer.println(prefix + "      }");
       }
 
-      if (Options.getDebugTokenManager()) {
+      if (data.options().getDebugTokenManager()) {
         writer.println("    debugStream.println(" + "\"****** FOUND A \" + tokenImage[jjmatchedKind] + \" MATCH "
             + "(\" + TokenMgrException.addEscapes(new String(input_stream.GetSuffix(jjmatchedPos + 1))) + "
             + "\") ******\\n\");");
@@ -564,7 +564,7 @@ public class JavaLexerGenerator extends LexerGenerator {
           writer.println(prefix + "      try {");
           writer.println(prefix + "         curChar = input_stream.readChar();");
 
-          if (Options.getDebugTokenManager()) {
+          if (data.options().getDebugTokenManager()) {
             writer.println("   debugStream.println("
                 + (data.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
                 + "\"Current character : \" + "
@@ -923,7 +923,7 @@ public class JavaLexerGenerator extends LexerGenerator {
     writer.println("   jjmatchedKind = kind;");
     writer.println("   jjmatchedPos = pos;");
 
-    if (Options.getDebugTokenManager()) {
+    if (data.global.options().getDebugTokenManager()) {
       writer.println("   debugStream.println(\"   No more string literal token matches are possible.\");");
       writer.println("   debugStream.println(\"   Currently matched the first \" "
           + "+ (jjmatchedPos + 1) + \" characters as a \" + tokenImage[jjmatchedKind] + \" token.\");");
@@ -932,7 +932,7 @@ public class JavaLexerGenerator extends LexerGenerator {
     writer.println("   try { curChar = input_stream.readChar(); }");
     writer.println("   catch(java.io.IOException e) { return pos + 1; }");
 
-    if (Options.getDebugTokenManager()) {
+    if (data.global.options().getDebugTokenManager()) {
       writer.println("   debugStream.println("
           + (data.global.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
           + "\"Current character : \" + TokenMgrException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
@@ -1091,7 +1091,7 @@ public class JavaLexerGenerator extends LexerGenerator {
     writer.print("private final int jjStopStringLiteralDfa" + data.lexStateSuffix + "(int pos, " + params);
     writer.println("{");
 
-    if (Options.getDebugTokenManager()) {
+    if (data.global.options().getDebugTokenManager()) {
       writer.println("      debugStream.println(\"   No more string literal token matches are possible.\");");
     }
 
@@ -1246,7 +1246,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       writer.println("   jjmatchedKind = kind;");
       writer.println("   jjmatchedPos = pos;");
 
-      if (Options.getDebugTokenManager()) {
+      if (data.global.options().getDebugTokenManager()) {
         writer.println("   debugStream.println(\"   No more string literal token matches are possible.\");");
         writer.println("   debugStream.println(\"   Currently matched the first \" + (jjmatchedPos + 1) + "
             + "\" characters as a \" + tokenImage[jjmatchedKind] + \" token.\");");
@@ -1353,7 +1353,7 @@ public class JavaLexerGenerator extends LexerGenerator {
           }
         }
 
-        if ((i != 0) && Options.getDebugTokenManager()) {
+        if ((i != 0) && data.global.options().getDebugTokenManager()) {
           writer.println(
               "   if (jjmatchedKind != 0 && jjmatchedKind != 0x" + Integer.toHexString(Integer.MAX_VALUE) + ")");
           writer.println("      debugStream.println(\"   Currently matched the first \" + "
@@ -1391,7 +1391,7 @@ public class JavaLexerGenerator extends LexerGenerator {
           }
 
 
-          if ((i != 0) && Options.getDebugTokenManager()) {
+          if ((i != 0) && data.global.options().getDebugTokenManager()) {
             writer.println(
                 "      if (jjmatchedKind != 0 && jjmatchedKind != 0x" + Integer.toHexString(Integer.MAX_VALUE) + ")");
             writer.println("         debugStream.println(\"   Currently matched the first \" + "
@@ -1409,7 +1409,7 @@ public class JavaLexerGenerator extends LexerGenerator {
         writer.println("   }");
       }
 
-      if ((i != 0) && Options.getDebugTokenManager()) {
+      if ((i != 0) && data.global.options().getDebugTokenManager()) {
         writer.println("   debugStream.println("
             + (data.global.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
             + "\"Current character : \" + TokenMgrException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
@@ -1613,7 +1613,7 @@ public class JavaLexerGenerator extends LexerGenerator {
 
       writer.println("      default :");
 
-      if (Options.getDebugTokenManager()) {
+      if (data.global.options().getDebugTokenManager()) {
         writer.println("      debugStream.println(\"   No string literal matches possible.\");");
       }
 
@@ -1740,12 +1740,12 @@ public class JavaLexerGenerator extends LexerGenerator {
     writer.println("   int i = 1;");
     writer.println("   jjstateSet[0] = startState;");
 
-    if (Options.getDebugTokenManager()) {
+    if (data.global.options().getDebugTokenManager()) {
       writer.println("      debugStream.println(\"   Starting NFA to match one of : \" + "
           + "jjKindsForStateVector(curLexState, jjstateSet, 0, 1));");
     }
 
-    if (Options.getDebugTokenManager()) {
+    if (data.global.options().getDebugTokenManager()) {
       writer.println("      debugStream.println("
           + (data.global.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
           + "\"Current character : \" + TokenMgrException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
@@ -1787,7 +1787,7 @@ public class JavaLexerGenerator extends LexerGenerator {
     writer.println("      }");
     writer.println("      ++curPos;");
 
-    if (Options.getDebugTokenManager()) {
+    if (data.global.options().getDebugTokenManager()) {
       writer.println(
           "      if (jjmatchedKind != 0 && jjmatchedKind != 0x" + Integer.toHexString(Integer.MAX_VALUE) + ")");
       writer.println("         debugStream.println("
@@ -1803,7 +1803,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       writer.println("         return curPos;");
     }
 
-    if (Options.getDebugTokenManager()) {
+    if (data.global.options().getDebugTokenManager()) {
       writer.println("      debugStream.println(\"   Possible kinds of longer matches : \" + "
           + "jjKindsForStateVector(curLexState, jjstateSet, startsAt, i));");
     }
@@ -1816,7 +1816,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       writer.println("      catch(java.io.IOException e) { return curPos; }");
     }
 
-    if (Options.getDebugTokenManager()) {
+    if (data.global.options().getDebugTokenManager()) {
       writer.println("      debugStream.println("
           + (data.global.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
           + "\"Current character : \" + TokenMgrException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "

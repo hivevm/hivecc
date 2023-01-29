@@ -8,14 +8,14 @@ import java.util.List;
 
 public class ASTNodeDescriptor extends JJTreeNode {
 
-  ASTNodeDescriptor(int id) {
-    super(id);
+  public ASTNodeDescriptor(JJTreeParser p, int id) {
+    super(p, id);
   }
 
   private boolean faked = false;
 
-  static ASTNodeDescriptor indefinite(String s) {
-    ASTNodeDescriptor nd = new ASTNodeDescriptor(JJTreeParserTreeConstants.JJTNODEDESCRIPTOR);
+  static ASTNodeDescriptor indefinite(JJTreeParser p, String s) {
+    ASTNodeDescriptor nd = new ASTNodeDescriptor(p, JJTreeParserTreeConstants.JJTNODEDESCRIPTOR);
     nd.name = s;
     nd.setNodeIdValue();
     nd.faked = true;
@@ -80,7 +80,7 @@ public class ASTNodeDescriptor extends JJTreeNode {
   }
 
   public String getNodeType() {
-    return JJTreeOptions.getMulti() ? JJTreeOptions.getNodePrefix() + this.name : "Node";
+    return jjtOptions().getMulti() ? jjtOptions().getNodePrefix() + this.name : "Node";
   }
 
 

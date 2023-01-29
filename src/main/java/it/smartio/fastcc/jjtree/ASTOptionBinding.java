@@ -4,8 +4,8 @@ package it.smartio.fastcc.jjtree;
 
 class ASTOptionBinding extends JJTreeNode {
 
-  ASTOptionBinding(int id) {
-    super(id);
+  public ASTOptionBinding(JJTreeParser p, int id) {
+    super(p, id);
   }
 
   private boolean suppressed = false;

@@ -14,14 +14,15 @@ public class FastCCInterpreter {
 
   public static void main(String[] args) throws Exception {
     JavaCCErrors.reInit();
-    Options.init();
+    
+    Options options = new Options();
 
     for (int arg = 0; arg < (args.length - 2); arg++) {
-      if (!Options.isOption(args[arg])) {
+      if (!options.isOption(args[arg])) {
         System.out.println("Argument \"" + args[arg] + "\" must be an option setting.");
         System.exit(1);
       }
-      Options.setCmdLineOption(args[arg]);
+      options.setCmdLineOption(args[arg]);
     }
 
     try {

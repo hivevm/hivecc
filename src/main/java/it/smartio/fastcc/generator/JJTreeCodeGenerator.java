@@ -3,15 +3,6 @@
 
 package it.smartio.fastcc.generator;
 
-import it.smartio.fastcc.jjtree.ASTBNFNonTerminal;
-import it.smartio.fastcc.jjtree.ASTBNFOneOrMore;
-import it.smartio.fastcc.jjtree.ASTBNFSequence;
-import it.smartio.fastcc.jjtree.ASTBNFTryBlock;
-import it.smartio.fastcc.jjtree.ASTBNFZeroOrMore;
-import it.smartio.fastcc.jjtree.ASTBNFZeroOrOne;
-import it.smartio.fastcc.jjtree.ASTGrammar;
-import it.smartio.fastcc.jjtree.Node;
-
 import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -19,17 +10,39 @@ import java.util.Hashtable;
 import it.smartio.fastcc.jjtree.ASTBNFAction;
 import it.smartio.fastcc.jjtree.ASTBNFDeclaration;
 import it.smartio.fastcc.jjtree.ASTBNFNodeScope;
+import it.smartio.fastcc.jjtree.ASTBNFNonTerminal;
+import it.smartio.fastcc.jjtree.ASTBNFOneOrMore;
+import it.smartio.fastcc.jjtree.ASTBNFSequence;
+import it.smartio.fastcc.jjtree.ASTBNFTryBlock;
+import it.smartio.fastcc.jjtree.ASTBNFZeroOrMore;
+import it.smartio.fastcc.jjtree.ASTBNFZeroOrOne;
+import it.smartio.fastcc.jjtree.ASTCompilationUnit;
 import it.smartio.fastcc.jjtree.ASTExpansionNodeScope;
+import it.smartio.fastcc.jjtree.ASTGrammar;
 import it.smartio.fastcc.jjtree.ASTNodeDescriptor;
 import it.smartio.fastcc.jjtree.ASTProduction;
 import it.smartio.fastcc.jjtree.JJTreeGlobals;
 import it.smartio.fastcc.jjtree.JJTreeNode;
+import it.smartio.fastcc.jjtree.JJTreeOptions;
 import it.smartio.fastcc.jjtree.JJTreeParserDefaultVisitor;
+import it.smartio.fastcc.jjtree.Node;
 import it.smartio.fastcc.jjtree.NodeScope;
 import it.smartio.fastcc.jjtree.Token;
 import it.smartio.fastcc.utils.Encoding;
 
 public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
+
+  protected String getPointer() {
+    return ".";
+  }
+
+  protected String getBoolean() {
+    return "boolean";
+  }
+
+  protected String getTryFinally() {
+    return "";
+  }
 
   @Override
   public final Object defaultVisit(Node node, Object data) {
@@ -79,12 +92,26 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
       }
       if (needClose) {
         JJTreeCodeGenerator.openJJTreeComment(io, null);
-        insertCloseNodeAction(ns, io, getIndentation(node));
+        insertCloseNodeAction(ns, io, getIndentation(node), node.jjtOptions());
         JJTreeCodeGenerator.closeJJTreeComment(io);
       }
     }
 
     return handleJJTreeNode((JJTreeNode) node, io);
+  }
+
+  @Override
+  public Object visit(ASTCompilationUnit node, Object data) {
+    PrintWriter io = (PrintWriter) data;
+    Token t = node.getFirstToken();
+
+    while (true) {
+      print(t, io, node);
+      if (t == node.getLastToken()) {
+        return null;
+      }
+      t = t.next;
+    }
   }
 
   @Override
@@ -101,7 +128,7 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
       }
 
       JJTreeCodeGenerator.openJJTreeComment(io, node.node_scope.getNodeDescriptorText());
-      insertOpenNodeCode(node.node_scope, io, indent);
+      insertOpenNodeCode(node.node_scope, io, indent, node.jjtOptions() );
       JJTreeCodeGenerator.closeJJTreeComment(io);
     }
 
@@ -127,7 +154,7 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
     PrintWriter io = (PrintWriter) data;
     String indent = getIndentation(node.expansion_unit);
     JJTreeCodeGenerator.openJJTreeComment(io, node.node_scope.getNodeDescriptor().getDescriptor());
-    insertOpenNodeAction(node.node_scope, io, indent);
+    insertOpenNodeAction(node.node_scope, io, indent, node.jjtOptions());
     tryExpansionUnit(node.node_scope, io, indent, node.expansion_unit);
 
     // Print the "whiteOut" equivalent of the Node descriptor to preserve
@@ -171,8 +198,7 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
     return null;
   }
 
-
-  protected static void openJJTreeComment(PrintWriter io, String arg) {
+  private static void openJJTreeComment(PrintWriter io, String arg) {
     io.print("\n/*@begin(jjtree)");
     if (arg != null) {
       io.print(" " + arg + " ");
@@ -180,48 +206,25 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
     io.println("*/");
   }
 
-  protected static void closeJJTreeComment(PrintWriter io) {
+  private static void closeJJTreeComment(PrintWriter io) {
     io.print("/*@end*/");
   }
 
   private final String getIndentation(JJTreeNode n) {
-    return getIndentation(n, 0);
-  }
-
-  private final String getIndentation(JJTreeNode n, int offset) {
     String s = "";
-    for (int i = offset + 1; i < n.getFirstToken().beginColumn; ++i) {
+    for (int i = 1; i < n.getFirstToken().beginColumn; ++i) {
       s += " ";
     }
     return s;
   }
-
-  protected final void print(Token t, PrintWriter io, String in, String out) {
-    Token tt = t.specialToken;
-    if (tt != null) {
-      while (tt.specialToken != null) {
-        tt = tt.specialToken;
-      }
-      while (tt != null) {
-        io.print(Encoding.escapeUnicode(tt.image));
-        tt = tt.next;
-      }
-    }
-    String i = t.image;
-    if ((in != null) && i.equals(in)) {
-      i = out;
-    }
-    io.print(Encoding.escapeUnicode(i));
-  }
-
-
+  
   /*
    * Indicates whether the token should be replaced by white space or replaced with the actual node
    * variable.
    */
   private boolean whitingOut = false;
 
-  protected void print(Token t, PrintWriter io, JJTreeNode node) {
+  private void print(Token t, PrintWriter io, JJTreeNode node) {
     Token tt = t.specialToken;
     if (tt != null) {
       while (tt.specialToken != null) {
@@ -287,30 +290,43 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
   }
 
 
-  private final void insertOpenNodeAction(NodeScope ns, PrintWriter io, String indent) {
+  private final void insertOpenNodeAction(NodeScope ns, PrintWriter io, String indent, JJTreeOptions options) {
     io.println(indent + "{");
-    insertOpenNodeCode(ns, io, indent + "  ");
+    insertOpenNodeCode(ns, io, indent + "  ", options);
     io.println(indent + "}");
   }
 
 
-  private final void insertCloseNodeAction(NodeScope ns, PrintWriter io, String indent) {
+  private final void insertCloseNodeAction(NodeScope ns, PrintWriter io, String indent, JJTreeOptions options) {
     io.println(indent + "{");
-    insertCloseNodeCode(ns, io, indent + "  ", false);
+    insertCloseNodeCode(ns, io, indent + "  ", false, options);
     io.println(indent + "}");
   }
 
-  protected abstract void insertOpenNodeCode(NodeScope ns, PrintWriter io, String indent);
+  protected abstract void insertOpenNodeCode(NodeScope ns, PrintWriter io, String indent, JJTreeOptions options);
 
-  protected abstract void insertCloseNodeCode(NodeScope ns, PrintWriter io, String indent, boolean isFinal);
+  private final void insertCloseNodeCode(NodeScope ns, PrintWriter io, String indent, boolean isFinal, JJTreeOptions options) {
+    String closeNode = ns.node_descriptor.closeNode(ns.nodeVar);
+    io.println(indent + closeNode);
+    if (ns.usesCloseNodeVar() && !isFinal) {
+      io.println(indent + ns.closedVar + " = false;");
+    }
+    if (options.getNodeScopeHook()) {
+      io.println(indent + "if (jjtree.nodeCreated()) {");
+      io.println(indent + " jjtreeCloseNodeScope(" + ns.nodeVar + ");");
+      io.println(indent + "}");
+    }
+
+    if (options.getTrackTokens()) {
+      io.println(indent + ns.nodeVar + getPointer() + "jjtSetLastToken(getToken(0));");
+    }
+  }
 
   protected abstract void insertCatchBlocks(NodeScope ns, PrintWriter io, Enumeration<String> thrown_names,
       String indent);
 
-  protected abstract void tryTokenSequence(NodeScope ns, PrintWriter io, String indent, Token first, Token last);
 
-
-  protected static void findThrown(NodeScope ns, Hashtable<String, String> thrown_set, JJTreeNode expansion_unit) {
+  private static void findThrown(NodeScope ns, Hashtable<String, String> thrown_set, JJTreeNode expansion_unit) {
     if (expansion_unit instanceof ASTBNFNonTerminal) {
       /*
        * Should really make the nonterminal explicitly maintain its name.
@@ -331,8 +347,28 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
     }
   }
 
+  private void tryExpansionUnit(NodeScope ns, PrintWriter io, String indent, JJTreeNode expansion_unit) {
+    io.println(indent + "try {");
+    JJTreeCodeGenerator.closeJJTreeComment(io);
 
-  protected abstract void tryExpansionUnit(NodeScope ns, PrintWriter io, String indent, JJTreeNode expansion_unit);
+    expansion_unit.jjtAccept(this, io);
 
-  public abstract void generateJJTree();
+    JJTreeCodeGenerator.openJJTreeComment(io, null);
+
+    Hashtable<String, String> thrown_set = new Hashtable<>();
+    JJTreeCodeGenerator.findThrown(ns, thrown_set, expansion_unit);
+    Enumeration<String> thrown_names = thrown_set.elements();
+    insertCatchBlocks(ns, io, thrown_names, indent);
+
+    io.println(indent + "} " + getTryFinally() + "{");
+    if (ns.usesCloseNodeVar()) {
+      io.println(indent + "  if (" + ns.closedVar + ") {");
+      insertCloseNodeCode(ns, io, indent + "    ", true, expansion_unit.jjtOptions());
+      io.println(indent + "  }");
+    }
+    io.println(indent + "}");
+    JJTreeCodeGenerator.closeJJTreeComment(io);
+  }
+
+  public abstract void generateJJTree(JJTreeOptions options);
 }

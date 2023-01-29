@@ -1,17 +1,12 @@
+package {{PACKAGE}};
+
 public class {{NODE_TYPE}} extends {{NODE_CLASS:-Node}} {
-  public {{NODE_TYPE}}(int id) {
-    super(id);
-  }
 
   public {{NODE_TYPE}}({{PARSER_NAME}} p, int id) {
     super(p, id);
   }
 
 @if NODE_FACTORY
-  public static Node jjtCreate(int id) {
-    return new {{NODE_TYPE}}(id);
-  }
-
   public static Node jjtCreate({{PARSER_NAME}} p, int id) {
     return new {{NODE_TYPE}}(p, id);
   }

@@ -41,11 +41,12 @@ public class SourceWriter extends PrintWriter {
    * Constructs an instance of {@link SourceWriter}.
    *
    * @param name
+   * @param options
    */
-  public SourceWriter(String name) {
+  public SourceWriter(String name, Options options) {
     super(new StringWriter());
     this.name = name;
-    this.options = DigestOptions.get();
+    this.options = DigestOptions.get(options);
   }
 
   /**
@@ -106,10 +107,9 @@ public class SourceWriter extends PrintWriter {
    * Save {@link SourceWriter} to output path.
    *
    * @param path
-   * @param options
    */
   public void saveOutput(File path) {
-    File file = new File(Options.getOutputDirectory(), getName() + ".java");
+    File file = new File(path, getName() + ".java");
     try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, getOptions())) {
       writer.print(toString());
     } catch (IOException e) {

@@ -33,8 +33,8 @@ import java.util.Vector;
 
 public class ASTProduction extends JJTreeNode {
 
-  ASTProduction(int id) {
-    super(id);
+  public ASTProduction(JJTreeParser p, int id) {
+    super(p, id);
   }
 
   String                                      name;

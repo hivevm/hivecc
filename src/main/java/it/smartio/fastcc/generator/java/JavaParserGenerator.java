@@ -81,10 +81,10 @@ public class JavaParserGenerator extends ParserGenerator {
       PrintWriter pp = new PrintWriter(writer);
       for (NormalProduction p : data.getProductions()) {
         if (p instanceof CodeProduction) {
-          genCodeProduction((CodeProduction) p, pp);
+          genCodeProduction((CodeProduction) p, pp, data.options());
         } else {
           String code = generatePhase1Expansion(data, p.getExpansion());
-          generatePhase1((BNFProduction) p, code, pp);
+          generatePhase1((BNFProduction) p, code, pp, data.options());
         }
       }
       return writer.toString();
@@ -93,7 +93,7 @@ public class JavaParserGenerator extends ParserGenerator {
       StringWriter writer = new StringWriter();
       PrintWriter p = new PrintWriter(writer);
       for (Lookahead la : data.getLoakaheads()) {
-        generatePhase2(la.getLaExpansion(), p);
+        generatePhase2(la.getLaExpansion(), p, data.options());
       }
       return writer.toString();
     };
@@ -109,19 +109,19 @@ public class JavaParserGenerator extends ParserGenerator {
       StringWriter writer = new StringWriter();
       PrintWriter p = new PrintWriter(writer);
 
-      p.println("package " + Options.getJavaPackage() + ";");
+      p.println("package " + data.options().getJavaPackage() + ";");
       p.println();
-      if (!Options.getJavaImports().isEmpty()) {
-        for (String im : Options.getJavaImports().split(",")) {
+      if (!data.options().getJavaImports().isEmpty()) {
+        for (String im : data.options().getJavaImports().split(",")) {
           p.println("import " + im + ";");
         }
       }
 
       p.print("public class ");
       p.print(data.getParserName());
-      if (!Options.getJavaExtends().isEmpty()) {
+      if (!data.options().getJavaExtends().isEmpty()) {
         p.print(" extends ");
-        p.print(Options.getJavaExtends());
+        p.print(data.options().getJavaExtends());
       }
 
       p.print(" implements ");
@@ -140,7 +140,7 @@ public class JavaParserGenerator extends ParserGenerator {
       return writer.toString();
     };
 
-    SourceWriter writer = new SourceWriter(data.getParserName());
+    SourceWriter writer = new SourceWriter(data.getParserName(), data.options());
 
     writer.setOption("LOOKAHEAD_NEEDED", data.isLookAheadNeeded());
     writer.setOption("IS_GENERATED", data.isGenerated());
@@ -157,7 +157,7 @@ public class JavaParserGenerator extends ParserGenerator {
     writer.setOption("preInsertion", preInsertion);
 
     writer.writeTemplate("/templates/Parser.template");
-    saveOutput(writer);
+    saveOutput(writer, data.options().getOutputDirectory());
   }
 
   /**
@@ -167,16 +167,16 @@ public class JavaParserGenerator extends ParserGenerator {
    * The characters '\u0003' and '\u0004' are used to delineate portions of text where '\n's should
    * not be followed by an indentation.
    */
-  private void generatePhase1(BNFProduction p, String code, PrintWriter writer) {
+  private void generatePhase1(BNFProduction p, String code, PrintWriter writer, Options options) {
     Token t = p.getReturnTypeTokens().get(0);
 
     boolean voidReturn = (t.kind == JavaCCParserConstants.VOID);
-    genHeaderMethod(p, t, writer);
+    genHeaderMethod(p, t, writer, options);
 
     writer.print(" {");
 
-    if (Options.getDepthLimit() > 0) {
-      writer.println("if(++jj_depth > " + Options.getDepthLimit() + ") {");
+    if (options.getDepthLimit() > 0) {
+      writer.println("if(++jj_depth > " + options.getDepthLimit() + ") {");
       writer.println("  jj_consume_token(-1);");
       writer.println("  throw new ParseException();");
       writer.println("}");
@@ -184,7 +184,7 @@ public class JavaParserGenerator extends ParserGenerator {
     }
 
     int indentamt = 4;
-    if (Options.getDebugParser()) {
+    if (options.getDebugParser()) {
       writer.println();
       writer.println("    trace_call(\"" + Encoding.escapeUnicode(p.getLhs()) + "\");");
       writer.println("    try {");
@@ -235,12 +235,12 @@ public class JavaParserGenerator extends ParserGenerator {
     if (p.isJumpPatched() && !voidReturn) {
       writer.println("    throw new " + "RuntimeException" + "(\"Missing return statement in function\");");
     }
-    if (Options.getDebugParser()) {
+    if (options.getDebugParser()) {
       writer.println("    } finally {");
       writer.println("      trace_return(\"" + Encoding.escapeUnicode(p.getLhs()) + "\");");
       writer.println("    }");
     }
-    if (Options.getDepthLimit() > 0) {
+    if (options.getDepthLimit() > 0) {
       writer.println(" } finally {");
       writer.println("   --jj_depth;");
       writer.println(" }");
@@ -477,7 +477,7 @@ public class JavaParserGenerator extends ParserGenerator {
               break;
             case OPENSWITCH:
               retval += "\u0002\n" + "default:" + "\u0001";
-              if (Options.getErrorReporting()) {
+              if (data.options().getErrorReporting()) {
                 retval += "\njj_la1[" + data.getIndex(la) + "] = jj_gen;";
               }
               retval += "\n" + "if (";
@@ -517,7 +517,7 @@ public class JavaParserGenerator extends ParserGenerator {
               //$FALL-THROUGH$ Control flows through to next case.
             case NOOPENSTM:
               retval += "\n" + "switch (";
-              if (Options.getCacheTokens()) {
+              if (data.options().getCacheTokens()) {
                 retval += "jj_nt.kind";
                 retval += ") {\u0001";
               } else {
@@ -571,7 +571,7 @@ public class JavaParserGenerator extends ParserGenerator {
             break;
           case OPENSWITCH:
             retval += "\u0002\n" + "default:" + "\u0001";
-            if (Options.getErrorReporting()) {
+            if (data.options().getErrorReporting()) {
               retval += "\njj_la1[" + data.getIndex(la) + "] = jj_gen;";
             }
             retval += "\n" + "if (";
@@ -612,7 +612,7 @@ public class JavaParserGenerator extends ParserGenerator {
         break;
       case OPENSWITCH:
         retval += "\u0002\n" + "default:" + "\u0001";
-        if (Options.getErrorReporting()) {
+        if (data.options().getErrorReporting()) {
           retval += "\njj_la1[" + data.getIndex(la) + "] = jj_gen;";
         }
         retval += actions[index];
@@ -623,7 +623,7 @@ public class JavaParserGenerator extends ParserGenerator {
     return retval;
   }
 
-  private final void genHeaderMethod(BNFProduction p, Token t, PrintWriter writer) {
+  private final void genHeaderMethod(BNFProduction p, Token t, PrintWriter writer, Options options) {
     genTokenSetup(t);
     writer.print(getLeadingComments(t));
     writer.print("  public final ");
@@ -654,7 +654,7 @@ public class JavaParserGenerator extends ParserGenerator {
     }
   }
 
-  private final void genCodeProduction(CodeProduction jp, PrintWriter writer) {
+  private final void genCodeProduction(CodeProduction jp, PrintWriter writer, Options options) {
     Token t = jp.getReturnTypeTokens().get(0);
     genTokenSetup(t);
     writer.print(getLeadingComments(t));
@@ -685,7 +685,7 @@ public class JavaParserGenerator extends ParserGenerator {
       }
     }
     writer.print(" {");
-    if (Options.getDebugParser()) {
+    if (options.getDebugParser()) {
       writer.println();
       writer.println("    trace_call(\"" + Encoding.escapeUnicode(jp.getLhs()) + "\");");
       writer.print("    try {");
@@ -703,7 +703,7 @@ public class JavaParserGenerator extends ParserGenerator {
       }
     }
     writer.println();
-    if (Options.getDebugParser()) {
+    if (options.getDebugParser()) {
       writer.println("    } finally {");
       writer.println("      trace_return(\"" + Encoding.escapeUnicode(jp.getLhs()) + "\");");
       writer.println("    }");
@@ -712,18 +712,18 @@ public class JavaParserGenerator extends ParserGenerator {
     writer.println();
   }
 
-  private void generatePhase2(Expansion e, PrintWriter writer) {
+  private void generatePhase2(Expansion e, PrintWriter writer, Options options) {
     writer.println("  private boolean jj_2" + e.internal_name + "(int xla) {");
     writer.println("    jj_la = xla;");
     writer.println("    jj_lastpos = jj_scanpos = token;");
 
-    String ret_suffix = (Options.getDepthLimit() > 0) ? " && !jj_depth_error" : "";
+    String ret_suffix = (options.getDepthLimit() > 0) ? " && !jj_depth_error" : "";
 
     writer.println("    try {");
     writer.println("      return (!jj_3" + e.internal_name + "()" + ret_suffix + ");");
     writer.println("    } catch (LookaheadSuccess ls) {");
     writer.println("      return true;");
-    if (Options.getErrorReporting()) {
+    if (options.getErrorReporting()) {
       writer.println("    } finally {");
       writer.println("      jj_save(" + (Integer.parseInt(e.internal_name.substring(1)) - 1) + ", xla);");
     }
@@ -739,8 +739,8 @@ public class JavaParserGenerator extends ParserGenerator {
 
     writer.println("  private boolean jj_3" + e.internal_name + "() {");
 
-    if (Options.getDepthLimit() > 0) {
-      writer.println("if(++jj_depth > " + Options.getDepthLimit() + ") {");
+    if (data.options().getDepthLimit() > 0) {
+      writer.println("if(++jj_depth > " + data.options().getDepthLimit() + ") {");
       writer.println("  jj_consume_token(-1);");
       writer.println("  throw new ParseException();");
       writer.println("}");
@@ -749,9 +749,9 @@ public class JavaParserGenerator extends ParserGenerator {
 
     boolean xsp_declared = false;
     Expansion jj3_expansion = null;
-    if (Options.getDebugLookahead() && (e.parent instanceof NormalProduction)) {
+    if (data.options().getDebugLookahead() && (e.parent instanceof NormalProduction)) {
       writer.print("    ");
-      if (Options.getErrorReporting()) {
+      if (data.options().getErrorReporting()) {
         writer.print("if (!jj_rescan) ");
       }
       writer.println(
@@ -761,8 +761,8 @@ public class JavaParserGenerator extends ParserGenerator {
 
     buildPhase3RoutineRecursive(data, jj3_expansion, xsp_declared, e, count, writer);
 
-    writer.println("    " + genReturn(jj3_expansion, false));
-    if (Options.getDepthLimit() > 0) {
+    writer.println("    " + genReturn(jj3_expansion, false, data.options()));
+    if (data.options().getDepthLimit() > 0) {
       writer.println(" } finally {");
       writer.println("   --jj_depth;");
       writer.println(" }");
@@ -787,7 +787,7 @@ public class JavaParserGenerator extends ParserGenerator {
         writer.print(data.getParserName() + "Constants." + e_nrw.label);
       }
       writer.println("))");
-      writer.println("      " + genReturn(jj3_expansion, true));
+      writer.println("      " + genReturn(jj3_expansion, true, data.options()));
     } else if (e instanceof NonTerminal) {
       // All expansions of non-terminals have the "name" fields set. So
       // there's no need to check it below for "e_nrw" and "ntexp". In
@@ -797,7 +797,7 @@ public class JavaParserGenerator extends ParserGenerator {
       NormalProduction ntprod = data.getProduction(e_nrw.getName());
       Expansion ntexp = ntprod.getExpansion();
       writer.println("    if (" + genjj_3Call(ntexp) + ")");
-      writer.println("      " + genReturn(jj3_expansion, true));
+      writer.println("      " + genReturn(jj3_expansion, true, data.options()));
     } else if (e instanceof Choice) {
       Sequence nested_seq;
       Choice e_nrw = (Choice) e;
@@ -834,7 +834,7 @@ public class JavaParserGenerator extends ParserGenerator {
           writer.println("      jj_scanpos = xsp;");
         } else {
           writer.println(genjj_3Call(nested_seq) + ")");
-          writer.println("      " + genReturn(jj3_expansion, true));
+          writer.println("      " + genReturn(jj3_expansion, true, data.options()));
         }
       }
       for (int i = 1; i < e_nrw.getChoices().size(); i++) {
@@ -863,7 +863,7 @@ public class JavaParserGenerator extends ParserGenerator {
       }
       OneOrMore e_nrw = (OneOrMore) e;
       Expansion nested_e = e_nrw.expansion;
-      writer.println("    if (" + genjj_3Call(nested_e) + ") " + genReturn(jj3_expansion, true));
+      writer.println("    if (" + genjj_3Call(nested_e) + ") " + genReturn(jj3_expansion, true, data.options()));
       writer.println("    while (true) {");
       writer.println("      xsp = jj_scanpos;");
       writer.println("      if (" + genjj_3Call(nested_e) + ") { jj_scanpos = xsp; break; }");
@@ -893,12 +893,12 @@ public class JavaParserGenerator extends ParserGenerator {
   }
 
 
-  private String genReturn(Expansion expansion, boolean value) {
+  private String genReturn(Expansion expansion, boolean value, Options options) {
     String retval = value ? "true" : "false";
-    if (Options.getDebugLookahead() && (expansion != null)) {
+    if (options.getDebugLookahead() && (expansion != null)) {
       String tracecode = "trace_return(\"" + Encoding.escapeUnicode(((NormalProduction) expansion.parent).getLhs())
           + "(LOOKAHEAD " + (value ? "FAILED" : "SUCCEEDED") + ")\");";
-      if (Options.getErrorReporting()) {
+      if (options.getErrorReporting()) {
         tracecode = "if (!jj_rescan) " + tracecode;
       }
       return "{ " + tracecode + " return " + retval + "; }";

@@ -30,6 +30,7 @@ import it.smartio.fastcc.generator.java.JavaOtherFilesGenerator;
 import it.smartio.fastcc.generator.java.JavaParserGenerator;
 import it.smartio.fastcc.generator.java.JavaTreeGenerator;
 import it.smartio.fastcc.jjtree.ASTGrammar;
+import it.smartio.fastcc.jjtree.JJTreeOptions;
 
 /**
  * The {@link ParserEngine} class.
@@ -59,9 +60,9 @@ public class ParserEngine {
    * @param node
    * @param writer
    */
-  public void generateJJTree(ASTGrammar node, PrintWriter writer) throws IOException {
+  public void generateJJTree(ASTGrammar node, PrintWriter writer, JJTreeOptions options) throws IOException {
     node.jjtAccept(treeGenerator, writer);
-    treeGenerator.generateJJTree();
+    treeGenerator.generateJJTree(options);
   }
 
   /**

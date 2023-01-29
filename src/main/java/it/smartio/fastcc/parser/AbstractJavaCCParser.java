@@ -25,13 +25,15 @@ package it.smartio.fastcc.parser;
 
 import java.util.List;
 
+import it.smartio.fastcc.JJLanguage;
+
 /**
  * Utilities.
  */
 abstract class AbstractJavaCCParser implements JavaCCParserConstants {
 
-  private JavaCCData  data;
-  private int         nextFreeLexState;
+  private JavaCCData data;
+  private int        nextFreeLexState;
 
   /**
    * This int variable is incremented while parsing local lookaheads. Hence it keeps track of
@@ -39,7 +41,7 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
    * lookaheads are used in syntactic lookahead productions. This is to prevent typos such as
    * leaving out the comma in LOOKAHEAD( foo(), {check()} ).
    */
-  protected int inLocalLA;
+  protected int      inLocalLA;
 
   // Set to true when the parser is within an action.
   protected boolean inAction;
@@ -60,6 +62,13 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
     inLocalLA = 0;
     inAction = false;
     jumpPatched = false;
+  }
+
+  /**
+   * Gets the {@link #options}.
+   */
+  public Options getOptions() {
+    throw new UnsupportedOperationException();
   }
 
   public void initialize(JavaCCData data) {
@@ -280,7 +289,7 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
   }
 
   protected final boolean isJavaLanguage() {
-    return Options.getOutputLanguage().equalsIgnoreCase(Options.OUTPUT_LANGUAGE__JAVA);
+    return getOptions().getOutputLanguage() == JJLanguage.Java;
   }
 
   /*

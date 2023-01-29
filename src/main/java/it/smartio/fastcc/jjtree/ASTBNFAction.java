@@ -4,8 +4,8 @@ package it.smartio.fastcc.jjtree;
 
 public class ASTBNFAction extends JJTreeNode {
 
-  ASTBNFAction(int id) {
-    super(id);
+  public ASTBNFAction(JJTreeParser p, int id) {
+    super(p, id);
   }
 
   public Node getScopingParent(NodeScope ns) {

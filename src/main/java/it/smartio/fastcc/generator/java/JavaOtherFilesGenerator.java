@@ -26,8 +26,6 @@
 
 package it.smartio.fastcc.generator.java;
 
-import it.smartio.fastcc.parser.ParseException;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -37,7 +35,7 @@ import it.smartio.fastcc.JavaCCRequest;
 import it.smartio.fastcc.generator.LexerData;
 import it.smartio.fastcc.generator.OtherFilesGenerator;
 import it.smartio.fastcc.parser.JavaCCErrors;
-import it.smartio.fastcc.parser.Options;
+import it.smartio.fastcc.parser.ParseException;
 import it.smartio.fastcc.parser.RStringLiteral;
 import it.smartio.fastcc.parser.RegExprSpec;
 import it.smartio.fastcc.parser.RegularExpression;
@@ -58,19 +56,19 @@ public class JavaOtherFilesGenerator implements OtherFilesGenerator {
       throw new ParseException();
     }
 
-    JavaOtherFilesGenerator.generateFile(request, "Provider.java", "/templates/Provider.template");
-    JavaOtherFilesGenerator.generateFile(request, "StringProvider.java", "/templates/StringProvider.template");
-    JavaOtherFilesGenerator.generateFile(request, "StreamProvider.java", "/templates/StreamProvider.template");
+    JavaOtherFilesGenerator.generateFile(data, request, "Provider.java", "/templates/Provider.template");
+    JavaOtherFilesGenerator.generateFile(data, request, "StringProvider.java", "/templates/StringProvider.template");
+    JavaOtherFilesGenerator.generateFile(data, request, "StreamProvider.java", "/templates/StreamProvider.template");
 
-    JavaOtherFilesGenerator.generateFile(request, "JavaCharStream.java", "/templates/JavaCharStream.template");
-    JavaOtherFilesGenerator.generateFile(request, "ParseException.java", "/templates/ParseException.template");
+    JavaOtherFilesGenerator.generateFile(data, request, "JavaCharStream.java", "/templates/JavaCharStream.template");
+    JavaOtherFilesGenerator.generateFile(data, request, "ParseException.java", "/templates/ParseException.template");
 
-    JavaOtherFilesGenerator.generateFile(request, "Token.java", "/templates/Token.template");
-    JavaOtherFilesGenerator.generateFile(request, "TokenMgrException.java", "/templates/TokenMgrError.template");
+    JavaOtherFilesGenerator.generateFile(data, request, "Token.java", "/templates/Token.template");
+    JavaOtherFilesGenerator.generateFile(data, request, "TokenMgrException.java", "/templates/TokenMgrError.template");
 
-    File file = new File(Options.getOutputDirectory(), request.getParserName() + "Constants.java");
-    try (DigestWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get())) {
-      ostr.println("package " + Options.getJavaPackage() + ";");
+    File file = new File(data.options().getOutputDirectory(), request.getParserName() + "Constants.java");
+    try (DigestWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get(data.options()))) {
+      ostr.println("package " + data.options().getJavaPackage() + ";");
       ostr.println();
       ostr.println("/**");
       ostr.println(" * Token literal values and constants.");
@@ -134,11 +132,12 @@ public class JavaOtherFilesGenerator implements OtherFilesGenerator {
    * @param filename
    * @param template
    */
-  private static void generateFile(JavaCCRequest request, String filename, String template) throws Error {
-    File file = new File(Options.getOutputDirectory(), filename);
+  private static void generateFile(LexerData data, JavaCCRequest request, String filename, String template)
+      throws Error {
+    File file = new File(data.options().getOutputDirectory(), filename);
 
-    try (DigestWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get())) {
-      ostr.println("package " + Options.getJavaPackage() + ";");
+    try (DigestWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get(data.options()))) {
+      ostr.println("package " + data.options().getJavaPackage() + ";");
       ostr.println();
       Template.of(template, ostr.options()).write(ostr);
     } catch (IOException e) {

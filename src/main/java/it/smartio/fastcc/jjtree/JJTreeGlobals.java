@@ -38,8 +38,6 @@ public class JJTreeGlobals {
 
   public static void initialize() {
     JJTreeGlobals.parserName = null;
-    JJTreeGlobals.parserImplements = null;
-    JJTreeGlobals.parserClassBodyStart = null;
     JJTreeGlobals.productions = new HashMap<>();
 
     JJTreeGlobals.jjtreeOptions = new HashSet<>();
@@ -77,18 +75,6 @@ public class JJTreeGlobals {
    * Use this like className.
    **/
   public static String                     parserName;
-
-  /**
-   * The <code>implements</code> token of the parser class. If the parser doesn't have one then it
-   * is the first "{" of the parser class body.
-   **/
-  public static Token                      parserImplements;
-
-  /**
-   * The first token of the parser class body (the <code>{</code>). The JJTree state is inserted
-   * after this token.
-   **/
-  public static Token                      parserClassBodyStart;
 
   /**
    * This is mapping from production names to ASTProduction objects.

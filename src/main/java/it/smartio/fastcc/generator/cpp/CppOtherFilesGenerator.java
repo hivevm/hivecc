@@ -26,8 +26,6 @@
 
 package it.smartio.fastcc.generator.cpp;
 
-import it.smartio.fastcc.parser.ParseException;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -41,7 +39,7 @@ import it.smartio.fastcc.JavaCCRequest;
 import it.smartio.fastcc.generator.LexerData;
 import it.smartio.fastcc.generator.OtherFilesGenerator;
 import it.smartio.fastcc.parser.JavaCCErrors;
-import it.smartio.fastcc.parser.Options;
+import it.smartio.fastcc.parser.ParseException;
 import it.smartio.fastcc.parser.RStringLiteral;
 import it.smartio.fastcc.parser.RegExprSpec;
 import it.smartio.fastcc.parser.RegularExpression;
@@ -64,24 +62,24 @@ public class CppOtherFilesGenerator implements OtherFilesGenerator {
       throw new ParseException();
     }
 
-    CppOtherFilesGenerator.generate("JavaCC.h", FastCC.VERSION);
+    CppOtherFilesGenerator.generate("JavaCC.h", FastCC.VERSION, data);
 
-    CppOtherFilesGenerator.generate("Reader.h", FastCC.VERSION);
-    CppOtherFilesGenerator.generate("StringReader.h", FastCC.VERSION);
-    CppOtherFilesGenerator.generate("StringReader.cc", FastCC.VERSION);
+    CppOtherFilesGenerator.generate("Reader.h", FastCC.VERSION, data);
+    CppOtherFilesGenerator.generate("StringReader.h", FastCC.VERSION, data);
+    CppOtherFilesGenerator.generate("StringReader.cc", FastCC.VERSION, data);
 
-    CppOtherFilesGenerator.generate("Token.h", FastCC.VERSION);
-    CppOtherFilesGenerator.generate("Token.cc", FastCC.VERSION);
-    CppOtherFilesGenerator.generate("TokenManager.h", FastCC.VERSION);
-    CppOtherFilesGenerator.generate("TokenManagerError.h", FastCC.VERSION);
-    CppOtherFilesGenerator.generate("TokenManagerError.cc", FastCC.VERSION);
-    CppOtherFilesGenerator.generate("TokenManagerErrorHandler.h", FastCC.VERSION);
-    CppOtherFilesGenerator.generate("TokenManagerErrorHandler.cc", FastCC.VERSION);
+    CppOtherFilesGenerator.generate("Token.h", FastCC.VERSION, data);
+    CppOtherFilesGenerator.generate("Token.cc", FastCC.VERSION, data);
+    CppOtherFilesGenerator.generate("TokenManager.h", FastCC.VERSION, data);
+    CppOtherFilesGenerator.generate("TokenManagerError.h", FastCC.VERSION, data);
+    CppOtherFilesGenerator.generate("TokenManagerError.cc", FastCC.VERSION, data);
+    CppOtherFilesGenerator.generate("TokenManagerErrorHandler.h", FastCC.VERSION, data);
+    CppOtherFilesGenerator.generate("TokenManagerErrorHandler.cc", FastCC.VERSION, data);
 
-    CppOtherFilesGenerator.generate("ParseException.h", FastCC.VERSION);
-    CppOtherFilesGenerator.generate("ParseException.cc", FastCC.VERSION);
-    CppOtherFilesGenerator.generate("ParserErrorHandler.h", FastCC.VERSION);
-    CppOtherFilesGenerator.generate("ParserErrorHandler.cc", FastCC.VERSION);
+    CppOtherFilesGenerator.generate("ParseException.h", FastCC.VERSION, data);
+    CppOtherFilesGenerator.generate("ParseException.cc", FastCC.VERSION, data);
+    CppOtherFilesGenerator.generate("ParserErrorHandler.h", FastCC.VERSION, data);
+    CppOtherFilesGenerator.generate("ParserErrorHandler.cc", FastCC.VERSION, data);
 
     List<RegularExpression> expressions = new ArrayList<RegularExpression>();
     for (TokenProduction tp : request.getTokenProductions()) {
@@ -90,7 +88,7 @@ public class CppOtherFilesGenerator implements OtherFilesGenerator {
       }
     }
 
-    DigestOptions options = DigestOptions.get();
+    DigestOptions options = DigestOptions.get(data.options());
     options.put("stateCount", data.getStateCount());
     options.put("tokenCount", expressions.size() + 1);
     options.put("orderedTokens", request.getOrderedsTokens());
@@ -162,7 +160,7 @@ public class CppOtherFilesGenerator implements OtherFilesGenerator {
       }
     });
 
-    File file = new File(Options.getOutputDirectory(), request.getParserName() + "Constants.h");
+    File file = new File(data.options().getOutputDirectory(), request.getParserName() + "Constants.h");
     try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, options)) {
       Template.of(String.format(TEMPLATE, "ParserConstants.h"), writer.options()).write(writer);
     } catch (IOException e) {
@@ -181,9 +179,9 @@ public class CppOtherFilesGenerator implements OtherFilesGenerator {
     writer.print("0}");
   }
 
-  private static void generate(String name, Version version) {
-    File file = new File(Options.getOutputDirectory(), name);
-    try (DigestWriter writer = DigestWriter.create(file, version, DigestOptions.get())) {
+  private static void generate(String name, Version version, LexerData data) {
+    File file = new File(data.options().getOutputDirectory(), name);
+    try (DigestWriter writer = DigestWriter.create(file, version, DigestOptions.get(data.options()))) {
       Template.of(String.format(TEMPLATE, name), writer.options()).write(writer);
     } catch (IOException e) {
       System.err.println("Failed to create file: " + file + e);

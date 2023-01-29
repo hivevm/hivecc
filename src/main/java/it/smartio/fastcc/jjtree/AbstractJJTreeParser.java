@@ -20,6 +20,22 @@ package it.smartio.fastcc.jjtree;
  */
 abstract class AbstractJJTreeParser {
 
+  protected final void setParserName(String name) {
+    JJTreeGlobals.parserName = name;
+  }
+
+  protected final void addProduction(ASTProduction prod) {
+    JJTreeGlobals.productions.put(prod.name, prod);
+  }
+
+  protected final void normalize() {
+    getOptions().normalize();
+  }
+
+  protected final void setInputFileOption(Token o, Token v, Object value) {
+    getOptions().setInputFileOption(o, v, o.image, value);
+  }
+
   protected abstract Token getNextToken();
 
   protected abstract Token getToken(int index);
@@ -27,6 +43,10 @@ abstract class AbstractJJTreeParser {
   protected void jjtreeOpenNodeScope(Node n) {}
 
   protected void jjtreeCloseNodeScope(Node n) {}
+
+  protected JJTreeOptions getOptions() {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    * Returns true if the next token is not in the FOLLOW list of "expansion". It is used to decide

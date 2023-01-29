@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import it.smartio.fastcc.parser.Options;
 import it.smartio.fastcc.utils.Version;
 
 /**
@@ -106,14 +105,5 @@ public interface FastCC {
       patch = props.getProperty("version.patch", patch);
     }
     return Version.of(Integer.parseInt(major), Integer.parseInt(minor), patch.equals("") ? 0 : Integer.parseInt(patch));
-  }
-
-  public static JJLanguage getLanguage() {
-    String language = Options.getOutputLanguage();
-    if (language.equalsIgnoreCase("java"))
-      return JJLanguage.Java;
-    if (language.equalsIgnoreCase("c++") || language.equalsIgnoreCase("cpp"))
-      return JJLanguage.Cpp;
-    return JJLanguage.Cpp;
   }
 }

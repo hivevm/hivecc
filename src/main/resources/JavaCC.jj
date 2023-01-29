@@ -77,7 +77,7 @@ SKIP :
 
 <AFTER_EGEN> SKIP :
 {
-  <~[]> { restoreBeginLineCol(); } : DEFAULT
+  <~[]> { savepointRelease(); } : DEFAULT
 }
 
 /* COMMENTS */
@@ -87,7 +87,7 @@ MORE :
   "//" : IN_SINGLE_LINE_COMMENT
 | <"/**" ~["/"]> { input_stream.backup(1); } : IN_FORMAL_COMMENT
 | "/*" : IN_MULTI_LINE_COMMENT
-| "/*@begin(jjtree" { saveBeginLineCol(); } : IN_MULTI_LINE_COMMENT
+| "/*@begin(jjtree" { savepoint(); } : IN_MULTI_LINE_COMMENT
 }
 
 
@@ -273,7 +273,7 @@ void javacc_options() :
 {
   [ LOOKAHEAD({ getToken(1).image.equals("options") }) <IDENTIFIER> "{" ( option_binding() )* "}" ]
   {
-    Options.normalize();
+    getOptions().normalize();
   }
 }
 
@@ -295,19 +295,19 @@ void option_binding() :
   (
     int_val = IntegerLiteral()
 	{
-	  Options.setInputFileOption(t, getToken(0), option_name, Integer.valueOf(int_val));
+	  getOptions().setInputFileOption(t, getToken(0), option_name, Integer.valueOf(int_val));
 	}
   | bool_val = BooleanLiteral()
 	{
-	  Options.setInputFileOption(t, getToken(0), option_name, Boolean.valueOf(bool_val));
+	  getOptions().setInputFileOption(t, getToken(0), option_name, Boolean.valueOf(bool_val));
 	}
   | string_val = StringLiteral()
 	{
-	  Options.setInputFileOption(t, getToken(0), option_name, string_val);
+	  getOptions().setInputFileOption(t, getToken(0), option_name, string_val);
 	}
   | string_list = StringList()
     {
-	  Options.setInputFileOption(t, getToken(0), option_name, string_list);
+	  getOptions().setInputFileOption(t, getToken(0), option_name, string_list);
     }
   ) ";"
 }
@@ -550,7 +550,7 @@ void expansion(Container c1) :
 }
 {
   {
-    la.setAmount(Options.getLookahead());
+    la.setAmount(getOptions().getLookahead());
     la.setLaExpansion(null);
     la.setExplicit(false);
   }
@@ -1862,7 +1862,7 @@ void ReturnStatement() :
     // from being dead code.
     // NB: eclipse now detects 'if (true)' as dead code, so use the more complicated
 	// 'if ("" != null)'
-	if (inAction  && (Options.isLegacy()) ) {
+	if (inAction  && (getOptions().isLegacy()) ) {
       t.image = "{if (\"\" != null) return";
       jumpPatched = true;
     }
@@ -1873,7 +1873,7 @@ void ReturnStatement() :
   t=";"
 	{
 	  // Add closing brace for above if statement.
-	  if (inAction && (Options.isLegacy())) {
+	  if (inAction && (getOptions().isLegacy())) {
 	    t.image = ";}";
 	  }
 	}

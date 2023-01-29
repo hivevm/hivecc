@@ -28,13 +28,12 @@ import it.smartio.fastcc.lexer.Nfa;
 import it.smartio.fastcc.lexer.NfaState;
 import it.smartio.fastcc.lexer.NfaVisitor;
 import it.smartio.fastcc.parser.JavaCCErrors;
-import it.smartio.fastcc.parser.Options;
 import it.smartio.fastcc.parser.RChoice;
 import it.smartio.fastcc.parser.RStringLiteral;
+import it.smartio.fastcc.parser.RStringLiteral.KindInfo;
 import it.smartio.fastcc.parser.RegExprSpec;
 import it.smartio.fastcc.parser.RegularExpression;
 import it.smartio.fastcc.parser.TokenProduction;
-import it.smartio.fastcc.parser.RStringLiteral.KindInfo;
 
 /**
  * The {@link LexerBuilder} class.
@@ -126,7 +125,7 @@ class LexerBuilder {
             continue;
           }
 
-          if (!Options.getNoDfa() && (curRE instanceof RStringLiteral) && !((RStringLiteral) curRE).image.equals("")) {
+          if (!data.options().getNoDfa() && (curRE instanceof RStringLiteral) && !((RStringLiteral) curRE).image.equals("")) {
             GenerateDfa(stateData, ((RStringLiteral) curRE), curRE.ordinal);
             if ((i != 0) && !stateData.isMixedState() && (ignoring != ignore)) {
               stateData.hasMixed = true;

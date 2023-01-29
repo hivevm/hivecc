@@ -39,7 +39,6 @@ import it.smartio.fastcc.parser.Lookahead;
 import it.smartio.fastcc.parser.NonTerminal;
 import it.smartio.fastcc.parser.NormalProduction;
 import it.smartio.fastcc.parser.OneOrMore;
-import it.smartio.fastcc.parser.Options;
 import it.smartio.fastcc.parser.ParseException;
 import it.smartio.fastcc.parser.RegularExpression;
 import it.smartio.fastcc.parser.Sequence;
@@ -141,7 +140,7 @@ public abstract class ParserGenerator extends CodeGenerator {
         la = (Lookahead) (((Sequence) nested_e).units.get(0));
       } else {
         la = new Lookahead();
-        la.setAmount(Options.getLookahead());
+        la.setAmount(data.options().getLookahead());
         la.setLaExpansion(nested_e);
       }
 
@@ -158,7 +157,7 @@ public abstract class ParserGenerator extends CodeGenerator {
         la = (Lookahead) (((Sequence) nested_e).units.get(0));
       } else {
         la = new Lookahead();
-        la.setAmount(Options.getLookahead());
+        la.setAmount(data.options().getLookahead());
         la.setLaExpansion(nested_e);
       }
 
@@ -176,7 +175,7 @@ public abstract class ParserGenerator extends CodeGenerator {
         la = (Lookahead) (((Sequence) nested_e).units.get(0));
       } else {
         la = new Lookahead();
-        la.setAmount(Options.getLookahead());
+        la.setAmount(data.options().getLookahead());
         la.setLaExpansion(nested_e);
       }
 

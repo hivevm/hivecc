@@ -40,14 +40,7 @@ class JJDocOptions extends Options {
   /**
    * Limit subclassing to derived classes.
    */
-  protected JJDocOptions() {}
-
-  /**
-   * Initialize the options.
-   */
-  public static void init() {
-    Options.init();
-
+  public JJDocOptions() {
     Options.optionValues.put("ONE_TABLE", Boolean.TRUE);
     Options.optionValues.put("TEXT", Boolean.FALSE);
     Options.optionValues.put("XTEXT", Boolean.FALSE);
@@ -62,8 +55,8 @@ class JJDocOptions extends Options {
    *
    * @return The requested one table value.
    */
-  static boolean getOneTable() {
-    return Options.booleanValue("ONE_TABLE");
+  boolean getOneTable() {
+    return booleanValue("ONE_TABLE");
   }
 
   /**
@@ -71,8 +64,8 @@ class JJDocOptions extends Options {
    *
    * @return The requested CSS value.
    */
-  static String getCSS() {
-    return Options.stringValue("CSS");
+  String getCSS() {
+    return stringValue("CSS");
   }
 
   /**
@@ -80,12 +73,12 @@ class JJDocOptions extends Options {
    *
    * @return The requested text value.
    */
-  static boolean getText() {
-    return Options.booleanValue("TEXT");
+  boolean getText() {
+    return booleanValue("TEXT");
   }
 
-  static boolean getXText() {
-    return Options.booleanValue("XTEXT");
+  boolean getXText() {
+    return booleanValue("XTEXT");
   }
 
   /**
@@ -93,8 +86,8 @@ class JJDocOptions extends Options {
    *
    * @return The requested text value.
    */
-  static boolean getBNF() {
-    return Options.booleanValue("BNF");
+  boolean getBNF() {
+    return booleanValue("BNF");
   }
 
   /**
@@ -102,7 +95,7 @@ class JJDocOptions extends Options {
    *
    * @return The requested output value.
    */
-  static String getOutputFile() {
-    return Options.stringValue("OUTPUT_FILE");
+  String getOutputFile() {
+    return stringValue("OUTPUT_FILE");
   }
 }

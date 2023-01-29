@@ -38,9 +38,10 @@ public class CppWriter extends SourceWriter {
    * Constructs an instance of {@link CppWriter}.
    *
    * @param name
+   * @param options
    */
-  public CppWriter(String name) {
-    super(name);
+  public CppWriter(String name, Options options) {
+    super(name, options);
     this.writer = (StringWriter) out;
     header.append("#ifndef JAVACC_" + name.replace('.', '_').toUpperCase() + "_H\n");
     header.append("#define JAVACC_" + name.replace('.', '_').toUpperCase() + "_H\n");
@@ -56,10 +57,10 @@ public class CppWriter extends SourceWriter {
     StringBuffer buffer = new StringBuffer();
     buffer.append(writer.toString());
 
-    File file = new File(Options.getOutputDirectory(), getName() + ".h");
+    File file = new File(path, getName() + ".h");
     saveOutput(file, header.getBuffer(), getOptions());
 
-    file = new File(Options.getOutputDirectory(), getName() + ".cc");
+    file = new File(path, getName() + ".cc");
     saveOutput(file, buffer, getOptions());
   }
 

@@ -1,30 +1,26 @@
-/* Copyright (c) 2006, Sun Microsystems, Inc.
- * All rights reserved.
+/*
+ * Copyright (c) 2006, Sun Microsystems, Inc. All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * Redistribution and use in source and binary forms, with or without modification, are permitted
+ * provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright notice,
- *       this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Sun Microsystems, Inc. nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
+ * * Redistributions of source code must retain the above copyright notice, this list of conditions
+ * and the following disclaimer. * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the documentation and/or other
+ * materials provided with the distribution. * Neither the name of the Sun Microsystems, Inc. nor
+ * the names of its contributors may be used to endorse or promote products derived from this
+ * software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
- * THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
+ * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package it.smartio.fastcc.jjdoc;
 
 import java.io.PrintWriter;
@@ -39,12 +35,24 @@ import it.smartio.fastcc.parser.TokenProduction;
 
 class BNFGenerator implements Generator {
 
-  private PrintWriter ostr;
-  private boolean     printing = true;
+  private PrintWriter  ostr;
+  private JJDocOptions opts;
+  private boolean      printing = true;
+
+  /**
+   * Constructs an instance of {@link BNFGenerator}.
+   *
+   * @param ostr
+   * @param opts
+   * @param printing
+   */
+  public BNFGenerator(JJDocOptions opts) {
+    this.opts = opts;
+  }
 
   private PrintWriter create_output_stream() {
 
-    if (JJDocOptions.getOutputFile().equals("")) {
+    if (opts.getOutputFile().equals("")) {
       if (JJDocGlobals.input_file.equals("standard input")) {
         return new java.io.PrintWriter(new java.io.OutputStreamWriter(System.out));
       } else {
@@ -62,12 +70,13 @@ class BNFGenerator implements Generator {
         }
       }
     } else {
-      JJDocGlobals.output_file = JJDocOptions.getOutputFile();
+      JJDocGlobals.output_file = opts.getOutputFile();
     }
     try {
       this.ostr = new java.io.PrintWriter(new java.io.FileWriter(JJDocGlobals.output_file));
     } catch (java.io.IOException e) {
-      error("JJDoc: can't open output stream on file " + JJDocGlobals.output_file + ".  Using standard output.");
+      JJDocGlobals
+          .error("JJDoc: can't open output stream on file " + JJDocGlobals.output_file + ".  Using standard output.");
       this.ostr = new java.io.PrintWriter(new java.io.OutputStreamWriter(System.out));
     }
 
@@ -153,26 +162,6 @@ class BNFGenerator implements Generator {
   @Override
   public void reEnd(RegularExpression r) {
     this.printing = true;
-  }
-
-  @Override
-  public void debug(String message) {
-    System.err.println(message);
-  }
-
-  @Override
-  public void info(String message) {
-    System.err.println(message);
-  }
-
-  @Override
-  public void warn(String message) {
-    System.err.println(message);
-  }
-
-  @Override
-  public void error(String message) {
-    System.err.println(message);
   }
 
   @Override

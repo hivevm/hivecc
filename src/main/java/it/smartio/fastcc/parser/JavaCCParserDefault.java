@@ -13,44 +13,26 @@
  * the specific language governing rights and limitations under the License.
  */
 
-package it.smartio.fastcc;
+package it.smartio.fastcc.parser;
 
-import it.smartio.fastcc.parser.Action;
-import it.smartio.fastcc.parser.NormalProduction;
-import it.smartio.fastcc.parser.Options;
-import it.smartio.fastcc.parser.RegularExpression;
-import it.smartio.fastcc.parser.TokenProduction;
 
 /**
- * The {@link JavaCCRequest} class.
+ * The {@link JavaCCParserDefault} class.
  */
-public interface JavaCCRequest {
-  
-  Options options();
+public class JavaCCParserDefault extends JavaCCParser {
 
-  boolean isGenerated();
+  private final Options options;
 
-  String getParserName();
+  public JavaCCParserDefault(Provider stream, Options options) {
+    super(stream);
+    this.options = options;
+  }
 
-  int getStateCount();
-
-  int getTokenCount();
-
-  Action getActionForEof();
-
-  String getNextStateForEof();
-
-  String getNameOfToken(int ordinal);
-
-  Iterable<RegularExpression> getOrderedsTokens();
-
-  Iterable<TokenProduction> getTokenProductions();
-
-  Iterable<NormalProduction> getNormalProductions();
-
-  NormalProduction getProductionTable(String name);
-
-  default boolean ignoreCase() {
-    return options().getIgnoreCase();
+  /**
+   * Gets the {@link #options}.
+   */
+  @Override
+  public final Options getOptions() {
+    return options;
   }
 }

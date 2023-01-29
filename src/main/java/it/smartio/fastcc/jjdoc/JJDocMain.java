@@ -1,40 +1,37 @@
-/* Copyright (c) 2006, Sun Microsystems, Inc.
- * All rights reserved.
+/*
+ * Copyright (c) 2006, Sun Microsystems, Inc. All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * Redistribution and use in source and binary forms, with or without modification, are permitted
+ * provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright notice,
- *       this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Sun Microsystems, Inc. nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
+ * * Redistributions of source code must retain the above copyright notice, this list of conditions
+ * and the following disclaimer. * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the documentation and/or other
+ * materials provided with the distribution. * Neither the name of the Sun Microsystems, Inc. nor
+ * the names of its contributors may be used to endorse or promote products derived from this
+ * software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
- * THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
+ * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 
 package it.smartio.fastcc.jjdoc;
 
+import java.io.FileInputStream;
 import java.text.ParseException;
 
 import it.smartio.fastcc.JJMain;
 import it.smartio.fastcc.parser.JavaCCData;
 import it.smartio.fastcc.parser.JavaCCErrors;
 import it.smartio.fastcc.parser.JavaCCParser;
+import it.smartio.fastcc.parser.JavaCCParserDefault;
 import it.smartio.fastcc.parser.Options;
 import it.smartio.fastcc.parser.StreamProvider;
 
@@ -95,9 +92,7 @@ public final class JJDocMain extends JJDocGlobals {
    */
   public static void main(String args[]) throws Exception {
     JavaCCErrors.reInit();
-    Options.init();
-
-    JJDocOptions.init();
+    Options options = new JJDocOptions();
 
     JJMain.bannerLine("Documentation Generator", "0.1.4");
 
@@ -109,22 +104,21 @@ public final class JJDocMain extends JJDocGlobals {
       JJDocGlobals.info("(type \"jjdoc\" with no arguments for help)");
     }
 
-
-    if (Options.isOption(args[args.length - 1])) {
+    if (options.isOption(args[args.length - 1])) {
       JJDocGlobals.error("Last argument \"" + args[args.length - 1] + "\" is not a filename or \"-\".  ");
       System.exit(1);
     }
     for (int arg = 0; arg < (args.length - 1); arg++) {
-      if (!Options.isOption(args[arg])) {
+      if (!options.isOption(args[arg])) {
         JJDocGlobals.error("Argument \"" + args[arg] + "\" must be an option setting.  ");
         System.exit(1);
       }
-      Options.setCmdLineOption(args[arg]);
+      options.setCmdLineOption(args[arg]);
     }
 
     if (args[args.length - 1].equals("-")) {
       JJDocGlobals.info("Reading from standard input . . .");
-      parser = new JavaCCParser(new StreamProvider(new java.io.DataInputStream(System.in)));
+      parser = new JavaCCParserDefault(new StreamProvider(new java.io.DataInputStream(System.in)), options);
       JJDocGlobals.input_file = "standard input";
       JJDocGlobals.output_file = "standard output";
     } else {
@@ -138,8 +132,8 @@ public final class JJDocMain extends JJDocGlobals {
           JJDocGlobals.error(args[args.length - 1] + " is a directory. Please use a valid file name.");
         }
         JJDocGlobals.input_file = fp.getName();
-        parser = new JavaCCParser(
-            new StreamProvider(new java.io.FileInputStream(args[args.length - 1]), Options.getGrammarEncoding()));
+        parser = new JavaCCParserDefault(
+            new StreamProvider(new FileInputStream(args[args.length - 1]), options.getGrammarEncoding()), options);
       } catch (SecurityException se) {
         JJDocGlobals.error("Security violation while trying to open " + args[args.length - 1]);
       } catch (java.io.FileNotFoundException e) {
@@ -147,7 +141,7 @@ public final class JJDocMain extends JJDocGlobals {
       }
     }
 
-    JavaCCData javacc = new JavaCCData(false);
+    JavaCCData javacc = new JavaCCData(false, options);
     try {
       parser.initialize(javacc);
       parser.javacc_input();

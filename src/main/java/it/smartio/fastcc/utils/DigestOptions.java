@@ -61,9 +61,9 @@ public class DigestOptions extends HashMap<String, Object> {
   /**
    * Create an {@link DigestOptions} from {@link Options}.
    */
-  public static DigestOptions get() {
+  public static DigestOptions get(Options o) {
     DigestOptions options = new DigestOptions();
-    options.putAll(Options.getOptions());
+    options.putAll(o.getOptions());
     return options;
   }
 }

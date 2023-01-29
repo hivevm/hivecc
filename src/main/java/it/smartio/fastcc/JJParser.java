@@ -36,6 +36,7 @@ import it.smartio.fastcc.generator.ParserEngine;
 import it.smartio.fastcc.parser.JavaCCData;
 import it.smartio.fastcc.parser.JavaCCErrors;
 import it.smartio.fastcc.parser.JavaCCParser;
+import it.smartio.fastcc.parser.JavaCCParserDefault;
 import it.smartio.fastcc.parser.MetaParseException;
 import it.smartio.fastcc.parser.Options;
 import it.smartio.fastcc.parser.StreamProvider;
@@ -83,7 +84,7 @@ public abstract class JJParser {
     JJMain.bannerLine("Parser Generator", "");
 
     JavaCCErrors.reInit();
-    Options.init();
+    Options options = new Options();
 
     JavaCCParser parser = null;
     if (args.length == 0) {
@@ -94,16 +95,16 @@ public abstract class JJParser {
       System.out.println("(type \"javacc\" with no arguments for help)");
     }
 
-    if (Options.isOption(args[args.length - 1])) {
+    if (options.isOption(args[args.length - 1])) {
       System.out.println("Last argument \"" + args[args.length - 1] + "\" is not a filename.");
       System.exit(1);
     }
     for (int arg = 0; arg < (args.length - 1); arg++) {
-      if (!Options.isOption(args[arg])) {
+      if (!options.isOption(args[arg])) {
         System.out.println("Argument \"" + args[arg] + "\" must be an option setting.");
         System.exit(1);
       }
-      Options.setCmdLineOption(args[arg]);
+      options.setCmdLineOption(args[arg]);
     }
 
     try {
@@ -116,8 +117,8 @@ public abstract class JJParser {
         System.out.println(args[args.length - 1] + " is a directory. Please use a valid file name.");
         System.exit(1);
       }
-      parser = new JavaCCParser(new StreamProvider(
-          new InputStreamReader(new FileInputStream(args[args.length - 1]), Options.getGrammarEncoding())));
+      parser = new JavaCCParserDefault(new StreamProvider(
+          new InputStreamReader(new FileInputStream(args[args.length - 1]), options.getGrammarEncoding())), options);
     } catch (SecurityException se) {
       System.out.println("Security violation while trying to open " + args[args.length - 1]);
       System.exit(1);
@@ -130,19 +131,19 @@ public abstract class JJParser {
       String jjFile = args[args.length - 1];
       System.out.println("Reading from file " + jjFile + " . . .");
       boolean jjtreeGenerated = JJMain.isGeneratedBy("JJTree", jjFile);
-      JavaCCData request = new JavaCCData(jjtreeGenerated);
+      JavaCCData request = new JavaCCData(jjtreeGenerated, options);
 
       parser.initialize(request);
       parser.javacc_input();
 
       // Initialize the parser data
-      ParserEngine engine = ParserEngine.create(FastCC.getLanguage());
+      ParserEngine engine = ParserEngine.create(options.getOutputLanguage());
 
-      JJMain.createOutputDir(Options.getOutputDirectory());
+      JJMain.createOutputDir(options.getOutputDirectory());
 
-      Semanticize.semanticize(request, new SemanticContext());
+      Semanticize.semanticize(request, new SemanticContext(options));
 
-      Options.setStringOption(FastCC.PARSER_NAME, request.getParserName());
+      options.setStringOption(FastCC.PARSER_NAME, request.getParserName());
 
       engine.generate(request);
 

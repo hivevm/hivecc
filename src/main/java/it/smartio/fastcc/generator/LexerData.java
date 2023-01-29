@@ -33,10 +33,10 @@ import it.smartio.fastcc.parser.RegularExpression;
  */
 public class LexerData {
 
-  private final JavaCCRequest      request;
-  public final int         maxOrdinal;
-  public final int         maxLexStates;
-  public final Set<String> stateNames;
+  private final JavaCCRequest request;
+  public final int            maxOrdinal;
+  public final int            maxLexStates;
+  public final Set<String>    stateNames;
 
 
   final int[]    lexStates;
@@ -137,7 +137,7 @@ public class LexerData {
     this.hasSkip = false;
     this.hasSkipActions = false;
     this.hasSpecial = false;
-    this.keepLineCol = Options.getKeepLineColumn();
+    this.keepLineCol = request.options().getKeepLineColumn();
     this.stateSetSize = 0;
 
     this.toSkip = new long[(this.maxOrdinal / 64) + 1];
@@ -168,6 +168,10 @@ public class LexerData {
     for (int i = 0; i < this.maxLexStates; i++) {
       this.canMatchAnyChar[i] = -1;
     }
+  }
+
+  public final Options options() {
+    return this.request.options();
   }
 
   public final String getParserName() {

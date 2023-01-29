@@ -3,14 +3,11 @@
 
 package it.smartio.fastcc.generator.java;
 
-import it.smartio.fastcc.jjtree.ASTCompilationUnit;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
@@ -18,108 +15,52 @@ import it.smartio.fastcc.FastCC;
 import it.smartio.fastcc.generator.JJTreeCodeGenerator;
 import it.smartio.fastcc.jjtree.ASTNodeDescriptor;
 import it.smartio.fastcc.jjtree.JJTreeGlobals;
-import it.smartio.fastcc.jjtree.JJTreeNode;
 import it.smartio.fastcc.jjtree.JJTreeOptions;
 import it.smartio.fastcc.jjtree.NodeScope;
-import it.smartio.fastcc.jjtree.Token;
-import it.smartio.fastcc.parser.Options;
 import it.smartio.fastcc.utils.DigestOptions;
 import it.smartio.fastcc.utils.DigestWriter;
 import it.smartio.fastcc.utils.Template;
 
 public class JavaTreeGenerator extends JJTreeCodeGenerator {
 
-  @Override
-  public Object visit(ASTCompilationUnit node, Object data) {
-    PrintWriter io = (PrintWriter) data;
-    Token t = node.getFirstToken();
-
-    while (true) {
-      if (t == JJTreeGlobals.parserImplements) {
-        if (t.image.equals("implements")) {
-          print(t, io, node);
-          JJTreeCodeGenerator.openJJTreeComment(io, null);
-          io.print(" " + JavaTreeGenerator.nodeConstants() + ", ");
-          JJTreeCodeGenerator.closeJJTreeComment(io);
-        } else {
-          // t is pointing at the opening brace of the class body.
-          JJTreeCodeGenerator.openJJTreeComment(io, null);
-          io.print("implements " + JavaTreeGenerator.nodeConstants());
-          JJTreeCodeGenerator.closeJJTreeComment(io);
-          print(t, io, node);
-        }
-      } else {
-        print(t, io, node);
-      }
-
-      if (t == JJTreeGlobals.parserClassBodyStart) {
-        JJTreeCodeGenerator.openJJTreeComment(io, null);
-        io.println("  protected JJT" + JJTreeGlobals.parserName + "State jjtree = new JJT" + JJTreeGlobals.parserName
-            + "State();");
-        io.println();
-        JJTreeCodeGenerator.closeJJTreeComment(io);
-      }
-
-      if (t == node.getLastToken()) {
-        return null;
-      }
-      t = t.next;
-    }
+  protected final String getTryFinally() {
+    return "finally ";
   }
 
   @Override
-  protected final void insertOpenNodeCode(NodeScope ns, PrintWriter io, String indent) {
+  protected final void insertOpenNodeCode(NodeScope ns, PrintWriter io, String indent, JJTreeOptions options) {
     String type = ns.node_descriptor.getNodeType();
     final String nodeClass;
-    if ((JJTreeOptions.getNodeClass().length() > 0) && !JJTreeOptions.getMulti()) {
-      nodeClass = JJTreeOptions.getNodeClass();
+    if ((options.getNodeClass().length() > 0) && !options.getMulti()) {
+      nodeClass = options.getNodeClass();
     } else {
       nodeClass = type;
     }
 
     // Ensure that there is a template definition file for the node type.
-    JavaTreeGenerator.ensure(io, type);
+    JavaTreeGenerator.ensure(io, type, options);
 
     io.print(indent + nodeClass + " " + ns.nodeVar + " = ");
-    if (JJTreeOptions.getNodeFactory().equals("*")) {
+    if (options.getNodeFactory().equals("*")) {
       // Old-style multiple-implementations.
       io.println("(" + nodeClass + ")" + nodeClass + ".jjtCreate(" + ns.node_descriptor.getNodeId() + ");");
-    } else if (JJTreeOptions.getNodeFactory().length() > 0) {
-      io.println("(" + nodeClass + ")" + JJTreeOptions.getNodeFactory() + ".jjtCreate(" + ns.node_descriptor.getNodeId()
-          + ");");
+    } else if (options.getNodeFactory().length() > 0) {
+      io.println(
+          "(" + nodeClass + ")" + options.getNodeFactory() + ".jjtCreate(" + ns.node_descriptor.getNodeId() + ");");
     } else {
-      io.println("new " + nodeClass + "(" + ns.node_descriptor.getNodeId() + ");");
+      io.println("new " + nodeClass + "(this, " + ns.node_descriptor.getNodeId() + ");");
     }
 
     if (ns.usesCloseNodeVar()) {
-      io.println(indent + "boolean " + ns.closedVar + " = true;");
+      io.println(indent + getBoolean() + " " + ns.closedVar + " = true;");
     }
     io.println(indent + ns.node_descriptor.openNode(ns.nodeVar));
-    if (JJTreeOptions.getNodeScopeHook()) {
+    if (options.getNodeScopeHook()) {
       io.println(indent + "jjtreeOpenNodeScope(" + ns.nodeVar + ");");
     }
 
-    if (JJTreeOptions.getTrackTokens()) {
-      io.println(indent + ns.nodeVar + ".jjtSetFirstToken(getToken(1));");
-    }
-  }
-
-  @Override
-  protected final void insertCloseNodeCode(NodeScope ns, PrintWriter io, String indent, boolean isFinal) {
-    String closeNode = ns.node_descriptor.closeNode(ns.nodeVar);
-    io.println(indent + closeNode);
-    if (ns.usesCloseNodeVar() && !isFinal) {
-      io.println(indent + ns.closedVar + " = false;");
-    }
-    if (JJTreeOptions.getNodeScopeHook()) {
-      closeNode.lastIndexOf(",");
-      io.println(indent + "if (jjtree.nodeCreated()) {");
-      io.println(indent + " jjtreeCloseNodeScope(" + ns.nodeVar + ");");
-      io.println(indent + "}");
-    }
-
-    if (JJTreeOptions.getTrackTokens()) {
-      io.println(indent + ns.nodeVar + ".jjtSetLastToken(getToken(0));");
+    if (options.getTrackTokens()) {
+      io.println(indent + ns.nodeVar + getPointer() + "jjtSetFirstToken(getToken(1));");
     }
   }
 
@@ -154,70 +95,38 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
   }
 
   @Override
-  protected final void tryTokenSequence(NodeScope ns, PrintWriter io, String indent, Token first, Token last) {
-    io.println(indent + "try {");
-    JJTreeCodeGenerator.closeJJTreeComment(io);
-
-    /*
-     * Print out all the tokens, converting all references to `jjtThis' into the current node
-     * variable.
-     */
-    for (Token t = first; t != last.next; t = t.next) {
-      print(t, io, "jjtThis", ns.nodeVar);
-    }
-
-    JJTreeCodeGenerator.openJJTreeComment(io, null);
-
-    Enumeration<String> thrown_names = ns.production.throws_list.elements();
-    insertCatchBlocks(ns, io, thrown_names, indent);
-
-    io.println(indent + "} finally {");
-    if (ns.usesCloseNodeVar()) {
-      io.println(indent + "  if (" + ns.closedVar + ") {");
-      insertCloseNodeCode(ns, io, indent + "    ", true);
-      io.println(indent + "  }");
-    }
-    io.println(indent + "}");
-    JJTreeCodeGenerator.closeJJTreeComment(io);
+  public final void generateJJTree(JJTreeOptions o) {
+    JavaTreeGenerator.generateTreeConstants(o);
+    JavaTreeGenerator.generateVisitors(o);
+    JavaTreeGenerator.generateDefaultVisitors(o);
+    JavaTreeGenerator.generateTreeState(o);
   }
 
-  @Override
-  protected final void tryExpansionUnit(NodeScope ns, PrintWriter io, String indent, JJTreeNode expansion_unit) {
-    io.println(indent + "try {");
-    JJTreeCodeGenerator.closeJJTreeComment(io);
+  private static void generateTreeState(JJTreeOptions o) {
+    DigestOptions options = DigestOptions.get(o);
+    options.put(FastCC.PARSER_NAME, JJTreeGlobals.parserName);
+    options.put(FastCC.JJPARSER_JAVA_PACKAGE, o.getJavaPackage());
 
-    expansion_unit.jjtAccept(this, io);
-
-    JJTreeCodeGenerator.openJJTreeComment(io, null);
-
-    Hashtable<String, String> thrown_set = new Hashtable<>();
-    JJTreeCodeGenerator.findThrown(ns, thrown_set, expansion_unit);
-    Enumeration<String> thrown_names = thrown_set.elements();
-    insertCatchBlocks(ns, io, thrown_names, indent);
-
-    io.println(indent + "} finally {");
-    if (ns.usesCloseNodeVar()) {
-      io.println(indent + "  if (" + ns.closedVar + ") {");
-      insertCloseNodeCode(ns, io, indent + "    ", true);
-      io.println(indent + "  }");
+    File file = new File(o.getOutputDirectory(), "JJT" + JJTreeGlobals.parserName + "State.java");
+    try (DigestWriter ostr = DigestWriter.create(file, FastCC.VERSION, options)) {
+      Template.of("/templates/TreeState.template", options).write(ostr);
+    } catch (IOException e) {
+      throw new Error(e.toString());
     }
-    io.println(indent + "}");
-    JJTreeCodeGenerator.closeJJTreeComment(io);
   }
-
 
   private static Set<String> nodesGenerated = new HashSet<>();
 
-  private static void ensure(PrintWriter io, String nodeType) {
-    File file = new File(Options.getOutputDirectory(), nodeType + ".java");
+  private static void ensure(PrintWriter io, String nodeType, JJTreeOptions o) {
+    File file = new File(o.getOutputDirectory(), nodeType + ".java");
 
     if (nodeType.equals("Tree")) {} else if (nodeType.equals("Node")) {
-      JavaTreeGenerator.ensure(io, "Tree");
+      JavaTreeGenerator.ensure(io, "Tree", o);
     } else {
-      JavaTreeGenerator.ensure(io, "Node");
+      JavaTreeGenerator.ensure(io, "Node", o);
     }
 
-    if (!(nodeType.equals("Node") || JJTreeOptions.getBuildNodeFiles())) {
+    if (!(nodeType.equals("Node") || o.getBuildNodeFiles())) {
       return;
     }
 
@@ -225,184 +134,40 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
       return;
     }
 
-    DigestOptions options = DigestOptions.get();
+    DigestOptions options = DigestOptions.get(o);
+    options.put(FastCC.PARSER_NAME, JJTreeGlobals.parserName);
+    options.put(FastCC.JJPARSER_JAVA_PACKAGE, o.getJavaPackage());
     try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, options)) {
       JavaTreeGenerator.nodesGenerated.add(file.getName());
 
       if (nodeType.equals("Tree")) {
-        JavaTreeGenerator.generateTree_java(writer, options);
+        Template.of("/templates/Tree.template", options).write(writer);
       } else if (nodeType.equals("Node")) {
-        JavaTreeGenerator.generateNode_java(writer, options);
+        Template.of("/templates/Node.template", options).write(writer);
       } else {
-        JavaTreeGenerator.generateMULTINode_java(writer, nodeType, options);
+        options.put(FastCC.JJTREE_NODE_TYPE, nodeType);
+        options.put(FastCC.JJTREE_VISITOR_RETURN_VOID, Boolean.valueOf(o.getVisitorReturnType().equals("void")));
+        Template.of("/templates/MultiNode.template", options).write(writer);
       }
     } catch (IOException e) {
       throw new Error(e.toString());
     }
   }
 
-  @Override
-  public final void generateJJTree() {
-    JavaTreeGenerator.generateTreeConstants_java();
-    JavaTreeGenerator.generateVisitor_java();
-    JavaTreeGenerator.generateDefaultVisitor_java();
-
-
-    File file = new File(Options.getOutputDirectory(), "JJT" + JJTreeGlobals.parserName + "State.java");
-    try (DigestWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get())) {
-      JavaTreeGenerator.generatePrologue(ostr);
-      JavaTreeGenerator.insertState(ostr);
-    } catch (IOException e) {
-      throw new Error(e.toString());
-    }
-  }
-
-
-  private static void insertState(PrintWriter ostr) {
-    ostr.println("public class JJT" + JJTreeGlobals.parserName + "State {");
-
-    ostr.println("  private java.util.List<Node> nodes;");
-    ostr.println("  private java.util.List<Integer> marks;");
-
-    ostr.println("");
-    ostr.println("  private int sp;        // number of nodes on stack");
-    ostr.println("  private int mk;        // current mark");
-    ostr.println("  private boolean node_created;");
-    ostr.println("");
-    ostr.println("  public JJT" + JJTreeGlobals.parserName + "State() {");
-
-    ostr.println("    nodes = new java.util.ArrayList<Node>();");
-    ostr.println("    marks = new java.util.ArrayList<Integer>();");
-
-    ostr.println("    sp = 0;");
-    ostr.println("    mk = 0;");
-    ostr.println("  }");
-    ostr.println("");
-    ostr.println("  /* Determines whether the current node was actually closed and");
-    ostr.println("     pushed.  This should only be called in the final user action of a");
-    ostr.println("     node scope.  */");
-    ostr.println("  public boolean nodeCreated() {");
-    ostr.println("    return node_created;");
-    ostr.println("  }");
-    ostr.println("");
-    ostr.println("  /* Call this to reinitialize the node stack.  It is called");
-    ostr.println("     automatically by the parser's ReInit() method. */");
-    ostr.println("  public void reset() {");
-    ostr.println("    nodes.clear();");
-    ostr.println("    marks.clear();");
-    ostr.println("    sp = 0;");
-    ostr.println("    mk = 0;");
-    ostr.println("  }");
-    ostr.println("");
-    ostr.println("  /* Returns the root node of the AST.  It only makes sense to call");
-    ostr.println("     this after a successful parse. */");
-    ostr.println("  public Node rootNode() {");
-    ostr.println("    return nodes.get(0);");
-    ostr.println("  }");
-    ostr.println("");
-    ostr.println("  /* Pushes a node on to the stack. */");
-    ostr.println("  public void pushNode(Node n) {");
-    ostr.println("    nodes.add(n);");
-    ostr.println("    ++sp;");
-    ostr.println("  }");
-    ostr.println("");
-    ostr.println("  /* Returns the node on the top of the stack, and remove it from the");
-    ostr.println("     stack.  */");
-    ostr.println("  public Node popNode() {");
-    ostr.println("    if (--sp < mk) {");
-    ostr.println("      mk = marks.remove(marks.size()-1);");
-    ostr.println("    }");
-    ostr.println("    return nodes.remove(nodes.size()-1);");
-    ostr.println("  }");
-    ostr.println("");
-    ostr.println("  /* Returns the node currently on the top of the stack. */");
-    ostr.println("  public Node peekNode() {");
-    ostr.println("    return nodes.get(nodes.size()-1);");
-    ostr.println("  }");
-    ostr.println("");
-    ostr.println("  /* Returns the number of children on the stack in the current node");
-    ostr.println("     scope. */");
-    ostr.println("  public int nodeArity() {");
-    ostr.println("    return sp - mk;");
-    ostr.println("  }");
-    ostr.println("");
-    ostr.println("");
-    ostr.println("  public void clearNodeScope(Node n) {");
-    ostr.println("    while (sp > mk) {");
-    ostr.println("      popNode();");
-    ostr.println("    }");
-    ostr.println("    mk = marks.remove(marks.size()-1);");
-    ostr.println("  }");
-    ostr.println("");
-    ostr.println("");
-    ostr.println("  public void openNodeScope(Node n) {");
-    ostr.println("    marks.add(mk);");
-    ostr.println("    mk = sp;");
-    ostr.println("    n.jjtOpen();");
-    ostr.println("  }");
-    ostr.println("");
-    ostr.println("");
-    ostr.println("  /* A definite node is constructed from a specified number of");
-    ostr.println("     children.  That number of nodes are popped from the stack and");
-    ostr.println("     made the children of the definite node.  Then the definite node");
-    ostr.println("     is pushed on to the stack. */");
-    ostr.println("  public void closeNodeScope(Node n, int num) {");
-    ostr.println("    mk = marks.remove(marks.size()-1);");
-    ostr.println("    while (num-- > 0) {");
-    ostr.println("      Node c = popNode();");
-    ostr.println("      c.jjtSetParent(n);");
-    ostr.println("      n.jjtAddChild(c, num);");
-    ostr.println("    }");
-    ostr.println("    n.jjtClose();");
-    ostr.println("    pushNode(n);");
-    ostr.println("    node_created = true;");
-    ostr.println("  }");
-    ostr.println("");
-    ostr.println("");
-    ostr.println("  /* A conditional node is constructed if its condition is true.  All");
-    ostr.println("     the nodes that have been pushed since the node was opened are");
-    ostr.println("     made children of the conditional node, which is then pushed");
-    ostr.println("     on to the stack.  If the condition is false the node is not");
-    ostr.println("     constructed and they are left on the stack. */");
-    ostr.println("  public void closeNodeScope(Node n, boolean condition) {");
-    ostr.println("    if (condition) {");
-    ostr.println("      int a = nodeArity();");
-    ostr.println("      mk = marks.remove(marks.size()-1);");
-    ostr.println("      while (a-- > 0) {");
-    ostr.println("        Node c = popNode();");
-    ostr.println("        c.jjtSetParent(n);");
-    ostr.println("        n.jjtAddChild(c, a);");
-    ostr.println("      }");
-    ostr.println("      n.jjtClose();");
-    ostr.println("      pushNode(n);");
-    ostr.println("      node_created = true;");
-    ostr.println("    } else {");
-    ostr.println("      mk = marks.remove(marks.size()-1);");
-    ostr.println("      node_created = false;");
-    ostr.println("    }");
-    ostr.println("  }");
-    ostr.println("}");
-  }
-
-  private static void generatePrologue(PrintWriter ostr) {
-    ostr.println("package " + Options.getJavaPackage() + ";");
+  private static void generatePrologue(PrintWriter ostr, JJTreeOptions o) {
+    ostr.println("package " + o.getJavaPackage() + ";");
     ostr.println();
   }
 
+  private static void generateTreeConstants(JJTreeOptions o) {
+    String name = JJTreeGlobals.parserName + "TreeConstants";
+    File file = new File(o.getOutputDirectory(), name + ".java");
 
-  private static String nodeConstants() {
-    return JJTreeGlobals.parserName + "TreeConstants";
-  }
-
-  private static void generateTreeConstants_java() {
-    String name = JavaTreeGenerator.nodeConstants();
-    File file = new File(Options.getOutputDirectory(), name + ".java");
-
-    try (PrintWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get())) {
+    try (PrintWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get(o))) {
       List<String> nodeIds = ASTNodeDescriptor.getNodeIds();
       List<String> nodeNames = ASTNodeDescriptor.getNodeNames();
 
-      JavaTreeGenerator.generatePrologue(ostr);
+      JavaTreeGenerator.generatePrologue(ostr, o);
       ostr.println("public interface " + name);
       ostr.println("{");
 
@@ -426,44 +191,37 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
     }
   }
 
-
-  private static String visitorClass() {
-    return JJTreeGlobals.parserName + "Visitor";
-  }
-
-  private static void generateVisitor_java() {
-    if (!JJTreeOptions.getVisitor()) {
+  private static void generateVisitors(JJTreeOptions o) {
+    if (!o.getVisitor()) {
       return;
     }
 
-    String name = JavaTreeGenerator.visitorClass();
-    File file = new File(Options.getOutputDirectory(), name + ".java");
+    String name = JJTreeGlobals.parserName + "Visitor";
+    File file = new File(o.getOutputDirectory(), name + ".java");
 
-    try (PrintWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get())) {
+    try (PrintWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get(o))) {
       List<String> nodeNames = ASTNodeDescriptor.getNodeNames();
 
-      JavaTreeGenerator.generatePrologue(ostr);
+      JavaTreeGenerator.generatePrologue(ostr, o);
       ostr.println("public interface " + name);
       ostr.println("{");
 
-      String ve = JavaTreeGenerator.mergeVisitorException();
+      String ve = JavaTreeGenerator.mergeVisitorException(o);
 
       String argumentType = "Object";
-      if (!JJTreeOptions.getVisitorDataType().equals("")) {
-        argumentType = JJTreeOptions.getVisitorDataType();
+      if (!o.getVisitorDataType().equals("")) {
+        argumentType = o.getVisitorDataType();
       }
 
-      ostr.println("  public " + JJTreeOptions.getVisitorReturnType() + " visit(Node node, " + argumentType + " data)"
-          + ve + ";");
-      if (JJTreeOptions.getMulti()) {
+      ostr.println("  public " + o.getVisitorReturnType() + " visit(Node node, " + argumentType + " data)" + ve + ";");
+      if (o.getMulti()) {
         for (String n : nodeNames) {
           if (n.equals("void")) {
             continue;
           }
-          String nodeType = JJTreeOptions.getNodePrefix() + n;
-          ostr.println(
-              "  public " + JJTreeOptions.getVisitorReturnType() + " " + JavaTreeGenerator.getVisitMethodName(nodeType)
-                  + "(" + nodeType + " node, " + argumentType + " data)" + ve + ";");
+          String nodeType = o.getNodePrefix() + n;
+          ostr.println("  public " + o.getVisitorReturnType() + " visit(" + nodeType + " node, " + argumentType
+              + " data)" + ve + ";");
         }
       }
       ostr.println("}");
@@ -472,36 +230,28 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
     }
   }
 
-  private static String defaultVisitorClass() {
-    return JJTreeGlobals.parserName + "DefaultVisitor";
-  }
-
-  private static String getVisitMethodName(String className) {
-    return "visit";
-  }
-
-  private static void generateDefaultVisitor_java() {
-    if (!JJTreeOptions.getVisitor()) {
+  private static void generateDefaultVisitors(JJTreeOptions o) {
+    if (!o.getVisitor()) {
       return;
     }
 
-    String className = JavaTreeGenerator.defaultVisitorClass();
-    File file = new File(Options.getOutputDirectory(), className + ".java");
+    String className = JJTreeGlobals.parserName + "DefaultVisitor";
+    File file = new File(o.getOutputDirectory(), className + ".java");
 
-    try (PrintWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get())) {
+    try (PrintWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get(o))) {
       List<String> nodeNames = ASTNodeDescriptor.getNodeNames();
 
-      JavaTreeGenerator.generatePrologue(ostr);
-      ostr.println("public class " + className + " implements " + JavaTreeGenerator.visitorClass() + "{");
+      JavaTreeGenerator.generatePrologue(ostr, o);
+      ostr.println("public class " + className + " implements " + JJTreeGlobals.parserName + "Visitor{");
 
-      final String ve = JavaTreeGenerator.mergeVisitorException();
+      final String ve = JavaTreeGenerator.mergeVisitorException(o);
 
       String argumentType = "Object";
-      if (!JJTreeOptions.getVisitorDataType().equals("")) {
-        argumentType = JJTreeOptions.getVisitorDataType().trim();
+      if (!o.getVisitorDataType().equals("")) {
+        argumentType = o.getVisitorDataType().trim();
       }
 
-      final String returnType = JJTreeOptions.getVisitorReturnType().trim();
+      final String returnType = o.getVisitorReturnType().trim();
       final boolean isVoidReturnType = "void".equals(returnType);
 
       ostr.println("  public " + returnType + " defaultVisit(Node node, " + argumentType + " data)" + ve + "{");
@@ -537,14 +287,14 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
       ostr.println("    " + (isVoidReturnType ? "" : "return ") + "defaultVisit(node, data);");
       ostr.println("  }");
 
-      if (JJTreeOptions.getMulti()) {
+      if (o.getMulti()) {
         for (String n : nodeNames) {
           if (n.equals("void")) {
             continue;
           }
-          String nodeType = JJTreeOptions.getNodePrefix() + n;
-          ostr.println("  public " + returnType + " " + JavaTreeGenerator.getVisitMethodName(nodeType) + "(" + nodeType
-              + " node, " + argumentType + " data)" + ve + "{");
+          String nodeType = o.getNodePrefix() + n;
+          ostr.println(
+              "  public " + returnType + " visit(" + nodeType + " node, " + argumentType + " data)" + ve + "{");
           ostr.println("    " + (isVoidReturnType ? "" : "return ") + "defaultVisit(node, data);");
           ostr.println("  }");
         }
@@ -556,41 +306,11 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
     }
   }
 
-  private static String mergeVisitorException() {
-    String ve = JJTreeOptions.getVisitorException();
+  private static String mergeVisitorException(JJTreeOptions o) {
+    String ve = o.getVisitorException();
     if (!"".equals(ve)) {
       ve = " throws " + ve;
     }
     return ve;
-  }
-
-
-  private static void generateTree_java(PrintWriter ostr, DigestOptions options) throws IOException {
-    JavaTreeGenerator.generatePrologue(ostr);
-    options.put(FastCC.PARSER_NAME, JJTreeGlobals.parserName);
-
-    Template.of("/templates/Tree.template", options).write(ostr);
-  }
-
-
-  private static void generateNode_java(PrintWriter ostr, DigestOptions options) throws IOException {
-    JavaTreeGenerator.generatePrologue(ostr);
-
-    options.put(FastCC.PARSER_NAME, JJTreeGlobals.parserName);
-
-    Template.of("/templates/Node.template", options).write(ostr);
-  }
-
-
-  private static void generateMULTINode_java(PrintWriter ostr, String nodeType, DigestOptions options)
-      throws IOException {
-    JavaTreeGenerator.generatePrologue(ostr);
-
-    options.put(FastCC.PARSER_NAME, JJTreeGlobals.parserName);
-    options.put(FastCC.JJTREE_NODE_TYPE, nodeType);
-    options.put(FastCC.JJTREE_VISITOR_RETURN_VOID,
-        Boolean.valueOf(JJTreeOptions.getVisitorReturnType().equals("void")));
-
-    Template.of("/templates/MultiNode.template", options).write(ostr);
   }
 }

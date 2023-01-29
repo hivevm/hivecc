@@ -1,3 +1,5 @@
+package {{PACKAGE}};
+
 @if NODE_EXTENDS
 public class Node extends {{NODE_EXTENDS}} implements Tree {
 @else
@@ -14,20 +16,12 @@ public class Node implements Tree {
   protected Token lastToken;
 @fi
 
-  public Node(int i) {
-    id = i;
-  }
-
   public Node({{PARSER_NAME}} p, int i) {
-    this(i);
+    id = i;
     parser = p;
   }
 
 @if NODE_FACTORY
-  public static Node jjtCreate(int id) {
-    return new Node(id);
-  }
-
   public static Node jjtCreate({{PARSER_NAME}} p, int id) {
     return new Node(p, id);
   }

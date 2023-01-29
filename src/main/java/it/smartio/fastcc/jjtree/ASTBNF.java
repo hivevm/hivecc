@@ -4,8 +4,8 @@ package it.smartio.fastcc.jjtree;
 
 class ASTBNF extends ASTProduction {
 
-  ASTBNF(int id) {
-    super(id);
+  public ASTBNF(JJTreeParser p, int id) {
+    super(p, id);
     this.throws_list.add("ParseException");
     this.throws_list.add("RuntimeException");
   }

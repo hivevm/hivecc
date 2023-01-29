@@ -45,13 +45,7 @@ public class JJTreeOptions extends Options {
   /**
    * Limit subclassing to derived classes.
    */
-  protected JJTreeOptions() {}
-
-  /**
-   * Initialize the JJTree-specific options.
-   */
-  public static void init() {
-    Options.init();
+  public JJTreeOptions() {
     Options.optionValues.put(FastCC.JJTREE_MULTI, Boolean.FALSE);
     Options.optionValues.put(FastCC.JJTREE_NODE_DEFAULT_VOID, Boolean.FALSE);
     Options.optionValues.put(FastCC.JJTREE_NODE_SCOPE_HOOK, Boolean.FALSE);
@@ -79,16 +73,16 @@ public class JJTreeOptions extends Options {
   /**
    * Check options for consistency
    */
-  public static void validate() {
-    if (!JJTreeOptions.getVisitor()) {
-      if (JJTreeOptions.getVisitorDataType().length() > 0) {
+  public void validate() {
+    if (!getVisitor()) {
+      if (getVisitorDataType().length() > 0) {
         JavaCCErrors.warning("VISITOR_DATA_TYPE option will be ignored since VISITOR is false");
       }
-      if ((JJTreeOptions.getVisitorReturnType().length() > 0)
-          && !JJTreeOptions.getVisitorReturnType().equals("Object")) {
+      if ((getVisitorReturnType().length() > 0)
+          && !getVisitorReturnType().equals("Object")) {
         JavaCCErrors.warning("VISITOR_RETURN_TYPE option will be ignored since VISITOR is false");
       }
-      if (JJTreeOptions.getVisitorException().length() > 0) {
+      if (getVisitorException().length() > 0) {
         JavaCCErrors.warning("VISITOR_EXCEPTION option will be ignored since VISITOR is false");
       }
     }
@@ -97,92 +91,92 @@ public class JJTreeOptions extends Options {
   /**
    * Find the multi value.
    */
-  public static boolean getMulti() {
-    return Options.booleanValue(FastCC.JJTREE_MULTI);
+  public final boolean getMulti() {
+    return booleanValue(FastCC.JJTREE_MULTI);
   }
 
   /**
    * Find the node default void value.
    */
-  static boolean getNodeDefaultVoid() {
-    return Options.booleanValue(FastCC.JJTREE_NODE_DEFAULT_VOID);
+  public final boolean getNodeDefaultVoid() {
+    return booleanValue(FastCC.JJTREE_NODE_DEFAULT_VOID);
   }
 
   /**
    * Find the node scope hook value.
    */
-  public static boolean getNodeScopeHook() {
-    return Options.booleanValue(FastCC.JJTREE_NODE_SCOPE_HOOK);
+  public final boolean getNodeScopeHook() {
+    return booleanValue(FastCC.JJTREE_NODE_SCOPE_HOOK);
   }
 
   /**
    * Find the node factory value.
    */
-  public static String getNodeFactory() {
-    return Options.stringValue(FastCC.JJTREE_NODE_FACTORY);
+  public final String getNodeFactory() {
+    return stringValue(FastCC.JJTREE_NODE_FACTORY);
   }
 
   /**
    * Find the build node files value.
    */
-  public static boolean getBuildNodeFiles() {
-    return Options.booleanValue(FastCC.JJTREE_BUILD_NODE_FILES);
+  public final boolean getBuildNodeFiles() {
+    return booleanValue(FastCC.JJTREE_BUILD_NODE_FILES);
   }
 
   /**
    * Find the visitor value.
    */
-  public static boolean getVisitor() {
-    return Options.booleanValue(FastCC.JJTREE_VISITOR);
+  public final boolean getVisitor() {
+    return booleanValue(FastCC.JJTREE_VISITOR);
   }
 
   /**
    * Find the trackTokens value.
    */
-  public static boolean getTrackTokens() {
-    return Options.booleanValue(FastCC.JJTREE_TRACK_TOKENS);
+  public final boolean getTrackTokens() {
+    return booleanValue(FastCC.JJTREE_TRACK_TOKENS);
   }
 
   /**
    * Find the node prefix value.
    */
-  public static String getNodePrefix() {
-    return Options.stringValue(FastCC.JJTREE_NODE_PREFIX);
+  public final String getNodePrefix() {
+    return stringValue(FastCC.JJTREE_NODE_PREFIX);
   }
 
 
   /**
    * Find the node class name.
    */
-  public static String getNodeClass() {
-    return Options.stringValue(FastCC.JJTREE_NODE_CLASS);
+  public final String getNodeClass() {
+    return stringValue(FastCC.JJTREE_NODE_CLASS);
   }
 
   /**
    * Find the output file value.
    */
-  public static String getOutputFile() {
-    return Options.stringValue(FastCC.JJTREE_OUTPUT_FILE);
+  public final String getOutputFile() {
+    return stringValue(FastCC.JJTREE_OUTPUT_FILE);
   }
 
   /**
    * Find the visitor exception value
    */
-  public static String getVisitorException() {
-    return Options.stringValue(FastCC.JJTREE_VISITOR_EXCEPTION);
+  public final String getVisitorException() {
+    return stringValue(FastCC.JJTREE_VISITOR_EXCEPTION);
   }
 
   /**
    * Find the visitor data type value
    */
-  public static String getVisitorDataType() {
-    return Options.stringValue(FastCC.JJTREE_VISITOR_DATA_TYPE);
+  public final String getVisitorDataType() {
+    return stringValue(FastCC.JJTREE_VISITOR_DATA_TYPE);
   }
 
   /**
    * Find the visitor return type value
    */
-  public static String getVisitorReturnType() {
-    return Options.stringValue(FastCC.JJTREE_VISITOR_RETURN_TYPE);
+  public final String getVisitorReturnType() {
+    return stringValue(FastCC.JJTREE_VISITOR_RETURN_TYPE);
   }
 }

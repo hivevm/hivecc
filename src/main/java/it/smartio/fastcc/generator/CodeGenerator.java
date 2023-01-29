@@ -3,9 +3,9 @@
 
 package it.smartio.fastcc.generator;
 
-import it.smartio.fastcc.parser.JavaCCParserConstants;
+import java.io.File;
 
-import it.smartio.fastcc.parser.Options;
+import it.smartio.fastcc.parser.JavaCCParserConstants;
 import it.smartio.fastcc.parser.Token;
 import it.smartio.fastcc.source.SourceWriter;
 import it.smartio.fastcc.utils.Encoding;
@@ -14,8 +14,8 @@ class CodeGenerator {
 
   protected int crow, ccol;
 
-  protected final void saveOutput(SourceWriter writer) {
-    writer.saveOutput(Options.getOutputDirectory());
+  protected final void saveOutput(SourceWriter writer, File path) {
+    writer.saveOutput(path);
   }
 
   protected void genTokenSetup(Token t) {

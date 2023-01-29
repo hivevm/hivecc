@@ -22,29 +22,35 @@ import it.smartio.fastcc.parser.Options;
  * The {@link SemanticContext} class.
  */
 public class SemanticContext {
+  
+  private final Options options;
+
+  public SemanticContext(Options options) {
+    this.options = options;
+  }
 
   final boolean hasErrors() {
     return JavaCCErrors.hasError();
   }
 
   public final int getLookahead() {
-    return Options.getLookahead();
+    return options.getLookahead();
   }
 
   public final boolean isForceLaCheck() {
-    return Options.getForceLaCheck();
+    return options.getForceLaCheck();
   }
 
   public final boolean isSanityCheck() {
-    return Options.getSanityCheck();
+    return options.getSanityCheck();
   }
 
   public final int getChoiceAmbiguityCheck() {
-    return Options.getChoiceAmbiguityCheck();
+    return options.getChoiceAmbiguityCheck();
   }
 
   public final int getOtherAmbiguityCheck() {
-    return Options.getOtherAmbiguityCheck();
+    return options.getOtherAmbiguityCheck();
   }
 
   final void onSemanticError(Object node, String message) {

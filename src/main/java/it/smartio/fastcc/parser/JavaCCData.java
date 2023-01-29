@@ -30,6 +30,7 @@ import it.smartio.fastcc.semantic.SemanticRequest;
  */
 public class JavaCCData implements SemanticRequest, JavaCCRequest {
 
+  private final Options                    options;
   private boolean                          isGenerated;
   private Action                           actForEof;
   private String                           nextStateForEof;
@@ -94,7 +95,8 @@ public class JavaCCData implements SemanticRequest, JavaCCRequest {
    * The list of all TokenProductions from the input file. This list includes implicit
    * TokenProductions that are created for uses of regular expressions within BNF productions.
    */
-  private final List<TokenProduction> rexprlist                 = new ArrayList<>();
+  private final List<TokenProduction>                                                      rexprlist            =
+      new ArrayList<>();
 
   /**
    * A mapping of ordinal values (represented as objects of type "Integer") to the corresponding
@@ -102,17 +104,23 @@ public class JavaCCData implements SemanticRequest, JavaCCRequest {
    * token corresponding to this entry. If there are multiple labels representing the same ordinal
    * value, then only one label is stored.
    */
-  private final Map<Integer, String>  names_of_tokens           = new HashMap<>();
+  private final Map<Integer, String>                                                       names_of_tokens      =
+      new HashMap<>();
 
   /**
    * Constructs an instance of {@link JavaCCData}.
    */
-  public JavaCCData(boolean isGenerated) {
+  public JavaCCData(boolean isGenerated, Options options) {
+    this.options = options;
     this.tokenCount = 0;
     this.isGenerated = isGenerated;
     this.lexstate_S2I.put("DEFAULT", 0);
     this.lexstate_I2S.put(0, "DEFAULT");
     this.simple_tokens_table.put("DEFAULT", new Hashtable<String, Hashtable<String, RegularExpression>>());
+  }
+  
+  public final Options options() {
+    return options;
   }
 
   final void setParser(String name) {

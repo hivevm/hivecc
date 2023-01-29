@@ -22,8 +22,11 @@ import java.io.Reader;
  */
 public class JJTreeParserDefault extends JJTreeParser {
 
-  public JJTreeParserDefault(Reader reader) {
+  private final JJTreeOptions options;
+
+  public JJTreeParserDefault(Reader reader, JJTreeOptions options) {
     super(new JJTreeParserTokenManager(new JavaCharStream(new StreamProvider(reader))));
+    this.options = options;
   }
 
   /**
@@ -42,5 +45,9 @@ public class JJTreeParserDefault extends JJTreeParser {
   @Override
   protected final void jjtreeCloseNodeScope(Node n) {
     ((JJTreeNode) n).setLastToken(getToken(0));
+  }
+
+  protected final JJTreeOptions getOptions() {
+    return options;
   }
 }

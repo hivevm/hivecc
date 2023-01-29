@@ -40,7 +40,6 @@ import it.smartio.fastcc.jjtree.JJTreeGlobals;
 import it.smartio.fastcc.jjtree.JJTreeOptions;
 import it.smartio.fastcc.jjtree.JJTreeParserDefault;
 import it.smartio.fastcc.parser.JavaCCErrors;
-import it.smartio.fastcc.parser.Options;
 
 public class JJTree {
 
@@ -106,8 +105,7 @@ public class JJTree {
     JJMain.bannerLine("Tree Builder", "");
 
     JavaCCErrors.reInit();
-    Options.init();
-    JJTreeOptions.init();
+    JJTreeOptions options = new JJTreeOptions();
     JJTreeGlobals.initialize();
 
     if (args.length == 0) {
@@ -119,22 +117,22 @@ public class JJTree {
     }
     String fn = args[args.length - 1];
 
-    if (Options.isOption(fn)) {
+    if (options.isOption(fn)) {
       System.out.println("Last argument \"" + fn + "\" is not a filename");
       System.exit(1);
     }
     for (int arg = 0; arg < (args.length - 1); arg++) {
-      if (!Options.isOption(args[arg])) {
+      if (!options.isOption(args[arg])) {
         System.out.println("Argument \"" + args[arg] + "\" must be an option setting.");
         System.exit(1);
       }
-      Options.setCmdLineOption(args[arg]);
+      options.setCmdLineOption(args[arg]);
     }
 
-    JJTreeOptions.validate();
+    options.validate();
 
-    JJMain.createOutputDir(Options.getOutputDirectory());
-    File file = new File(Options.getOutputDirectory(), JJTree.create_output_file_name(fn));
+    JJMain.createOutputDir(options.getOutputDirectory());
+    File file = new File(options.getOutputDirectory(), JJTree.create_output_file_name(fn, options));
 
     try {
       if (JJMain.isGeneratedBy("JJTree", fn)) {
@@ -143,20 +141,20 @@ public class JJTree {
 
       System.out.println("Reading from file " + fn + " . . .");
 
-      try (Reader reader = new InputStreamReader(new FileInputStream(fn), Options.getGrammarEncoding())) {
-        JJTreeParserDefault parser = new JJTreeParserDefault(reader);
+      try (Reader reader = new InputStreamReader(new FileInputStream(fn), options.getGrammarEncoding())) {
+        JJTreeParserDefault parser = new JJTreeParserDefault(reader, options);
         ASTGrammar root = parser.parse();
         if (Boolean.getBoolean("jjtree-dump")) {
           root.dump(" ");
         }
 
-        System.out.println("opt:" + FastCC.getLanguage());
+        System.out.println("opt:" + options.getOutputLanguage());
 
-        ParserEngine engine = ParserEngine.create(FastCC.getLanguage());
+        ParserEngine engine = ParserEngine.create(options.getOutputLanguage());
 
         try (PrintWriter writer = new PrintWriter(file)) {
           JJMain.writeGenerated(writer);
-          engine.generateJJTree(root, writer);
+          engine.generateJJTree(root, writer, options);
         } catch (IOException ioe) {
           System.out.println("Error setting input: " + ioe.getMessage());
           System.exit(1);
@@ -179,8 +177,8 @@ public class JJTree {
     }
   }
 
-  private static String create_output_file_name(String i) {
-    String o = JJTreeOptions.getOutputFile();
+  private static String create_output_file_name(String i, JJTreeOptions options) {
+    String o = options.getOutputFile();
 
     if (o.equals("")) {
       int s = i.lastIndexOf(File.separatorChar);

@@ -37,6 +37,7 @@ import java.util.StringTokenizer;
 import java.util.TreeSet;
 
 import it.smartio.fastcc.FastCC;
+import it.smartio.fastcc.JJLanguage;
 
 /**
  * A class with static state that stores all option information.
@@ -44,7 +45,15 @@ import it.smartio.fastcc.FastCC;
 public class Options {
 
   // Limit subclassing to derived classes.
-  protected Options() {}
+  public Options() {
+    Options.optionValues = new HashMap<>();
+    cmdLineSetting = new HashSet<>();
+    inputFileSetting = new HashSet<>();
+
+    for (OptionInfo info : Options.userOptions) {
+      Options.optionValues.put(info.getName(), info.getDefault());
+    }
+  }
 
   public static final String OUTPUT_LANGUAGE__CPP  = "c++";
   public static final String OUTPUT_LANGUAGE__JAVA = "java";
@@ -100,41 +109,28 @@ public class Options {
   protected static Map<String, Object> optionValues = null;
 
   /**
-   * Initialize for JavaCC
-   */
-  public static void init() {
-    Options.optionValues = new HashMap<>();
-    Options.cmdLineSetting = new HashSet<>();
-    Options.inputFileSetting = new HashSet<>();
-
-    for (OptionInfo info : Options.userOptions) {
-      Options.optionValues.put(info.getName(), info.getDefault());
-    }
-  }
-
-  /**
    * Convenience method to retrieve integer options.
    */
-  private static int intValue(final String option) {
+  private int intValue(final String option) {
     return ((Integer) Options.optionValues.get(option)).intValue();
   }
 
   /**
    * Convenience method to retrieve boolean options.
    */
-  public static boolean booleanValue(final String option) {
+  public final boolean booleanValue(final String option) {
     return ((Boolean) Options.optionValues.get(option)).booleanValue();
   }
 
   /**
    * Convenience method to retrieve string options.
    */
-  public static String stringValue(final String option) {
+  public final String stringValue(final String option) {
     return (String) Options.optionValues.get(option);
   }
 
 
-  public static Map<String, Object> getOptions() {
+  public final Map<String, Object> getOptions() {
     HashMap<String, Object> ret = new HashMap<>(Options.optionValues);
     return ret;
   }
@@ -143,13 +139,13 @@ public class Options {
    * Keep track of what options were set as a command line argument. We use this to see if the
    * options set from the command line and the ones set in the input files clash in any way.
    */
-  private static Set<String> cmdLineSetting   = null;
+  private final Set<String> cmdLineSetting;
 
   /**
    * Keep track of what options were set from the grammar file. We use this to see if the options
    * set from the command line and the ones set in the input files clash in any way.
    */
-  private static Set<String> inputFileSetting = null;
+  private final Set<String> inputFileSetting;
 
 
   /**
@@ -159,7 +155,7 @@ public class Options {
    * @param opt The command line argument to examine.
    * @return True when the argument looks like an option flag.
    */
-  public static boolean isOption(final String opt) {
+  public final boolean isOption(final String opt) {
     return (opt != null) && (opt.length() > 1) && (opt.charAt(0) == '-');
   }
 
@@ -171,7 +167,7 @@ public class Options {
    * @param value The option's value.
    * @return The upgraded value.
    */
-  private static Object upgradeValue(final String name, Object value) {
+  private Object upgradeValue(final String name, Object value) {
     if (name.equalsIgnoreCase(FastCC.JJTREE_NODE_FACTORY) && (value.getClass() == Boolean.class)) {
       if (((Boolean) value).booleanValue()) {
         value = "*";
@@ -183,7 +179,7 @@ public class Options {
     return value;
   }
 
-  public static void setInputFileOption(Object nameloc, Object valueloc, String name, Object value) {
+  public final void setInputFileOption(Object nameloc, Object valueloc, String name, Object value) {
     String nameUpperCase = name.toUpperCase();
     if (!Options.optionValues.containsKey(nameUpperCase)) {
       JavaCCErrors.warning(nameloc, "Bad option name \"" + name + "\".  Option setting will be ignored.");
@@ -191,7 +187,7 @@ public class Options {
     }
     final Object existingValue = Options.optionValues.get(nameUpperCase);
 
-    value = Options.upgradeValue(name, value);
+    value = upgradeValue(name, value);
 
     if (existingValue != null) {
 
@@ -208,12 +204,12 @@ public class Options {
         return;
       }
 
-      if (Options.inputFileSetting.contains(nameUpperCase)) {
+      if (inputFileSetting.contains(nameUpperCase)) {
         JavaCCErrors.warning(nameloc, "Duplicate option setting for \"" + name + "\" will be ignored.");
         return;
       }
 
-      if (Options.cmdLineSetting.contains(nameUpperCase)) {
+      if (cmdLineSetting.contains(nameUpperCase)) {
         if (!existingValue.equals(value)) {
           JavaCCErrors.warning(nameloc, "Command line setting of \"" + name + "\" modifies option value in file.");
         }
@@ -222,12 +218,12 @@ public class Options {
     }
 
     Options.optionValues.put(nameUpperCase, value);
-    Options.inputFileSetting.add(nameUpperCase);
+    inputFileSetting.add(nameUpperCase);
 
     // Special case logic block here for setting indirect flags
 
     if (nameUpperCase.equalsIgnoreCase(FastCC.JJPARSER_CPP_NAMESPACE)) {
-      Options.processCPPNamespaceOption((String) value);
+      processCPPNamespaceOption((String) value);
     }
   }
 
@@ -237,7 +233,7 @@ public class Options {
    *
    * @param arg
    */
-  public static void setCmdLineOption(String arg) {
+  public final void setCmdLineOption(String arg) {
     final String s;
 
     if (arg.charAt(0) == '-') {
@@ -312,24 +308,24 @@ public class Options {
       System.out.println("Warning: Bad option value in \"" + arg + "\" will be ignored.");
       return;
     }
-    if (Options.cmdLineSetting.contains(name)) {
+    if (cmdLineSetting.contains(name)) {
       System.out.println("Warning: Duplicate option setting \"" + arg + "\" will be ignored.");
       return;
     }
 
-    Val = Options.upgradeValue(name, Val);
+    Val = upgradeValue(name, Val);
 
     Options.optionValues.put(name, Val);
-    Options.cmdLineSetting.add(name);
+    cmdLineSetting.add(name);
     if (name.equalsIgnoreCase(FastCC.JJPARSER_CPP_NAMESPACE)) {
-      Options.processCPPNamespaceOption((String) Val);
+      processCPPNamespaceOption((String) Val);
     }
   }
 
-  public static void normalize() {
-    if (Options.getDebugLookahead() && !Options.getDebugParser()) {
-      if (Options.cmdLineSetting.contains(FastCC.JJPARSER_DEBUG_PARSER)
-          || Options.inputFileSetting.contains(FastCC.JJPARSER_DEBUG_PARSER)) {
+  public final void normalize() {
+    if (getDebugLookahead() && !getDebugParser()) {
+      if (cmdLineSetting.contains(FastCC.JJPARSER_DEBUG_PARSER)
+          || inputFileSetting.contains(FastCC.JJPARSER_DEBUG_PARSER)) {
         JavaCCErrors
             .warning("True setting of option DEBUG_LOOKAHEAD overrides " + "false setting of option DEBUG_PARSER.");
       }
@@ -342,8 +338,8 @@ public class Options {
    *
    * @return The requested lookahead value.
    */
-  public static int getLookahead() {
-    return Options.intValue(FastCC.JJPARSER_LOOKAHEAD);
+  public final int getLookahead() {
+    return intValue(FastCC.JJPARSER_LOOKAHEAD);
   }
 
   /**
@@ -351,8 +347,8 @@ public class Options {
    *
    * @return The requested choice ambiguity check value.
    */
-  public static int getChoiceAmbiguityCheck() {
-    return Options.intValue(FastCC.JJPARSER_CHOICE_AMBIGUITY_CHECK);
+  public final int getChoiceAmbiguityCheck() {
+    return intValue(FastCC.JJPARSER_CHOICE_AMBIGUITY_CHECK);
   }
 
   /**
@@ -360,12 +356,12 @@ public class Options {
    *
    * @return The requested other ambiguity check value.
    */
-  public static int getOtherAmbiguityCheck() {
-    return Options.intValue(FastCC.JJPARSER_OTHER_AMBIGUITY_CHECK);
+  public final int getOtherAmbiguityCheck() {
+    return intValue(FastCC.JJPARSER_OTHER_AMBIGUITY_CHECK);
   }
 
-  public static boolean getNoDfa() {
-    return Options.booleanValue(FastCC.JJPARSER_NO_DFA);
+  public final boolean getNoDfa() {
+    return booleanValue(FastCC.JJPARSER_NO_DFA);
   }
 
   /**
@@ -373,8 +369,8 @@ public class Options {
    *
    * @return The requested debug parser value.
    */
-  public static boolean getDebugParser() {
-    return Options.booleanValue(FastCC.JJPARSER_DEBUG_PARSER);
+  public final boolean getDebugParser() {
+    return booleanValue(FastCC.JJPARSER_DEBUG_PARSER);
   }
 
   /**
@@ -382,8 +378,8 @@ public class Options {
    *
    * @return The requested debug lookahead value.
    */
-  public static boolean getDebugLookahead() {
-    return Options.booleanValue(FastCC.JJPARSER_DEBUG_LOOKAHEAD);
+  public final boolean getDebugLookahead() {
+    return booleanValue(FastCC.JJPARSER_DEBUG_LOOKAHEAD);
   }
 
   /**
@@ -391,8 +387,8 @@ public class Options {
    *
    * @return The requested debug tokenmanager value.
    */
-  public static boolean getDebugTokenManager() {
-    return Options.booleanValue(FastCC.JJPARSER_DEBUG_TOKEN_MANAGER);
+  public final boolean getDebugTokenManager() {
+    return booleanValue(FastCC.JJPARSER_DEBUG_TOKEN_MANAGER);
   }
 
   /**
@@ -400,8 +396,8 @@ public class Options {
    *
    * @return The requested error reporting value.
    */
-  public static boolean getErrorReporting() {
-    return Options.booleanValue(FastCC.JJPARSER_ERROR_REPORTING);
+  public final boolean getErrorReporting() {
+    return booleanValue(FastCC.JJPARSER_ERROR_REPORTING);
   }
 
   /**
@@ -409,8 +405,8 @@ public class Options {
    *
    * @return The requested ignore case value.
    */
-  public static boolean getIgnoreCase() {
-    return Options.booleanValue(FastCC.JJPARSER_IGNORE_CASE);
+  public final boolean getIgnoreCase() {
+    return booleanValue(FastCC.JJPARSER_IGNORE_CASE);
   }
 
   /**
@@ -418,8 +414,8 @@ public class Options {
    *
    * @return The requested sanity check value.
    */
-  public static boolean getSanityCheck() {
-    return Options.booleanValue(FastCC.JJPARSER_SANITY_CHECK);
+  public final boolean getSanityCheck() {
+    return booleanValue(FastCC.JJPARSER_SANITY_CHECK);
   }
 
   /**
@@ -427,8 +423,8 @@ public class Options {
    *
    * @return The requested force lookahead value.
    */
-  public static boolean getForceLaCheck() {
-    return Options.booleanValue(FastCC.JJPARSER_FORCE_LA_CHECK);
+  public final boolean getForceLaCheck() {
+    return booleanValue(FastCC.JJPARSER_FORCE_LA_CHECK);
   }
 
   /**
@@ -436,8 +432,8 @@ public class Options {
    *
    * @return The requested cache tokens value.
    */
-  public static boolean getCacheTokens() {
-    return Options.booleanValue(FastCC.JJPARSER_CACHE_TOKENS);
+  public final boolean getCacheTokens() {
+    return booleanValue(FastCC.JJPARSER_CACHE_TOKENS);
   }
 
   /**
@@ -445,8 +441,8 @@ public class Options {
    *
    * @return The requested keep line column value.
    */
-  public static boolean getKeepLineColumn() {
-    return Options.booleanValue(FastCC.JJPARSER_KEEP_LINE_COLUMN);
+  public final boolean getKeepLineColumn() {
+    return booleanValue(FastCC.JJPARSER_KEEP_LINE_COLUMN);
   }
 
   /**
@@ -459,8 +455,8 @@ public class Options {
    * @return true if throws errors (legacy), false if use {@link RuntimeException} s (better
    *         approach)
    */
-  static boolean isLegacy() {
-    return Options.booleanValue(FastCC.JJPARSER_LEGACY);
+  boolean isLegacy() {
+    return booleanValue(FastCC.JJPARSER_LEGACY);
   }
 
   /**
@@ -469,7 +465,7 @@ public class Options {
    *
    * @return The file encoding (e.g., UTF-8, ISO_8859-1, MacRoman)
    */
-  public static String getGrammarEncoding() {
+  public final String getGrammarEncoding() {
     return System.getProperties().getProperty("file.encoding");
   }
 
@@ -478,41 +474,47 @@ public class Options {
    *
    * @return The requested output directory.
    */
-  public static File getOutputDirectory() {
-    return new File(Options.stringValue(FastCC.JJPARSER_OUTPUT_DIRECTORY));
+  public final File getOutputDirectory() {
+    return new File(stringValue(FastCC.JJPARSER_OUTPUT_DIRECTORY));
   }
 
   /**
    * @return the output language. default java
    */
-  public static String getOutputLanguage() {
-    return Options.stringValue(FastCC.JJPARSER_OUTPUT_LANGUAGE);
+  public static JJLanguage getOutputLanguage() {
+    String language =  (String) Options.optionValues.get(FastCC.JJPARSER_OUTPUT_LANGUAGE);
+    if (language.equalsIgnoreCase(Options.OUTPUT_LANGUAGE__JAVA)) {
+      return JJLanguage.Java;
+    } else if (language.equalsIgnoreCase(Options.OUTPUT_LANGUAGE__CPP) || language.equalsIgnoreCase("cpp")) {
+      return JJLanguage.Cpp;
+    }
+    return JJLanguage.None;
   }
 
-  public static String getJavaPackage() {
-    return Options.stringValue(FastCC.JJPARSER_JAVA_PACKAGE);
+  public final String getJavaPackage() {
+    return stringValue(FastCC.JJPARSER_JAVA_PACKAGE);
   }
 
-  public static String getJavaImports() {
-    return Options.stringValue(FastCC.JJPARSER_JAVA_IMPORTS);
+  public final String getJavaImports() {
+    return stringValue(FastCC.JJPARSER_JAVA_IMPORTS);
   }
 
-  public static String getJavaExtends() {
-    return Options.stringValue(FastCC.JJPARSER_JAVA_EXTENDS);
+  public final String getJavaExtends() {
+    return stringValue(FastCC.JJPARSER_JAVA_EXTENDS);
   }
 
-  public static String getJavaLexer() {
-    return Options.stringValue(FastCC.JJPARSER_JAVA_LEXER);
+  public final String getJavaLexer() {
+    return stringValue(FastCC.JJPARSER_JAVA_LEXER);
   }
 
-  public static void setStringOption(String optionName, String optionValue) {
+  public final void setStringOption(String optionName, String optionValue) {
     Options.optionValues.put(optionName, optionValue);
     if (optionName.equalsIgnoreCase(FastCC.JJPARSER_CPP_NAMESPACE)) {
-      Options.processCPPNamespaceOption(optionValue);
+      processCPPNamespaceOption(optionValue);
     }
   }
 
-  private static void processCPPNamespaceOption(String optionValue) {
+  private final void processCPPNamespaceOption(String optionValue) {
     String ns = optionValue;
     if (ns.length() > 0) {
       // We also need to split it.
@@ -531,8 +533,8 @@ public class Options {
    *
    * @return The requested recursion limit.
    */
-  public static int getDepthLimit() {
-    return Options.intValue(FastCC.JJPARSER_DEPTH_LIMIT);
+  public final int getDepthLimit() {
+    return intValue(FastCC.JJPARSER_DEPTH_LIMIT);
   }
 
   private static class OptionInfo implements Comparable<OptionInfo> {

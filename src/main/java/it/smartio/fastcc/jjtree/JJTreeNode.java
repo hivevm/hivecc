@@ -31,14 +31,13 @@ public class JJTreeNode extends Node {
 
   private int myOrdinal;
 
-  JJTreeNode(int id) {
-    super(id);
-  }
-
   JJTreeNode(JJTreeParser p, int i) {
-    this(i);
+    super(p, i);
   }
 
+  public final JJTreeOptions jjtOptions() {
+    return parser.getOptions();
+  }
 
   @Override
   public void jjtAddChild(Node n, int i) {
