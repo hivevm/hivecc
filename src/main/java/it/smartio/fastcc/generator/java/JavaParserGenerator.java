@@ -105,54 +105,38 @@ public class JavaParserGenerator extends ParserGenerator {
       }
       return writer.toString();
     };
-    Function<Object, String> postInsertion = i -> {
-      StringWriter writer = new StringWriter();
-      PrintWriter p = new PrintWriter(writer);
-      if (data.fromInsertionPoint2().size() != 0) {
-        genTokenSetup(data.fromInsertionPoint2().get(0));
-        this.ccol = 1;
-        Token t = null;
-        for (Object name : data.fromInsertionPoint2()) {
-          t = (Token) name;
-          p.print(getStringToPrint(t));
-        }
-        p.print(getTrailingComments(t));
-      }
-      return writer.toString();
-    };
     Function<Object, String> preInsertion = i -> {
       StringWriter writer = new StringWriter();
       PrintWriter p = new PrintWriter(writer);
 
-      boolean implementsExists = false;
-      if (data.toInsertionPoint1().size() != 0) {
-        Token t = null;
-        Object firstToken = data.toInsertionPoint1().get(0);
-        genTokenSetup((Token) firstToken);
-        this.ccol = 1;
-        for (final Iterator<Token> it = data.toInsertionPoint1().iterator(); it.hasNext();) {
-          t = it.next();
-          if (t.kind == JavaCCParserConstants.IMPLEMENTS) {
-            implementsExists = true;
-          } else if (t.kind == JavaCCParserConstants.CLASS) {
-            implementsExists = false;
-          }
-          p.print(getStringToPrint(t));
+      p.println("package " + Options.getJavaPackage() + ";");
+      p.println();
+      if (!Options.getJavaImports().isEmpty()) {
+        for (String im : Options.getJavaImports().split(",")) {
+          p.println("import " + im + ";");
         }
       }
 
-      if (implementsExists) {
-        p.print(", ");
-      } else {
-        p.print(" implements ");
+      p.print("public class ");
+      p.print(data.getParserName());
+      if (!Options.getJavaExtends().isEmpty()) {
+        p.print(" extends ");
+        p.print(Options.getJavaExtends());
       }
-      p.print(data.getParserName() + "Constants ");
-      if (data.toInsertionPoint2().size() != 0) {
-        genTokenSetup(data.toInsertionPoint2().get(0));
-        for (Token token : data.toInsertionPoint2()) {
-          p.print(getStringToPrint(token));
-        }
+
+      p.print(" implements ");
+
+      if (data.isGenerated()) {
+        p.print(data.getParserName() + "TreeConstants, ");
       }
+
+      p.println(data.getParserName() + "Constants {");
+
+      if (data.isGenerated()) {
+        p.println(
+            "protected JJT" + data.getParserName() + "State jjtree = new JJT" + data.getParserName() + "State();");
+      }
+
       return writer.toString();
     };
 
@@ -171,7 +155,6 @@ public class JavaParserGenerator extends ParserGenerator {
     writer.setOption("writeLookaheads", writeLookaheads);
     writer.setOption("writeExpansions", writeExpansions);
     writer.setOption("preInsertion", preInsertion);
-    writer.setOption("postInsertion", postInsertion);
 
     writer.writeTemplate("/templates/Parser.template");
     saveOutput(writer);
@@ -210,7 +193,6 @@ public class JavaParserGenerator extends ParserGenerator {
 
     if (p.getDeclarationTokens().size() != 0) {
       genTokenSetup((p.getDeclarationTokens().get(0)));
-      JavaCCToken.setRow();
       for (Iterator<Token> it = p.getDeclarationTokens().iterator(); it.hasNext();) {
         t = it.next();
         writer.print(getStringToPrint(t));
@@ -321,7 +303,6 @@ public class JavaParserGenerator extends ParserGenerator {
       retval += "\u0003\n";
       if (e_nrw.getActionTokens().size() != 0) {
         genTokenSetup((e_nrw.getActionTokens().get(0)));
-        JavaCCToken.setColumn();
         for (Iterator<Token> it = e_nrw.getActionTokens().iterator(); it.hasNext();) {
           t = it.next();
           retval += getStringToPrint(t);
@@ -415,7 +396,6 @@ public class JavaParserGenerator extends ParserGenerator {
         list = e_nrw.catchblks.get(i);
         if (list.size() != 0) {
           genTokenSetup((list.get(0)));
-          JavaCCToken.setColumn();
           for (Iterator<Token> it = list.iterator(); it.hasNext();) {
             t = it.next();
             retval += getStringToPrint(t);
@@ -429,7 +409,6 @@ public class JavaParserGenerator extends ParserGenerator {
 
         if (e_nrw.finallyblk.size() != 0) {
           genTokenSetup((e_nrw.finallyblk.get(0)));
-          JavaCCToken.setColumn();
           for (Iterator<Token> it = e_nrw.finallyblk.iterator(); it.hasNext();) {
             t = it.next();
             retval += getStringToPrint(t);
@@ -646,10 +625,8 @@ public class JavaParserGenerator extends ParserGenerator {
 
   private final void genHeaderMethod(BNFProduction p, Token t, PrintWriter writer) {
     genTokenSetup(t);
-    JavaCCToken.setColumn();
     writer.print(getLeadingComments(t));
     writer.print("  public final ");
-    JavaCCToken.set(t);
     writer.print(getStringForTokenOnly(t));
     for (int i = 1; i < p.getReturnTypeTokens().size(); i++) {
       t = (p.getReturnTypeTokens().get(i));
@@ -680,10 +657,8 @@ public class JavaParserGenerator extends ParserGenerator {
   private final void genCodeProduction(CodeProduction jp, PrintWriter writer) {
     Token t = jp.getReturnTypeTokens().get(0);
     genTokenSetup(t);
-    JavaCCToken.setColumn();
     writer.print(getLeadingComments(t));
     writer.print("  ");
-    JavaCCToken.set(t);
     writer.print(getStringForTokenOnly(t));
     for (int i = 1; i < jp.getReturnTypeTokens().size(); i++) {
       t = (jp.getReturnTypeTokens().get(i));
@@ -717,7 +692,6 @@ public class JavaParserGenerator extends ParserGenerator {
     }
     if (jp.getCodeTokens().size() != 0) {
       genTokenSetup((jp.getCodeTokens().get(0)));
-      JavaCCToken.setRow();
 
       for (Iterator<Token> it = jp.getCodeTokens().iterator(); it.hasNext();) {
         t = it.next();

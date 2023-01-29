@@ -507,5 +507,4 @@
 
   protected void jjtreeCloseNodeScope(Node node) throws ParseException {}
 @fi
-
-{{postInsertion()}}
+}

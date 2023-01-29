@@ -20,7 +20,6 @@ import it.smartio.fastcc.jjtree.ASTBNFAction;
 import it.smartio.fastcc.jjtree.ASTBNFDeclaration;
 import it.smartio.fastcc.jjtree.ASTBNFNodeScope;
 import it.smartio.fastcc.jjtree.ASTExpansionNodeScope;
-import it.smartio.fastcc.jjtree.ASTJavacodeBody;
 import it.smartio.fastcc.jjtree.ASTNodeDescriptor;
 import it.smartio.fastcc.jjtree.ASTProduction;
 import it.smartio.fastcc.jjtree.JJTreeGlobals;
@@ -80,7 +79,6 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
       }
       if (needClose) {
         JJTreeCodeGenerator.openJJTreeComment(io, null);
-        io.println();
         insertCloseNodeAction(ns, io, getIndentation(node));
         JJTreeCodeGenerator.closeJJTreeComment(io);
       }
@@ -103,7 +101,6 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
       }
 
       JJTreeCodeGenerator.openJJTreeComment(io, node.node_scope.getNodeDescriptorText());
-      io.println();
       insertOpenNodeCode(node.node_scope, io, indent);
       JJTreeCodeGenerator.closeJJTreeComment(io);
     }
@@ -121,7 +118,6 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
     String indent = getIndentation(node.expansion_unit);
 
     JJTreeCodeGenerator.openJJTreeComment(io, node.node_scope.getNodeDescriptor().getDescriptor());
-    io.println();
     tryExpansionUnit(node.node_scope, io, indent, node.expansion_unit);
     return null;
   }
@@ -131,34 +127,12 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
     PrintWriter io = (PrintWriter) data;
     String indent = getIndentation(node.expansion_unit);
     JJTreeCodeGenerator.openJJTreeComment(io, node.node_scope.getNodeDescriptor().getDescriptor());
-    io.println();
     insertOpenNodeAction(node.node_scope, io, indent);
     tryExpansionUnit(node.node_scope, io, indent, node.expansion_unit);
 
     // Print the "whiteOut" equivalent of the Node descriptor to preserve
     // line numbers in the generated file.
     ((ASTNodeDescriptor) node.jjtGetChild(1)).jjtAccept(this, io);
-    return null;
-  }
-
-  @Override
-  public final Object visit(ASTJavacodeBody node, Object data) {
-    PrintWriter io = (PrintWriter) data;
-    if (node.node_scope.isVoid()) {
-      return handleJJTreeNode((JJTreeNode) node, io);
-    }
-
-    Token first = node.getFirstToken();
-
-    String indent = "";
-    for (int i = 4; i < first.beginColumn; ++i) {
-      indent += " ";
-    }
-
-    JJTreeCodeGenerator.openJJTreeComment(io, node.node_scope.getNodeDescriptorText());
-    io.println();
-    insertOpenNodeCode(node.node_scope, io, indent);
-    tryTokenSequence(node.node_scope, io, indent, first, node.getLastToken());
     return null;
   }
 
@@ -199,15 +173,15 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
 
 
   protected static void openJJTreeComment(PrintWriter io, String arg) {
+    io.print("\n/*@begin(jjtree)");
     if (arg != null) {
-      io.print("/*@bgen(jjtree) " + arg + " */");
-    } else {
-      io.print("/*@bgen(jjtree)*/");
+      io.print(" " + arg + " ");
     }
+    io.println("*/");
   }
 
   protected static void closeJJTreeComment(PrintWriter io) {
-    io.print("/*@egen*/");
+    io.print("/*@end*/");
   }
 
   private final String getIndentation(JJTreeNode n) {

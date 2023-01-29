@@ -26,8 +26,6 @@
 
 package it.smartio.fastcc;
 
-import it.smartio.fastcc.jjtree.ASTGrammar;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -37,7 +35,7 @@ import java.io.Reader;
 import java.text.ParseException;
 
 import it.smartio.fastcc.generator.ParserEngine;
-import it.smartio.fastcc.generator.java.JavaCCToken;
+import it.smartio.fastcc.jjtree.ASTGrammar;
 import it.smartio.fastcc.jjtree.JJTreeGlobals;
 import it.smartio.fastcc.jjtree.JJTreeOptions;
 import it.smartio.fastcc.jjtree.JJTreeParserDefault;
@@ -107,7 +105,6 @@ public class JJTree {
   public static void main(String args[]) {
     JJMain.bannerLine("Tree Builder", "");
 
-    JavaCCToken.reset();
     JavaCCErrors.reInit();
     Options.init();
     JJTreeOptions.init();

@@ -26,9 +26,6 @@
 
 package it.smartio.fastcc;
 
-import it.smartio.fastcc.parser.JavaCCParser;
-import it.smartio.fastcc.parser.StreamProvider;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -36,11 +33,12 @@ import java.io.InputStreamReader;
 import java.text.ParseException;
 
 import it.smartio.fastcc.generator.ParserEngine;
-import it.smartio.fastcc.generator.java.JavaCCToken;
 import it.smartio.fastcc.parser.JavaCCData;
 import it.smartio.fastcc.parser.JavaCCErrors;
+import it.smartio.fastcc.parser.JavaCCParser;
 import it.smartio.fastcc.parser.MetaParseException;
 import it.smartio.fastcc.parser.Options;
+import it.smartio.fastcc.parser.StreamProvider;
 import it.smartio.fastcc.semantic.SemanticContext;
 import it.smartio.fastcc.semantic.Semanticize;
 
@@ -84,7 +82,6 @@ public abstract class JJParser {
 
     JJMain.bannerLine("Parser Generator", "");
 
-    JavaCCToken.reset();
     JavaCCErrors.reInit();
     Options.init();
 

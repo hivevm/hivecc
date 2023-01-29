@@ -12,11 +12,11 @@ import it.smartio.fastcc.utils.Encoding;
 
 class CodeGenerator {
 
+  protected int crow, ccol;
+
   protected final void saveOutput(SourceWriter writer) {
     writer.saveOutput(Options.getOutputDirectory());
   }
-
-  public int cline, ccol;
 
   protected void genTokenSetup(Token t) {
     Token tt = t;
@@ -25,7 +25,7 @@ class CodeGenerator {
       tt = tt.specialToken;
     }
 
-    this.cline = tt.beginLine;
+    this.crow = tt.beginLine;
     this.ccol = tt.beginColumn;
   }
 
@@ -47,7 +47,7 @@ class CodeGenerator {
 
   protected String getStringForTokenOnly(Token t) {
     String retval = "";
-    for (; this.cline < t.beginLine; this.cline++) {
+    for (; this.crow < t.beginLine; this.crow++) {
       retval += "\n";
       this.ccol = 1;
     }
@@ -59,12 +59,12 @@ class CodeGenerator {
     } else {
       retval += t.image;
     }
-    this.cline = t.endLine;
+    this.crow = t.endLine;
     this.ccol = t.endColumn + 1;
     if (t.image.length() > 0) {
       char last = t.image.charAt(t.image.length() - 1);
       if ((last == '\n') || (last == '\r')) {
-        this.cline++;
+        this.crow++;
         this.ccol = 1;
       }
     }

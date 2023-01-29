@@ -120,7 +120,7 @@ public class DigestWriter extends PrintWriter {
    * @param version
    * @param options
    */
-  public static DigestWriter create(OutputStream stream, Version version, DigestOptions options) {
+  private static DigestWriter create(OutputStream stream, Version version, DigestOptions options) {
     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
     DigestOutputStream digest = new DigestOutputStream(bytes, DigestWriter.DIGEST);
     return new DigestWriter(stream, digest, bytes, version, options);

@@ -40,12 +40,12 @@ public abstract class LexerGenerator extends CodeGenerator {
       return;
     }
 
-    dumpAll(request, request.request.toInsertionPoint1());
+    dumpAll(request);
   }
 
   // --------------------------------------- RString
 
-  protected abstract void dumpAll(LexerData data, List<Token> insertionPoint) throws IOException;
+  protected abstract void dumpAll(LexerData data) throws IOException;
 
 
   protected final static String[] ReArrange(Hashtable<String, ?> tab) {

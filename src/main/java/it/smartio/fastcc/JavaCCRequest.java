@@ -15,13 +15,10 @@
 
 package it.smartio.fastcc;
 
-import java.util.List;
-
 import it.smartio.fastcc.parser.Action;
 import it.smartio.fastcc.parser.NormalProduction;
 import it.smartio.fastcc.parser.Options;
 import it.smartio.fastcc.parser.RegularExpression;
-import it.smartio.fastcc.parser.Token;
 import it.smartio.fastcc.parser.TokenProduction;
 
 /**
@@ -43,8 +40,6 @@ public interface JavaCCRequest {
 
   String getNameOfToken(int ordinal);
 
-  List<Token> getTokens();
-
   Iterable<RegularExpression> getOrderedsTokens();
 
   Iterable<TokenProduction> getTokenProductions();
@@ -52,12 +47,6 @@ public interface JavaCCRequest {
   Iterable<NormalProduction> getNormalProductions();
 
   NormalProduction getProductionTable(String name);
-
-  List<Token> toInsertionPoint1();
-
-  List<Token> toInsertionPoint2();
-
-  List<Token> fromInsertionPoint2();
 
   default boolean ignoreCase() {
     return Options.getIgnoreCase();

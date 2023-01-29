@@ -2,7 +2,7 @@
  * Describes the input token stream.
  */
 
-class Token {
+public class Token {
   /**
    * An integer that describes the kind of this token.  This numbering
    * system is determined by JavaCCParser, and a table of these numbers is

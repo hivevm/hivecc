@@ -137,7 +137,6 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
     }
 
     JJTreeCodeGenerator.openJJTreeComment(io, null);
-    io.println();
 
     Enumeration<String> thrown_names = ns.production.throws_list.elements();
     insertCatchBlocks(ns, io, thrown_names, indent);
@@ -160,7 +159,6 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
     expansion_unit.jjtAccept(this, io);
 
     JJTreeCodeGenerator.openJJTreeComment(io, null);
-    io.println();
 
     Hashtable<String, String> thrown_set = new Hashtable<>();
     JJTreeCodeGenerator.findThrown(ns, thrown_set, expansion_unit);

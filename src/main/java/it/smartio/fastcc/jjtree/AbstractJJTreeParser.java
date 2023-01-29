@@ -15,14 +15,10 @@
 
 package it.smartio.fastcc.jjtree;
 
-import it.smartio.fastcc.parser.Options;
-
 /**
  * The {@link AbstractJJTreeParser} class.
  */
-abstract class AbstractJJTreeParser implements JJTreeParserTreeConstants, JJTreeParserConstants {
-
-  protected boolean isJavaLanguage = true;
+abstract class AbstractJJTreeParser {
 
   protected abstract Token getNextToken();
 
@@ -31,11 +27,6 @@ abstract class AbstractJJTreeParser implements JJTreeParserTreeConstants, JJTree
   protected void jjtreeOpenNodeScope(Node n) {}
 
   protected void jjtreeCloseNodeScope(Node n) {}
-
-
-  protected final boolean isJavaLanguage() {
-    return Options.getOutputLanguage().equalsIgnoreCase(Options.OUTPUT_LANGUAGE__JAVA);
-  }
 
   /**
    * Returns true if the next token is not in the FOLLOW list of "expansion". It is used to decide
@@ -49,15 +40,5 @@ abstract class AbstractJJTreeParser implements JJTreeParserTreeConstants, JJTree
         || t.kind == JJTreeParserConstants.RBRACKET)
       return false;
     return true;
-  }
-
-  protected void eatUptoCloseBrace() {
-    int b = 1;
-    while (getToken(1).kind != JJTreeParserConstants.RBRACE || --b != 0) {
-      if (getToken(1).kind == JJTreeParserConstants.EOF)
-        break;
-      if (getNextToken().kind == JJTreeParserConstants.LBRACE)
-        b++;
-    }
   }
 }

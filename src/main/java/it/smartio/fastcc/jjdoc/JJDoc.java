@@ -30,7 +30,6 @@ package it.smartio.fastcc.jjdoc;
 
 import java.util.Iterator;
 
-import it.smartio.fastcc.generator.java.JavaCCToken;
 import it.smartio.fastcc.parser.Action;
 import it.smartio.fastcc.parser.BNFProduction;
 import it.smartio.fastcc.parser.CharacterRange;
@@ -89,17 +88,6 @@ class JJDoc extends JJDocGlobals {
       return;
     }
     tok = JJDoc.getPrecedingSpecialToken(tok);
-    String s = "";
-    if (tok != null) {
-      JavaCCToken.set(tok);
-      while (tok != null) {
-        s += JavaCCToken.printTokenOnly(tok);
-        tok = tok.next;
-      }
-    }
-    if (!s.equals("")) {
-      gen.specialTokens(s);
-    }
   }
 
   /*

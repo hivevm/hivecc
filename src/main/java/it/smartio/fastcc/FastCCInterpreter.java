@@ -7,14 +7,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
-import it.smartio.fastcc.generator.java.JavaCCToken;
 import it.smartio.fastcc.parser.JavaCCErrors;
 import it.smartio.fastcc.parser.Options;
 
 public class FastCCInterpreter {
 
   public static void main(String[] args) throws Exception {
-    JavaCCToken.reset();
     JavaCCErrors.reInit();
     Options.init();
 

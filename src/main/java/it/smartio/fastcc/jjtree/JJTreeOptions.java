@@ -69,6 +69,10 @@ public class JJTreeOptions extends Options {
     Options.optionValues.put(FastCC.JJTREE_VISITOR_EXCEPTION, "");
 
     // Also appears to be a duplicate
+    Options.optionValues.put(FastCC.JJPARSER_JAVA_PACKAGE, "");
+    Options.optionValues.put(FastCC.JJPARSER_JAVA_IMPORTS, "");
+    Options.optionValues.put(FastCC.JJPARSER_JAVA_EXTENDS, "");
+    Options.optionValues.put(FastCC.JJPARSER_JAVA_LEXER, "");
     Options.optionValues.put(FastCC.JJPARSER_CPP_NAMESPACE, "");
   }
 
@@ -152,13 +156,6 @@ public class JJTreeOptions extends Options {
    */
   public static String getNodeClass() {
     return Options.stringValue(FastCC.JJTREE_NODE_CLASS);
-  }
-
-  /**
-   * Find the node package value.
-   */
-  static String getNodePackage() {
-    return Options.stringValue(FastCC.JJTREE_NODE_PACKAGE);
   }
 
   /**

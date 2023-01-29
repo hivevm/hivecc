@@ -28,53 +28,14 @@
 
 options {
   LEGACY = true;
+  PACKAGE = "it.smartio.fastcc.parser";
+  IMPORTS = "java.util.List,java.util.ArrayList";
+  EXTENDS = "AbstractJavaCCParser";
+  LEXER = "AbstractTokenManager";
 }
 
 PARSER_BEGIN(JavaCCParser)
-
-package it.smartio.fastcc.parser;
-
-import java.util.List;
-import java.util.ArrayList;
-
-public class JavaCCParser extends AbstractJavaCCParser {
-}
-
-PARSER_END(JavaCCParser)
-
-TOKEN_MGR_DECLS :
-{
-   int beginLine[] = new int[10];
-   int beginCol[] = new int[10];
-   int depth = 0;
-   int size = 10;
-
-   void saveBeginLineCol()
-   {
-      int l = input_stream.getBeginLine();
-      int c = input_stream.getBeginColumn();
-      if (depth == size)
-      {
-         size += 5;
-         int tmpbeginLine[] = new int[size];
-         int tmpbeginCol[] = new int[size];
-
-         System.arraycopy(beginLine, 0, beginLine = tmpbeginLine, 0, depth);
-         System.arraycopy(beginCol, 0, beginCol = tmpbeginCol, 0, depth);
-      }
-
-      beginLine[depth] = l;
-      beginCol[depth] = c;
-      depth++;
-   }
-
-   void restoreBeginLineCol()
-   {
-      depth--;
-      input_stream.adjustBeginLineColumn(beginLine[depth], beginCol[depth]);
-      input_stream.backup(1);
-   }
-}
+PARSER_END
 
 
 /**********************************************
@@ -89,18 +50,16 @@ TOKEN :
 | < _IGNORE_CASE: "IGNORE_CASE" >
 | < _PARSER_BEGIN: "PARSER_BEGIN" >
 | < _PARSER_END: "PARSER_END" >
-| < _JAVACODE: "JAVACODE" >
 | < _TOKEN: "TOKEN" >
 | < _SPECIAL_TOKEN: "SPECIAL_TOKEN" >
 | < _MORE: "MORE" >
 | < _SKIP: "SKIP" >
-| < _TOKEN_MGR_DECLS: "TOKEN_MGR_DECLS" >
 | < _EOF: "EOF" >
 }
 
 /*
  * The remainder of the tokens are exactly (except for the removal of tokens
- * containing ">>" and "<<") as in the Java grammar and must be diff equivalent
+ * as in the Java grammar and must be diff equivalent
  * (again with the exceptions above) to it.
  */
 
@@ -113,8 +72,7 @@ SKIP :
 | "\n"
 | "\r"
 | "\f"
-| "/*@egen*/" : AFTER_EGEN
-
+| "/*@end*/" : AFTER_EGEN
 }
 
 <AFTER_EGEN> SKIP :
@@ -129,7 +87,7 @@ MORE :
   "//" : IN_SINGLE_LINE_COMMENT
 | <"/**" ~["/"]> { input_stream.backup(1); } : IN_FORMAL_COMMENT
 | "/*" : IN_MULTI_LINE_COMMENT
-| "/*@bgen(jjtree" { saveBeginLineCol(); } : IN_MULTI_LINE_COMMENT
+| "/*@begin(jjtree" { saveBeginLineCol(); } : IN_MULTI_LINE_COMMENT
 }
 
 
@@ -161,43 +119,24 @@ MORE :
 
 TOKEN :
 {
-  < ABSTRACT: "abstract" >
-| < BOOLEAN: "boolean" >
+  < BOOLEAN: "boolean" >
 | < BREAK: "break" >
-| < BYTE: "byte" >
 | < CASE: "case" >
 | < CATCH: "catch" >
 | < CHAR: "char" >
-| < CLASS: "class" >
 | < CONTINUE: "continue" >
 | < _DEFAULT: "default" >
-| < DO: "do" >
 | < DOUBLE: "double" >
 | < ELSE: "else" >
-| < EXTENDS: "extends" >
 | < FALSE: "false" >
-| < FINAL: "final" >
 | < FINALLY: "finally" >
-| < FLOAT: "float" >
 | < FOR: "for" >
-| < GOTO: "goto" >
 | < IF: "if" >
-| < IMPLEMENTS: "implements" >
-| < IMPORT: "import" >
 | < INSTANCEOF: "instanceof" >
 | < INT: "int" >
-| < INTERFACE: "interface" >
-| < LONG: "long" >
 | < NEW: "new" >
 | < NULL: "null" >
-| < PACKAGE: "package">
-| < PRIVATE: "private" >
-| < PROTECTED: "protected" >
-| < PUBLIC: "public" >
 | < RETURN: "return" >
-| < SHORT: "short" >
-| < STATIC: "static" >
-| < SUPER: "super" >
 | < SWITCH: "switch" >
 | < THIS: "this" >
 | < THROW: "throw" >
@@ -216,29 +155,26 @@ TOKEN :
         <DECIMAL_LITERAL> (["l","L"])?
       | <HEX_LITERAL> (["l","L"])?
       | <OCTAL_LITERAL> (["l","L"])?
-      | <BINARY_LITERAL> (["l","L"])?
   >
-| < #DECIMAL_LITERAL: ["1"-"9"] (("_")* ["0"-"9"])* >
-| < #HEX_LITERAL: "0" ["x","X"] ["0"-"9","a"-"f","A"-"F"] (("_")* ["0"-"9","a"-"f","A"-"F"])* >
-| < #OCTAL_LITERAL: "0" (("_")* ["0"-"7"])* >
-| < #BINARY_LITERAL: "0" ["b","B"] ["0", "1"] (("_")* ["0","1"])* >
+| < #DECIMAL_LITERAL: ["1"-"9"] (["0"-"9"])* >
+| < #HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+ >
+| < #OCTAL_LITERAL: "0" (["0"-"7"])* >
 | < FLOATING_POINT_LITERAL:
         <DECIMAL_FLOATING_POINT_LITERAL>
       | <HEXADECIMAL_FLOATING_POINT_LITERAL>
   >
 | < #DECIMAL_FLOATING_POINT_LITERAL:
-        ["0"-"9"] (("_")* ["0"-"9"])* "." (["0"-"9"](("_")*["0"-"9"])*)? (<DECIMAL_EXPONENT>)? (["f","F","d","D"])?
-      | "." ["0"-"9"](("_")*["0"-"9"])* (<DECIMAL_EXPONENT>)? (["f","F","d","D"])?
-      | ["0"-"9"](("_")*["0"-"9"])* <DECIMAL_EXPONENT> (["f","F","d","D"])?
-      | ["0"-"9"](("_")*["0"-"9"])* (<DECIMAL_EXPONENT>)? ["f","F","d","D"]
+        (["0"-"9"])+ "." (["0"-"9"])* (<DECIMAL_EXPONENT>)? (["f","F","d","D"])?
+      | "." (["0"-"9"])+ (<DECIMAL_EXPONENT>)? (["f","F","d","D"])?
+      | (["0"-"9"])+ <DECIMAL_EXPONENT> (["f","F","d","D"])?
+      | (["0"-"9"])+ (<DECIMAL_EXPONENT>)? ["f","F","d","D"]
   >
-| < #DECIMAL_EXPONENT: ["e","E"] (["+","-"])? ["0"-"9"] (("_")*["0"-"9"])* >
+| < #DECIMAL_EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
 | < #HEXADECIMAL_FLOATING_POINT_LITERAL:
-        "0" ["x", "X"] ["0"-"9","a"-"f","A"-"F"] (("_")* ["0"-"9","a"-"f","A"-"F"])* (".")? <HEXADECIMAL_EXPONENT> (["f","F","d","D"])?
-      | "0" ["x", "X"] (["0"-"9","a"-"f","A"-"F"](("_")* ["0"-"9","a"-"f","A"-"F"])* )? "." 
-           ["0"-"9","a"-"f","A"-"F"] (("_")*["0"-"9","a"-"f","A"-"F"])* <HEXADECIMAL_EXPONENT> (["f","F","d","D"])?
+        "0" ["x", "X"] (["0"-"9","a"-"f","A"-"F"])+ (".")? <HEXADECIMAL_EXPONENT> (["f","F","d","D"])?
+      | "0" ["x", "X"] (["0"-"9","a"-"f","A"-"F"])* "." (["0"-"9","a"-"f","A"-"F"])+ <HEXADECIMAL_EXPONENT> (["f","F","d","D"])?
   >
-| < #HEXADECIMAL_EXPONENT: ["p","P"] (["+","-"])? ["0"-"9"](("_")*["0"-"9"])* >
+| < #HEXADECIMAL_EXPONENT: ["p","P"] (["+","-"])? (["0"-"9"])+ >
 | < CHARACTER_LITERAL:
       "'"
       (   (~["'","\\","\n","\r"])
@@ -293,8 +229,6 @@ TOKEN :
 | < COLON: ":" >
 | < DOUBLECOLON: "::" >
 | < EQ: "==" >
-| < LE: "<=" >
-| < GE: ">=" >
 | < NE: "!=" >
 | < SC_OR: "||" >
 | < SC_AND: "&&" >
@@ -310,138 +244,92 @@ TOKEN :
 | < REM: "%" >
 | < PLUSASSIGN: "+=" >
 | < MINUSASSIGN: "-=" >
-| < STARASSIGN: "*=" >
-| < SLASHASSIGN: "/=" >
-| < ANDASSIGN: "&=" >
-| < ORASSIGN: "|=" >
-| < XORASSIGN: "^=" >
-| < REMASSIGN: "%=" >
 }
 
 
 /* >'s need special attention due to generics syntax. */
 TOKEN :
 {
-  < RUNSIGNEDSHIFT: ">>>" >
-  {
-     matchedToken.kind = GT;
-     ((Token.GTToken)matchedToken).realKind = RUNSIGNEDSHIFT;
-     input_stream.backup(2);
-     matchedToken.image = ">";
-  }
-| < RSIGNEDSHIFT: ">>" >
-  {
-     matchedToken.kind = GT;
-     ((Token.GTToken)matchedToken).realKind = RSIGNEDSHIFT;
-     input_stream.backup(1);
-     matchedToken.image = ">";
-  }
-| < GT: ">" >
+  < GT: ">" >
 }
 
 
 /************************************************
  * THE JAVACC GRAMMAR SPECIFICATION STARTS HERE *
  ************************************************/
-
 void javacc_input() :
-	{
-	  String id1, id2;
-	}
 {
-  javacc_options()
+  String t;
+}
+{
+  javacc_options() "PARSER_BEGIN" "(" t=identifier()
   {
-  }
-    "PARSER_BEGIN" "(" id1=identifier()
-	{
-	  addcuname(id1);
-	}
-                 ")"
-	{
-	  processing_cu = true;
-	  parser_class_name = id1;
-
-          if (!isJavaLanguage()) {
-            getToken(1);
-            while(getToken(1).kind != _PARSER_END) {
-              getNextToken();
-            }
-            getToken(1);
-          }
-	}
-    CompilationUnit()
-	{
-	  processing_cu = false;
-	}
-    "PARSER_END" "(" id2=identifier()
-	{
-	  compare(getToken(0), id1, id2);
-	}
-    ")"
-  ( production() )+
-  <EOF>
+    setParserName(t);
+  } ")" "PARSER_END" ( production() )+ <EOF>
 }
 
 void javacc_options() :
 {}
 {
   [ LOOKAHEAD({ getToken(1).image.equals("options") }) <IDENTIFIER> "{" ( option_binding() )* "}" ]
-	{
-	  Options.normalize();
-	}
+  {
+    Options.normalize();
+  }
 }
 
 void option_binding() :
-	{
-	  String option_name;
-	  int int_val;
-	  boolean bool_val;
-	  String string_val;
-	  List<String > string_list;
-	  Token t = getToken(1);
-	}
 {
-  ( <IDENTIFIER> | "LOOKAHEAD" | "IGNORE_CASE" | "static" | "PARSER_BEGIN" )
-	{
-	  option_name = t.image;
-	}
+  String option_name;
+  int int_val;
+  boolean bool_val;
+  String string_val;
+  List<String > string_list;
+  Token t = getToken(1);
+}
+{
+  ( <IDENTIFIER> | "LOOKAHEAD" | "IGNORE_CASE" | "PARSER_BEGIN" )
+  {
+    option_name = t.image;
+  }
   "="
   (
     int_val = IntegerLiteral()
 	{
 	  Options.setInputFileOption(t, getToken(0), option_name, Integer.valueOf(int_val));
 	}
-  |
-    bool_val = BooleanLiteral()
+  | bool_val = BooleanLiteral()
 	{
 	  Options.setInputFileOption(t, getToken(0), option_name, Boolean.valueOf(bool_val));
 	}
-  |
-    string_val = StringLiteral()
+  | string_val = StringLiteral()
 	{
 	  Options.setInputFileOption(t, getToken(0), option_name, string_val);
 	}
-  |
-    string_list = StringList()
+  | string_list = StringList()
     {
 	  Options.setInputFileOption(t, getToken(0), option_name, string_list);
     }
-  )
-  ";"
+  ) ";"
 }
 
 List<String> StringList() :
-{ List<String> strings = new ArrayList<String>(); String string; }
 {
-	"(" string = StringLiteral()
-	{
-	  strings.add(string);
-	}
-	("," string = StringLiteral()
-	{
-	  strings.add(string);
-	}
-	)* ")" {  return strings; }
+  List<String> strings = new ArrayList<String>();
+  String string;
+}
+{
+  "(" string = StringLiteral()
+  {
+    strings.add(string);
+  }
+  ("," string = StringLiteral()
+  {
+    strings.add(string);
+  }
+  )* ")"
+  {
+    return strings;
+  }
 }
 
 void production() :
@@ -449,90 +337,33 @@ void production() :
 {
   LOOKAHEAD(1)
   /*
-   * Since JAVACODE is both a JavaCC reserved word and a Java identifier,
-   * we need to give preference to "javacode_production" over
-   * "bnf_production".
-   */
-  javacode_production()
-|
-  LOOKAHEAD(1)
-  /*
    * Since SKIP, TOKEN, etc. are both JavaCC reserved words and Java
    * identifiers, we need to give preference to "regular_expression_production"
    * over "bnf_production".
    */
   regular_expr_production()
-|
-  LOOKAHEAD(1)
-  /*
-   * Since TOKEN_MGR_DECLS is both a JavaCC reserved word and a Java identifier,
-   * we need to give preference to "token_manager_decls" over
-   * "bnf_production".
-   */
-  token_manager_decls()
-|
-  bnf_production()
-}
-
-void javacode_production() :
-	{
-	  CodeProduction p = new CodeProduction();
-	  String lhs;
-	  Token t = getToken(1);
-	  p.setFirstToken(t);
-	  List<Token> excName;
-	  p.setThrowsList(new ArrayList<>());
-	  p.setLine(t.beginLine);
-	  p.setColumn(t.beginColumn);
-	}
-{
-  "JAVACODE"
-  AccessModifier(p)
-  ResultType(p.getReturnTypeTokens())
-  lhs=identifier()	{ p.setLhs(lhs); }
-  FormalParameters(p.getParameterListTokens())
-  [ "throws"
-	{
-	  excName = new ArrayList<>();
-	}
-    Name(excName)
-	{
-	  p.getThrowsList().add(excName);
-	}
-    (
-	{
-	  excName = new ArrayList<>();
-	}
-      "," Name(excName)
-	{
-	  p.getThrowsList().add(excName);
-	}
-    )*
-  ]
-  Block(p.getCodeTokens())
-	{
-	  p.setLastToken(getToken(0));
-	  addproduction(p);
-	}
+| bnf_production()
 }
 
 void bnf_production() :
-	{
-	  BNFProduction p = new BNFProduction();
-	  Container c = new Container();
-	  Token t = getToken(1);
-	  p.setFirstToken(t);
-	  List<Token> excName;
-	  String lhs;
-	  p.setThrowsList(new ArrayList<>());
-	  p.setLine(t.beginLine);
-	  p.setColumn(t.beginColumn);
-	  jumpPatched = false;
-	}
 {
-  AccessModifier(p)
+  BNFProduction p = new BNFProduction();
+  Container c = new Container();
+  Token t = getToken(1);
+  p.setFirstToken(t);
+  List<Token> excName;
+  String lhs;
+  p.setThrowsList(new ArrayList<>());
+  p.setLine(t.beginLine);
+  p.setColumn(t.beginColumn);
+  jumpPatched = false;
+}
+{
   ResultType(p.getReturnTypeTokens())
-  lhs=identifier()  { p.setLhs(lhs); }
+  lhs=identifier()
+  {
+    p.setLhs(lhs);
+  }
   FormalParameters(p.getParameterListTokens())
   [ "throws"
 	{
@@ -552,47 +383,35 @@ void bnf_production() :
 	}
     )*
   ]
-  ":"
-  Block(p.getDeclarationTokens())
-  "{" expansion_choices(c) t="}"
-	{
-	  p.setLastToken(t);
-	  p.setJumpPatched(jumpPatched);
-	  production_addexpansion(p, (Expansion)(c.member));
-	  addproduction(p);
-	}
-}
-
-void AccessModifier(NormalProduction p) :
-	{
-	  Token t = null;
-	}
-{
-	( t = "public" | t = "protected" | t = "private" )?
-	{}
+  ":" Block(p.getDeclarationTokens()) "{" expansion_choices(c) t="}"
+  {
+    p.setLastToken(t);
+    p.setJumpPatched(jumpPatched);
+    production_addexpansion(p, (Expansion)(c.member));
+    addproduction(p);
+  }
 }
 
 void regular_expr_production() :
-	{
-	  TokenProduction p = new TokenProduction();
-	  List<String> states;
-	  Token t = p.firstToken = getToken(1);
-	  p.setLine(t.beginLine);
-	  p.setColumn(t.beginColumn);
-	}
 {
-	{
-	  // set p.lexStates assuming there is no state spec.
-	  // and then override if necessary.
-	  p.lexStates = new String[] {"DEFAULT"};
-	}
+  TokenProduction p = new TokenProduction();
+  List<String> states;
+  Token t = p.firstToken = getToken(1);
+  p.setLine(t.beginLine);
+  p.setColumn(t.beginColumn);
+}
+{
+  {
+    // set p.lexStates assuming there is no state spec.
+    // and then override if necessary.
+    p.lexStates = new String[] {"DEFAULT"};
+  }
   [
     LOOKAHEAD(2) "<" "*" ">"
 	{
 	  p.lexStates = null;
 	}
-  |
-    "<"
+  | "<"
 	{
 	  states = new ArrayList<>();
 	}
@@ -629,26 +448,6 @@ void regular_expr_production() :
 	}
 }
 
-void token_manager_decls() :
-	{
-	  List<Token> decls = new ArrayList<>();
-	  Token t;
-	}
-{
-  t="TOKEN_MGR_DECLS" ":"
-  {
-    if (!isJavaLanguage()) {
-      getNextToken(); // eat {
-      eatUptoCloseBrace(decls);
-      getNextToken(); // eat }
-    }
-  }
-  [ ClassOrInterfaceBody(false, decls) ]
-	{
-	  add_token_manager_decls(t, decls);
-	}
-}
-
 void regexpr_kind(TokenProduction p) :
 {}
 {
@@ -656,36 +455,33 @@ void regexpr_kind(TokenProduction p) :
 	{
 	  p.kind = TokenProduction.TOKEN;
 	}
-|
-  "SPECIAL_TOKEN"
+| "SPECIAL_TOKEN"
 	{
 	  p.kind = TokenProduction.SPECIAL;
 	}
-|
-  "SKIP"
+| "SKIP"
 	{
 	  p.kind = TokenProduction.SKIP;
 	}
-|
-  "MORE"
+| "MORE"
 	{
 	  p.kind = TokenProduction.MORE;
 	}
 }
 
 void regexpr_spec(TokenProduction p) :
-	{
-	  Container c = new Container();
-	  Action act = new Action();
-	  Token t = null;
-	  RegExprSpec res = new RegExprSpec();
-	}
+{
+  Container c = new Container();
+  Action act = new Action();
+  Token t = null;
+  RegExprSpec res = new RegExprSpec();
+}
 {
   regular_expression(c)
-	{
-	  res.rexp = (RegularExpression)c.member;
-	  res.rexp.tpContext = p;
-	}
+  {
+    res.rexp = (RegularExpression)c.member;
+    res.rexp.tpContext = p;
+  }
   [
 	{
 	  t = getToken(1);
@@ -713,11 +509,11 @@ void regexpr_spec(TokenProduction p) :
 }
 
 void expansion_choices(Container c1) :
-	{
-	  boolean morethanone = false;
-	  Choice ch = null; // unnecessary initialization to make Java compiler happy!
-	  Container c2 = new Container();
-	}
+{
+  boolean morethanone = false;
+  Choice ch = null; // unnecessary initialization to make Java compiler happy!
+  Container c2 = new Container();
+}
 {
   expansion(c1)
   ( "|" expansion(c2)
@@ -742,22 +538,22 @@ void expansion_choices(Container c1) :
 }
 
 void expansion(Container c1) :
-	{
-	  Sequence seq = new Sequence();
-	  Container c2 = new Container();
-	  Lookahead la = new Lookahead();
-	  Token t = getToken(1);
-	  seq.setLine(t.beginLine);
-	  seq.setColumn(t.beginColumn);
-	  la.setLine(t.beginLine);
-	  la.setColumn(t.beginColumn);
-	}
 {
-	{
-	  la.setAmount(Options.getLookahead());
-	  la.setLaExpansion(null);
-	  la.setExplicit(false);
-	}
+  Sequence seq = new Sequence();
+  Container c2 = new Container();
+  Lookahead la = new Lookahead();
+  Token t = getToken(1);
+  seq.setLine(t.beginLine);
+  seq.setColumn(t.beginColumn);
+  la.setLine(t.beginLine);
+  la.setColumn(t.beginColumn);
+}
+{
+  {
+    la.setAmount(Options.getLookahead());
+    la.setLaExpansion(null);
+    la.setExplicit(false);
+  }
   ( LOOKAHEAD(1)
     t="LOOKAHEAD" "(" la=local_lookahead() ")"
 	{
@@ -766,9 +562,9 @@ void expansion(Container c1) :
 	  }
 	}
   )?
-	{
-	  seq.units.add(la);
-	}
+  {
+    seq.units.add(la);
+  }
   ( LOOKAHEAD(0, { notTailOfExpansionUnit() } )
     expansion_unit(c2)
 	{
@@ -777,27 +573,27 @@ void expansion(Container c1) :
 	  ((Expansion)c2.member).ordinal = seq.units.size()-1;
 	}
   )+
-	{
-	  if (la.getLaExpansion() == null) {
-	    la.setLaExpansion(seq);
-	  }
-	  c1.member = seq;
-	}
+  {
+    if (la.getLaExpansion() == null) {
+      la.setLaExpansion(seq);
+    }
+    c1.member = seq;
+  }
 }
 
 Lookahead local_lookahead() :
-	{
-	  Lookahead la = new Lookahead();
-	  la.setExplicit(true);
-	  Token t = getToken(1);
-	  la.setLine(t.beginLine);
-	  la.setColumn(t.beginColumn);
-	  la.setLaExpansion(null);
-	  Container c = new Container();
-	  boolean commaAtEnd = false, emptyLA = true;
-	  int laAmount;
-	  inLocalLA++;
-	}
+{
+  Lookahead la = new Lookahead();
+  la.setExplicit(true);
+  Token t = getToken(1);
+  la.setLine(t.beginLine);
+  la.setColumn(t.beginColumn);
+  la.setLaExpansion(null);
+  Container c = new Container();
+  boolean commaAtEnd = false, emptyLA = true;
+  int laAmount;
+  inLocalLA++;
+}
 {
   [
     /*
@@ -860,14 +656,14 @@ Lookahead local_lookahead() :
 }
 
 void expansion_unit(Container c) :
-	{
-	  String name;
-	  List<Token> lhsTokens = new ArrayList<>();
-	  NonTerminal nt;
-	  Action act;
-	  Token t;
-	  Lookahead la;
-	}
+{
+  String name;
+  List<Token> lhsTokens = new ArrayList<>();
+  NonTerminal nt;
+  Action act;
+  Token t;
+  Lookahead la;
+}
 {
   LOOKAHEAD(1)
   /*
@@ -1028,19 +824,18 @@ void expansion_unit(Container c) :
 }
 
 void regular_expression(Container c) :
-	{
-	  REndOfFile ef;
-	  String image;
-	  boolean private_rexp = false;
-	  Token t = getToken(1);
-	}
+{
+  REndOfFile ef;
+  String image;
+  boolean private_rexp = false;
+  Token t = getToken(1);
+}
 {
   image=StringLiteral()
-	{
-	  c.member = new RStringLiteral(t, image);
-	}
-|
-  LOOKAHEAD(3)
+  {
+	c.member = new RStringLiteral(t, image);
+  }
+| LOOKAHEAD(3)
 	{
 	  image = "";
 	}
@@ -1069,14 +864,12 @@ void regular_expression(Container c) :
 	  re.setColumn(t.beginColumn);
 	  c.member = re;
 	}
-|
-  LOOKAHEAD(2)
+| LOOKAHEAD(2)
   "<" image=identifier() ">"
 	{
 	  c.member = new RJustName(t, image);
 	}
-|
-  "<" "EOF" ">"
+| "<" "EOF" ">"
 	{
 	  ef = new REndOfFile();
 	  ef.setLine(t.beginLine);
@@ -1087,11 +880,11 @@ void regular_expression(Container c) :
 }
 
 void complex_regular_expression_choices(Container c1) :
-	{
-	  boolean morethanone = false;
-	  RChoice ch = null; // unnecessary initialization to make Java compiler happy!
-	  Container c2 = new Container();
-	}
+{
+  boolean morethanone = false;
+  RChoice ch = null; // unnecessary initialization to make Java compiler happy!
+  Container c2 = new Container();
+}
 {
   complex_regular_expression(c1)
   ( "|" complex_regular_expression(c2)
@@ -1116,11 +909,11 @@ void complex_regular_expression_choices(Container c1) :
 }
 
 void complex_regular_expression(Container c1) :
-	{
-	  int count = 0;
-	  RSequence seq = null; // unnecessary initialization to make Java compiler happy!
-	  Container c2 = new Container();
-	}
+{
+  int count = 0;
+  RSequence seq = null; // unnecessary initialization to make Java compiler happy!
+  Container c2 = new Container();
+}
 {
   ( complex_regular_expression_unit(c2)
 	{
@@ -1146,26 +939,23 @@ void complex_regular_expression(Container c1) :
 }
 
 void complex_regular_expression_unit(Container c) :
-	{
-	  String image;
-	  Token t = getToken(1);
-          int r1 = 0, r2 = -1;
-          boolean hasMax = false;
-	}
+{
+  String image;
+  Token t = getToken(1);
+  int r1 = 0, r2 = -1;
+  boolean hasMax = false;
+}
 {
   image=StringLiteral()
 	{
 	  c.member = new RStringLiteral(t, image);
 	}
-|
-  "<" image=identifier() ">"
+| "<" image=identifier() ">"
 	{
 	  c.member = new RJustName(t, image);
 	}
-|
-  character_list(c)
-|
-  "(" complex_regular_expression_choices(c) ")"
+| character_list(c)
+| "(" complex_regular_expression_choices(c) ")"
   (  "+"
 	{
 	  c.member = new ROneOrMore(t, (RegularExpression)c.member);
@@ -1199,13 +989,13 @@ void complex_regular_expression_unit(Container c) :
 }
 
 void character_list(Container c1) :
-	{
-	  RCharacterList chlist = new RCharacterList();
-	  Token t = getToken(1);
-	  chlist.setLine(t.beginLine);
-	  chlist.setColumn(t.beginColumn);
-	  Container c2 = new Container();
-	}
+{
+  RCharacterList chlist = new RCharacterList();
+  Token t = getToken(1);
+  chlist.setLine(t.beginLine);
+  chlist.setColumn(t.beginColumn);
+  Container c2 = new Container();
+}
 {
   ["~"
 	{
@@ -1229,12 +1019,12 @@ void character_list(Container c1) :
 }
 
 void character_descriptor(Container c) :
-	{
-	  char c1, c2 = ' '; // unnecessary initialization to make Java compiler happy!
-	  boolean isrange = false;
-	  String imageL, imageR;
-	  Token t = getToken(1);
-	}
+{
+  char c1, c2 = ' '; // unnecessary initialization to make Java compiler happy!
+  boolean isrange = false;
+  String imageL, imageR;
+  Token t = getToken(1);
+}
 {
   imageL=StringLiteral()
 	{
@@ -1280,11 +1070,6 @@ String identifier() :
  **********************************************/
 
 /*
- * The Java grammar is modified to use sequences of tokens
- * for the missing tokens - those that include "<<" and ">>".
- */
-
-/*
  * The following production defines Java identifiers - it
  * includes the reserved words of JavaCC also.
  */
@@ -1297,182 +1082,28 @@ Token JavaIdentifier() :
 | "IGNORE_CASE"
 | "PARSER_BEGIN"
 | "PARSER_END"
-| "JAVACODE"
 | "TOKEN"
 | "SPECIAL_TOKEN"
 | "MORE"
 | "SKIP"
-| "TOKEN_MGR_DECLS"
 | "EOF"
-| "template"
 )
-	{
-	  Token retval = getToken(0);
-	  retval.kind = IDENTIFIER;
-	  return retval;
-	}
+{
+  Token retval = getToken(0);
+  retval.kind = IDENTIFIER;
+  return retval;
+}
 }
 
 /*
  * Program structuring syntax follows.
  */
 
-void CompilationUnit() :
-/*
- * The <EOF> is deleted since the compilation unit is embedded
- * within grammar code.
- */
-{
-	  set_initial_cu_token(getToken(1));
-}
-{
-  [ LOOKAHEAD( ( Annotation() )* "package" ) PackageDeclaration() ]
-  ( ImportDeclaration() )*
-  ( TypeDeclaration() )*
-	{
-          if (isJavaLanguage()) {
-	    insertionpointerrors(getToken(1));
-          }
-	}
-}
-
-void PackageDeclaration() :
-{}
-{
-  Modifiers() "package" Name(null) ";"
-}
-
-void ImportDeclaration() :
-{}
-{
-  "import" [ "static" ] Name(null) [ "." "*" ] ";"
-}
-
 /*
  * Modifiers. We match all modifiers in a single rule to reduce the chances of
  * syntax errors for simple modifier mistakes. It will also enable us to give
  * better error messages.
  */
-
-void Modifiers():
-{}
-{
- (
-  LOOKAHEAD(2)
-  (
-   "public"
-  |
-   "static"
-  |
-   "protected"
-  |
-   "private"
-  |
-   "final"
-  |
-   "abstract"
-  |
-   Annotation()
-  )
- )*
-}
-
-/*
- * Declaration syntax follows.
- */
-void TypeDeclaration():
-{}
-{
-  ";"
-|
-  Modifiers()
-  (
-     ClassOrInterfaceDeclaration(null)
-   |
-     EnumDeclaration()
-   |
-     AnnotationTypeDeclaration()
-  )
-}
-
-
-void ClassOrInterfaceDeclaration(List<Token> tokens):
-{
-   boolean isInterface = false;
-	  class_nesting++;
-	  Token t;
-	  boolean is_parser_class = false;
-  if (tokens == null)
-    tokens = new ArrayList<>();
-}
-{
-  ( "class" | "interface" { isInterface = true; } )
-  t=JavaIdentifier()
-  [ TypeParameters() ]
-  [ ExtendsList(isInterface) ]
-  [ ImplementsList(isInterface) ]
-	{
-	  if (t.image.equals(parser_class_name) && class_nesting == 1 && processing_cu) {
-	    is_parser_class = true;
-	    setinsertionpoint(getToken(1), 1);
-	  }
-	}
-  ClassOrInterfaceBody(isInterface, null)
-	{
-	  if (is_parser_class) {
-	    setinsertionpoint(getToken(0), 2);
-	  }
-	  class_nesting--;
-	}
-}
-
-void ExtendsList(boolean isInterface):
-{
-   boolean extendsMoreThanOne = false;
-}
-{
-   "extends" ClassOrInterfaceType()
-   ( "," ClassOrInterfaceType() { extendsMoreThanOne = true; } )*
-   {
-      if (extendsMoreThanOne && !isInterface)
-         throw new ParseException("A class cannot extend more than one other class");
-   }
-}
-
-void ImplementsList(boolean isInterface):
-{}
-{
-   "implements" ClassOrInterfaceType()
-   ( "," ClassOrInterfaceType() )*
-   {
-      if (isInterface)
-         throw new ParseException("An interface cannot implement other interfaces");
-   }
-}
-
-void EnumDeclaration():
-{}
-{
-  "enum" JavaIdentifier()
-  [ ImplementsList(false) ]
-  EnumBody()
-}
-
-void EnumBody():
-{}
-{
-   "{"
-   [ EnumConstant() ( LOOKAHEAD(2) "," EnumConstant() )* ]
-   [ "," ]
-   [ ";" ( ClassOrInterfaceBodyDeclaration(false) )* ]
-   "}"
-}
-
-void EnumConstant():
-{}
-{
-  Modifiers() JavaIdentifier() [ Arguments(null) ] [ ClassOrInterfaceBody(false, null) ]
-}
 
 void TypeParameters():
 {}
@@ -1490,67 +1121,6 @@ void TypeBound():
 {}
 {
    "extends" ClassOrInterfaceType() ( "&" ClassOrInterfaceType() )*
-}
-
-void ClassOrInterfaceBody(boolean isInterface, List<Token> tokens):
-/*
- * Parsing this fills "tokens" with all tokens of the block
- * excluding the braces at each end.
- */
-{
-	  Token first, last;
-	  if (tokens == null)
-	    tokens = new ArrayList<>();
-}
-{
-  "{"
-	{
-	  first = getToken(1);
-	}
-  ( ClassOrInterfaceBodyDeclaration(isInterface) )*
-	{
-	  last = getToken(0);
-	}
-  "}"
-	{
-	  if (last.next != first) { // i.e., this is not an empty sequence
-	    Token t = first;
-	    while (true) {
-	      tokens.add(t);
-	      if (t == last) break;
-	      t = t.next;
-	    }
-	  }
-	}
-}
-
-void ClassOrInterfaceBodyDeclaration(boolean isInterface):
-{}
-{
-  LOOKAHEAD(2)
-  Initializer()
-  {
-     if (isInterface)
-        throw new ParseException("An interface cannot have initializers");
-  }
-|
-  Modifiers() // Just get all the modifiers out of the way. If you want to do
-              // more checks, pass the modifiers down to the member
-  (
-      ClassOrInterfaceDeclaration(null)
-    |
-      EnumDeclaration()
-    |
-      LOOKAHEAD( [ TypeParameters() ] JavaIdentifier() "(" )
-      ConstructorDeclaration()
-    |
-      LOOKAHEAD( Type() JavaIdentifier() ( "[" "]" )* ( "," | "=" | ";" ) )
-      FieldDeclaration()
-    |
-      MethodDeclaration()
-  )
-|
-  ";"
 }
 
 void FieldDeclaration():
@@ -1576,8 +1146,7 @@ void VariableInitializer():
 {}
 {
   ArrayInitializer()
-|
-  Expression(null)
+| Expression(null)
 }
 
 void ArrayInitializer():
@@ -1635,12 +1204,12 @@ void FormalParameters(List<Token> tokens) :
 }
 
 void FormalParameter():
-{ Token t; }
 {
-  Modifiers() Type()
-  [ ( t = "&" | t = "*") { if (!isAllowed(t)) throw new ParseException(t.image + " is invalid in this context"); }
-  	| "..."
-  ]
+  Token t;
+}
+{
+  Type()
+  [ ( t = "&" | t = "*") | "..." ]
   VariableDeclaratorId()
 }
 
@@ -1661,14 +1230,13 @@ void ExplicitConstructorInvocation():
 {
   LOOKAHEAD("this" Arguments(null) ";")
   "this" Arguments(null) ";"
-|
-  [ LOOKAHEAD(2) PrimaryExpression() "." ] "super" Arguments(null) ";"
+| [ LOOKAHEAD(2) PrimaryExpression() "." ] "super" Arguments(null) ";"
 }
 
 void Initializer():
 {}
 {
-  [ "static" ] Block(null)
+  Block(null)
 }
 
 
@@ -1680,34 +1248,14 @@ void Type():
 {}
 {
    LOOKAHEAD(2) ReferenceType()
- |
-   PrimitiveType()
+ | PrimitiveType()
 }
 
 void ReferenceType():
 {}
 {
-   PrimitiveType() ( LOOKAHEAD(2) "[" "]" )+
-  |
-   ( [ Template() ] ClassOrInterfaceType() ) ( LOOKAHEAD(2) "[" "]" )*
-}
-
-void Template():
-{}
-{
-	"template" "<" TemplateBase() ( "," TemplateBase() )* ">" 
-}
-
-void TemplateBase():
-{}
-{
-	TemplatePack() ["..."] <IDENTIFIER> 
-}
-
-void TemplatePack():
-{}
-{
-	( "class" )
+  PrimitiveType() ( LOOKAHEAD(2) "[" "]" )+
+| ( ClassOrInterfaceType() ) ( LOOKAHEAD(2) "[" "]" )*
 }
 
 void ClassOrInterfaceType():
@@ -1749,16 +1297,6 @@ void TypeArgument():
 {}
 {
    ReferenceType()
- |
-   "?" [ WildcardBounds() ]
-}
-
-void WildcardBounds():
-{}
-{
-   "extends" ReferenceType()
- |
-   "super" ReferenceType()
 }
 
 
@@ -1766,20 +1304,9 @@ void PrimitiveType():
 {}
 {
   "boolean"
-|
-  "char"
-|
-  "byte"
-|
-  "short"
-|
-  "int"
-|
-  "long"
-|
-  "float"
-|
-  "double"
+| "char"
+| "int"
+| "double"
 }
 
 
@@ -1799,13 +1326,9 @@ void ResultType(List<Token> tokens) :
 	  Token last = getToken(0);
 	  Token t = first;
 	  while (true) {
-	    if (isAllowed(t))  {
-	       tokens.add(t);
-	       if (t == last) break;
-	       t = t.next;
-	    } else {
-           throw new ParseException(t.image + " is invalid in this context");
-	    } 
+        tokens.add(t);
+        if (t == last) break;
+        t = t.next;
 	  }
 	}
 }
@@ -1816,9 +1339,9 @@ void Name(List<Token> tokens) :
  * by a ".*" when used in the context of an "ImportDeclaration".
  */
 {
-	  if (tokens == null)
-	    tokens = new ArrayList<>();
-	  Token first = getToken(1);
+  if (tokens == null)
+    tokens = new ArrayList<>();
+  Token first = getToken(1);
 }
 {
   JavaIdentifier()
@@ -1857,11 +1380,11 @@ void Expression(List<Token> tokens) :
  * a primary expression.  Consider adding a semantic predicate to work
  * around this.
  */
-	{
-	  Token first = getToken(1);
-	  if (tokens == null)
-	    tokens = new ArrayList<Token>();
-	}
+{
+  Token first = getToken(1);
+  if (tokens == null)
+    tokens = new ArrayList<Token>();
+}
 {
   ConditionalExpression()
   [
@@ -1883,7 +1406,7 @@ void Expression(List<Token> tokens) :
 void AssignmentOperator():
 {}
 {
-  "=" | "*=" | "/=" | "%=" | "+=" | "-=" | "<<=" | ">>=" | ">>>=" | "&=" | "^=" | "|="
+  "=" | "+=" | "-="
 }
 
 void ConditionalExpression():
@@ -1937,13 +1460,7 @@ void InstanceOfExpression():
 void RelationalExpression():
 {}
 {
-  ShiftExpression() ( ( "<" | ">" | "<=" | ">=" ) ShiftExpression() )*
-}
-
-void ShiftExpression():
-{}
-{
-  AdditiveExpression() ( ( "<<" | RSIGNEDSHIFT() | RUNSIGNEDSHIFT() ) AdditiveExpression() )*
+  AdditiveExpression() ( ( "<" | ">" ) AdditiveExpression() )*
 }
 
 void AdditiveExpression():
@@ -1962,12 +1479,9 @@ void UnaryExpression():
 {}
 {
   ( "+" | "-" ) UnaryExpression()
-|
-  PreIncrementExpression()
-|
-  PreDecrementExpression()
-|
-  UnaryExpressionNotPlusMinus()
+| PreIncrementExpression()
+| PreDecrementExpression()
+| UnaryExpressionNotPlusMinus()
 }
 
 void PreIncrementExpression():
@@ -1986,11 +1500,8 @@ void UnaryExpressionNotPlusMinus():
 {}
 {
   ( "~" | "!" ) UnaryExpression()
-|
-  LOOKAHEAD( CastLookahead() )
-  CastExpression()
-|
-  PostfixExpression()
+| LOOKAHEAD( CastLookahead() ) CastExpression()
+| PostfixExpression()
 }
 
 // This production is to determine lookahead only.  The LOOKAHEAD specifications
@@ -1999,13 +1510,9 @@ void UnaryExpressionNotPlusMinus():
 void CastLookahead():
 {}
 {
-  LOOKAHEAD(2)
-  "(" PrimitiveType()
-|
-  LOOKAHEAD("(" Type() "[")
-  "(" Type() "[" "]"
-|
-  "(" Type() ")" ( "~" | "!" | "(" | JavaIdentifier() | "this" | "super" | "new" | Literal() )
+  LOOKAHEAD(2) "(" PrimitiveType()
+| LOOKAHEAD("(" Type() "[") "(" Type() "[" "]"
+| "(" Type() ")" ( "~" | "!" | "(" | JavaIdentifier() | "this" | "super" | "new" | Literal() )
 }
 
 void PostfixExpression():
@@ -2017,10 +1524,8 @@ void PostfixExpression():
 void CastExpression():
 {}
 {
-  LOOKAHEAD("(" PrimitiveType())
-  "(" Type() ")" UnaryExpression()
-|
-  "(" Type() ")" UnaryExpressionNotPlusMinus()
+  LOOKAHEAD("(" PrimitiveType()) "(" Type() ")" UnaryExpression()
+| "(" Type() ")" UnaryExpressionNotPlusMinus()
 }
 
 void PrimaryExpression():
@@ -2039,54 +1544,34 @@ void PrimaryPrefix():
 {}
 {
   Literal()
-|
-  "this"
-|
-  "super" "." JavaIdentifier()
-|
-  "(" Expression(null) ")"
-|
-  AllocationExpression()
-|
-  LOOKAHEAD( ResultType(null) "." "class" )
-  ResultType(null) "." "class"
-|
-  Name(null)
+| "this"
+| "super" "." JavaIdentifier()
+| "(" Expression(null) ")"
+| AllocationExpression()
+| LOOKAHEAD( ResultType(null) "." "class" ) ResultType(null) "." "class"
+| Name(null)
 }
 
 void PrimarySuffix():
 {}
 {
-  LOOKAHEAD(2)
-  "." "this"
-|
-  LOOKAHEAD(2)
-  "." AllocationExpression()
-|
-  LOOKAHEAD(3)
-  MemberSelector()
-|
-  "[" Expression(null) "]"
-|
-  "." JavaIdentifier()
-|
-  Arguments(null)
+  LOOKAHEAD(2) "." "this"
+| LOOKAHEAD(2) "." AllocationExpression()
+| LOOKAHEAD(3) MemberSelector()
+| "[" Expression(null) "]"
+| "." JavaIdentifier()
+| Arguments(null)
 }
 
 void Literal():
 {}
 {
   <INTEGER_LITERAL>
-|
-  <FLOATING_POINT_LITERAL>
-|
-  <CHARACTER_LITERAL>
-|
-  <STRING_LITERAL>
-|
-  BooleanLiteral()
-|
-  NullLiteral()
+| <FLOATING_POINT_LITERAL>
+| <CHARACTER_LITERAL>
+| <STRING_LITERAL>
+| BooleanLiteral()
+| NullLiteral()
 }
 
 int IntegerLiteral() :
@@ -2106,14 +1591,13 @@ boolean BooleanLiteral() :
 {}
 {
   "true"
-	{
-	  return true;
-	}
-|
-  "false"
-	{
-	  return false;
-	}
+  {
+    return true;
+  }
+| "false"
+  {
+    return false;
+  }
 }
 
 String StringLiteral() :
@@ -2122,9 +1606,9 @@ String StringLiteral() :
 }
 {
   t=<STRING_LITERAL>
-{
-	  return remove_escapes_and_quotes(t, t.image);
-}
+  {
+    return remove_escapes_and_quotes(t, t.image);
+  }
 }
 
 void NullLiteral() :
@@ -2139,35 +1623,35 @@ void Arguments(List<Token> tokens) :
  * excluding the parentheses at each end.
  */
 {
-	  Token first, last;
-	  if (tokens == null)
-	    tokens = new ArrayList<>();
+  Token first, last;
+  if (tokens == null)
+    tokens = new ArrayList<>();
 }
 {
   "("
-	{
-	  first = getToken(1);
-	  // Added by Sreenivas Viswanadha for 6.0
-	  // TODO :: 2013/07/16 -- cba : Think this condition should be if the language IS C++, not if the language ISN'T Java ...
-	  if (!isJavaLanguage()) {
-		eatUptoRParen(null);
-	  }
-	}
+  {
+    first = getToken(1);
+    // Added by Sreenivas Viswanadha for 6.0
+    // TODO :: 2013/07/16 -- cba : Think this condition should be if the language IS C++, not if the language ISN'T Java ...
+    if (!isJavaLanguage()) {
+      eatUptoRParen(null);
+    }
+  }
   [ ArgumentList() ]
-	{
-	  last = getToken(0);
-	}
+  {
+    last = getToken(0);
+  }
   ")"
-	{
-	  if (last.next != first) { // i.e., this is not an empty sequence
-	    Token t = first;
-	    while (true) {
-	      tokens.add(t);
-	      if (t == last) break;
-	      t = t.next;
-	    }
-	  }
-	}
+  {
+    if (last.next != first) { // i.e., this is not an empty sequence
+      Token t = first;
+      while (true) {
+        tokens.add(t);
+        if (t == last) break;
+	    t = t.next;
+      }
+    }
+  }
 }
 
 void ArgumentList():
@@ -2181,13 +1665,11 @@ void AllocationExpression():
 {
   LOOKAHEAD(2)
   "new" PrimitiveType() ArrayDimsAndInits()
-|
-  "new" ClassOrInterfaceType() [ TypeArguments(null) ]
-    (
-      ArrayDimsAndInits()
-    |
-      Arguments(null) [ ClassOrInterfaceBody(false, null) ]
-    )
+| "new" ClassOrInterfaceType() [ TypeArguments(null) ]
+  (
+    ArrayDimsAndInits()
+  | Arguments(null)
+  )
 }
 
 /*
@@ -2197,64 +1679,29 @@ void AllocationExpression():
 void ArrayDimsAndInits():
 {}
 {
-  LOOKAHEAD(2)
-  ( LOOKAHEAD(2) "[" Expression(null) "]" )+ ( LOOKAHEAD(2) "[" "]" )*
-|
-  ( "[" "]" )+ ArrayInitializer()
+  LOOKAHEAD(2) ( LOOKAHEAD(2) "[" Expression(null) "]" )+ ( LOOKAHEAD(2) "[" "]" )*
+| ( "[" "]" )+ ArrayInitializer()
 }
 
 
 /*
  * Statement syntax follows.
  */
-
 void Statement():
 {}
 {
-  LOOKAHEAD(2)
-  LabeledStatement()
-|
-  AssertStatement()
-|
   Block(null)
-|
-  EmptyStatement()
-|
-  StatementExpression() ";"
-|
-  SwitchStatement()
-|
-  IfStatement()
-|
-  WhileStatement()
-|
-  DoStatement()
-|
-  ForStatement()
-|
-  BreakStatement()
-|
-  ContinueStatement()
-|
-  ReturnStatement()
-|
-  ThrowStatement()
-|
-  SynchronizedStatement()
-|
-  TryStatement()
-}
-
-void AssertStatement():
-{}
-{
-  "assert" Expression(null) [ ":" Expression(null) ] ";"
-}
-
-void LabeledStatement():
-{}
-{
-  JavaIdentifier() ":" Statement()
+| EmptyStatement()
+| StatementExpression() ";"
+| SwitchStatement()
+| IfStatement()
+| WhileStatement()
+| ForStatement()
+| BreakStatement()
+| ContinueStatement()
+| ReturnStatement()
+| ThrowStatement()
+| TryStatement()
 }
 
 void Block(List<Token> tokens) :
@@ -2262,51 +1709,47 @@ void Block(List<Token> tokens) :
  * Parsing this fills "tokens" with all tokens of the block
  * excluding the braces at each end.
  */
-	{
-	  Token first, last;
-	  if (tokens == null)
-	    tokens = new ArrayList<>();
-	}
+{
+  Token first, last;
+  if (tokens == null)
+    tokens = new ArrayList<>();
+  }
 {
   "{"
-	{
-	  first = getToken(1);
-          if (!isJavaLanguage()) {
-            eatUptoCloseBrace(null);
-          }
-	}
+  {
+    first = getToken(1);
+    if (!isJavaLanguage()) {
+      eatUptoCloseBrace(null);
+    }
+  }
   ( BlockStatement() )*
-	{
-	  last = getToken(0);
-	}
+  {
+    last = getToken(0);
+  }
   "}"
-	{
-	  if (last.next != first) { // i.e., this is not an empty sequence
-	    Token t = first;
-	    while (true) {
-	      tokens.add(t);
-	      if (t == last) break;
-	      t = t.next;
-	    }
+  {
+    if (last.next != first) { // i.e., this is not an empty sequence
+      Token t = first;
+      while (true) {
+        tokens.add(t);
+        if (t == last) break;
+	    t = t.next;
 	  }
 	}
+  }
 }
 
 void BlockStatement():
 {}
 {
-  LOOKAHEAD( Modifiers() Type() JavaIdentifier() )
-  LocalVariableDeclaration() ";"
-|
-  Statement()
-|
-  ClassOrInterfaceDeclaration(null)
+  LOOKAHEAD( Type() JavaIdentifier() ) LocalVariableDeclaration() ";"
+| Statement()
 }
 
 void LocalVariableDeclaration():
 {}
 {
-  Modifiers() Type() VariableDeclarator() ( "," VariableDeclarator() )*
+  Type() VariableDeclarator() ( "," VariableDeclarator() )*
 }
 
 void EmptyStatement():
@@ -2324,16 +1767,12 @@ void StatementExpression():
 {}
 {
   PreIncrementExpression()
-|
-  PreDecrementExpression()
-|
-  PrimaryExpression()
+| PreDecrementExpression()
+| PrimaryExpression()
   [
     "++"
-  |
-    "--"
-  |
-    AssignmentOperator() Expression(null)
+  | "--"
+  | AssignmentOperator() Expression(null)
   ]
 }
 
@@ -2349,8 +1788,7 @@ void SwitchLabel():
 {}
 {
   "case" Expression(null) ":"
-|
-  "default" ":"
+| "default" ":"
 }
 
 void IfStatement():
@@ -2370,34 +1808,23 @@ void WhileStatement():
   "while" "(" Expression(null) ")" Statement()
 }
 
-void DoStatement():
-{}
-{
-  "do" Statement() "while" "(" Expression(null) ")" ";"
-}
-
 void ForStatement():
 {}
 {
   "for" "("
-
   (
-      LOOKAHEAD(Modifiers() Type() JavaIdentifier() ":")
-      Modifiers() Type() JavaIdentifier() ":" Expression(null)
-    |
-     [ ForInit() ] ";" [ Expression(null) ] ";" [ ForUpdate() ]
+      LOOKAHEAD(Type() JavaIdentifier() ":")
+      Type() JavaIdentifier() ":" Expression(null)
+    | [ ForInit() ] ";" [ Expression(null) ] ";" [ ForUpdate() ]
   )
-
   ")" Statement()
 }
 
 void ForInit():
 {}
 {
-  LOOKAHEAD( Modifiers() Type() JavaIdentifier() )
-  LocalVariableDeclaration()
-|
-  StatementExpressionList()
+  LOOKAHEAD( Type() JavaIdentifier() ) LocalVariableDeclaration()
+| StatementExpressionList()
 }
 
 void StatementExpressionList():
@@ -2426,20 +1853,20 @@ void ContinueStatement():
 
 void ReturnStatement() :
 {
-	  Token t;
+  Token t;
 }
 {
   t="return"
-	{
-	  // Add if statement to prevent subsequent code generated
-	  // from being dead code.
-	  // NB: eclipse now detects 'if (true)' as dead code, so use the more complicated
-	  // 'if ("" != null)'
-	  if (inAction  && (Options.isLegacy()) ) {
-	    t.image = "{if (\"\" != null) return";
-	    jumpPatched = true;
-	  }
-	}
+  {
+    // Add if statement to prevent subsequent code generated
+    // from being dead code.
+    // NB: eclipse now detects 'if (true)' as dead code, so use the more complicated
+	// 'if ("" != null)'
+	if (inAction  && (Options.isLegacy()) ) {
+      t.image = "{if (\"\" != null) return";
+      jumpPatched = true;
+    }
+  }
   [
     Expression(null)
   ]
@@ -2453,33 +1880,27 @@ void ReturnStatement() :
 }
 
 void ThrowStatement() :
-	{
-	  Token t;
-	}
+{
+  Token t;
+}
 {
   t="throw"
-	{
-	  // Add if statement to prevent subsequent code generated
-	  // from being dead code.
-	  if (inAction) {
-	    t.image = "{if (true) throw";
-	    jumpPatched = true;
-	  }
-	}
+  {
+    // Add if statement to prevent subsequent code generated
+    // from being dead code.
+    if (inAction) {
+      t.image = "{if (true) throw";
+      jumpPatched = true;
+    }
+  }
   Expression(null)
   t=";"
-	{
-	  // Add closing brace for above if statement.
-	  if (inAction) {
-	    t.image = ";}";
-	  }
-	}
-}
-
-void SynchronizedStatement():
-{}
-{
-  "synchronized" "(" Expression(null) ")" Block(null)
+  {
+    // Add closing brace for above if statement.
+    if (inAction) {
+      t.image = ";}";
+    }
+  }
 }
 
 void ResourceDeclaration():
@@ -2491,10 +1912,8 @@ void ResourceDeclaration():
 void CatchParameter():
 { Token t; }
 {
-  Modifiers() Type()
-  [ ( t = "&" | t = "*") { if (!isAllowed(t)) throw new ParseException(t.image + " is invalid in this context"); }
-  	| "..."
-  ]
+  Type()
+  [ ( t = "&" | t = "*") | "..." ]
   //Multiple exception catching in Java 7+
   ("|" Type())*
   
@@ -2502,72 +1921,19 @@ void CatchParameter():
 }
 
 void TryStatement():
-{ boolean empty = true; }
+{
+  boolean empty = true;
+}
 {
   "try" ["("  ResourceDeclaration()
          (LOOKAHEAD(2) ";" ResourceDeclaration())* (";")? ")" { empty = false; }
          ] Block(null)
   ( "catch" "(" CatchParameter() ")" Block(null) { empty = false; } )*
   [ "finally" Block(null) { empty = false; } ]
-
   {
   if (empty)
       throw new ParseException("At least one catch or finally block expected.");
   }
-}
-
-/* We use productions to match >>>, >> and > so that we can keep the
- * type declaration syntax with generics clean
- */
-
-void RUNSIGNEDSHIFT():
-{}
-{
-  ( LOOKAHEAD({ getToken(1).kind == GT &&
-                ((Token.GTToken)getToken(1)).realKind == RUNSIGNEDSHIFT} )
-   ">" ">" ">"
-  )
-}
-
-void RSIGNEDSHIFT():
-{}
-{
-  ( LOOKAHEAD({ getToken(1).kind == GT &&
-                ((Token.GTToken)getToken(1)).realKind == RSIGNEDSHIFT} )
-  ">" ">"
-  )
-}
-
-/* Annotation syntax follows. */
-
-void Annotation():
-{}
-{
-   LOOKAHEAD( "@" Name(null) "(" ( JavaIdentifier() "=" | ")" ))
-   NormalAnnotation()
- |
-   LOOKAHEAD( "@" Name(null) "(" )
-   SingleMemberAnnotation()
- |
-   MarkerAnnotation()
-}
-
-void NormalAnnotation():
-{}
-{
-   "@" Name(null) "(" [ MemberValuePairs() ] ")"
-}
-
-void MarkerAnnotation():
-{}
-{
-  "@" Name(null)
-}
-
-void SingleMemberAnnotation():
-{}
-{
-  "@" Name(null) "(" MemberValue() ")"
 }
 
 void MemberValuePairs():
@@ -2579,58 +1945,20 @@ void MemberValuePairs():
 void MemberValuePair():
 {}
 {
-    JavaIdentifier() "=" MemberValue()
+  JavaIdentifier() "=" MemberValue()
 }
 
 void MemberValue():
 {}
 {
-   Annotation()
- |
    MemberValueArrayInitializer()
- |
-   ConditionalExpression()
+ | ConditionalExpression()
 }
 
 void  MemberValueArrayInitializer():
 {}
 {
   "{" MemberValue() ( LOOKAHEAD(2) "," MemberValue() )* [ "," ] "}"
-}
-
-
-/* Annotation Types. */
-
-void AnnotationTypeDeclaration():
-{}
-{
-  "@" "interface" JavaIdentifier() AnnotationTypeBody()
-}
-
-void AnnotationTypeBody():
-{}
-{
-  "{" ( AnnotationTypeMemberDeclaration() )* "}"
-}
-
-void AnnotationTypeMemberDeclaration():
-{}
-{
- Modifiers()
- (
-   LOOKAHEAD(Type() JavaIdentifier() "(")
-   Type() JavaIdentifier() "(" ")" [ DefaultValue() ] ";"
-  |
-   ClassOrInterfaceDeclaration(null)
-  |
-   EnumDeclaration()
-  |
-   AnnotationTypeDeclaration()
-  |
-   FieldDeclaration()
- )
- |
-   ( ";" )
 }
 
 void DefaultValue():
@@ -2644,8 +1972,7 @@ void DefaultValue():
 TOKEN :
 {
   < IDENTIFIER: <LETTER> (<PART_LETTER>)* >
-|
-  < #LETTER:
+| < #LETTER:
       [  // all chars for which Character.isIdentifierStart is true
          "$",
          "A"-"Z",

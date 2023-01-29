@@ -27,14 +27,13 @@ import it.smartio.fastcc.lexer.NfaState;
 import it.smartio.fastcc.parser.Action;
 import it.smartio.fastcc.parser.Options;
 import it.smartio.fastcc.parser.RegularExpression;
-import it.smartio.fastcc.parser.Token;
 
 /**
  * The {@link LexerData} provides the request data for the lexer generator.
  */
 public class LexerData {
 
-  final JavaCCRequest      request;
+  private final JavaCCRequest      request;
   public final int         maxOrdinal;
   public final int         maxLexStates;
   public final Set<String> stateNames;
@@ -177,10 +176,6 @@ public class LexerData {
 
   public final boolean ignoreCase() {
     return request.ignoreCase();
-  }
-
-  public final List<Token> getTokens() {
-    return this.request.getTokens();
   }
 
   public final String getNextStateForEof() {

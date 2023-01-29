@@ -35,14 +35,6 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
     Token t = node.getFirstToken();
 
     while (true) {
-      if (t == JJTreeGlobals.parserImports) {
-        if (!JJTreeGlobals.nodePackageName.equals("")
-            && !JJTreeGlobals.nodePackageName.equals(JJTreeGlobals.packageName)) {
-          io.println("");
-          io.println("import " + JJTreeGlobals.nodePackageName + ".*;");
-        }
-      }
-
       if (t == JJTreeGlobals.parserImplements) {
         if (t.image.equals("implements")) {
           print(t, io, node);
@@ -62,7 +54,6 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
 
       if (t == JJTreeGlobals.parserClassBodyStart) {
         JJTreeCodeGenerator.openJJTreeComment(io, null);
-        io.println();
         io.println("  protected JJT" + JJTreeGlobals.parserName + "State jjtree = new JJT" + JJTreeGlobals.parserName
             + "State();");
         io.println();
@@ -176,7 +167,6 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
     }
 
     JJTreeCodeGenerator.openJJTreeComment(io, null);
-    io.println();
 
     Enumeration<String> thrown_names = ns.production.throws_list.elements();
     insertCatchBlocks(ns, io, thrown_names, indent);
@@ -199,7 +189,6 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
     expansion_unit.jjtAccept(this, io);
 
     JJTreeCodeGenerator.openJJTreeComment(io, null);
-    io.println();
 
     Hashtable<String, String> thrown_set = new Hashtable<>();
     JJTreeCodeGenerator.findThrown(ns, thrown_set, expansion_unit);
@@ -396,15 +385,8 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
   }
 
   private static void generatePrologue(PrintWriter ostr) {
-    if (!JJTreeGlobals.nodePackageName.equals("")) {
-      ostr.println("package " + JJTreeGlobals.nodePackageName + ";");
-      ostr.println();
-      if (!JJTreeGlobals.nodePackageName.equals(JJTreeGlobals.packageName)) {
-        ostr.println("import " + JJTreeGlobals.packageName + ".*;");
-        ostr.println();
-      }
-
-    }
+    ostr.println("package " + Options.getJavaPackage() + ";");
+    ostr.println();
   }
 
 

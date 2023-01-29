@@ -25,7 +25,6 @@ import it.smartio.fastcc.JavaCCRequest;
 import it.smartio.fastcc.parser.Expansion;
 import it.smartio.fastcc.parser.Lookahead;
 import it.smartio.fastcc.parser.NormalProduction;
-import it.smartio.fastcc.parser.Token;
 
 /**
  * These lists are used to maintain expansions for which code generation in phase 2 and phase 3 is
@@ -88,18 +87,6 @@ public class ParserData {
 
   public final int getTokenCount() {
     return this.request.getTokenCount();
-  }
-
-  public final List<Token> toInsertionPoint1() {
-    return this.request.toInsertionPoint1();
-  }
-
-  public final List<Token> toInsertionPoint2() {
-    return this.request.toInsertionPoint2();
-  }
-
-  public final List<Token> fromInsertionPoint2() {
-    return this.request.fromInsertionPoint2();
   }
 
   public final String getNameOfToken(int index) {

@@ -26,14 +26,11 @@
 
 package it.smartio.fastcc.generator.java;
 
-import it.smartio.fastcc.parser.JavaCCParserConstants;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Locale;
 
 import it.smartio.fastcc.generator.LexerData;
@@ -43,8 +40,8 @@ import it.smartio.fastcc.lexer.NfaState;
 import it.smartio.fastcc.parser.Action;
 import it.smartio.fastcc.parser.JavaCCErrors;
 import it.smartio.fastcc.parser.Options;
-import it.smartio.fastcc.parser.Token;
 import it.smartio.fastcc.parser.RStringLiteral.KindInfo;
+import it.smartio.fastcc.parser.Token;
 import it.smartio.fastcc.source.SourceWriter;
 import it.smartio.fastcc.utils.Encoding;
 
@@ -57,10 +54,10 @@ public class JavaLexerGenerator extends LexerGenerator {
 
 
   @Override
-  protected final void dumpAll(LexerData data, List<Token> insertionPoint) throws IOException {
+  protected final void dumpAll(LexerData data) throws IOException {
     SourceWriter writer = new SourceWriter(data.getParserName() + "TokenManager");
 
-    dumpClassHeader(writer, data.getParserName(), data.getTokens(), insertionPoint);
+    dumpClassHeader(writer, data.getParserName());
 
     writer.setOption("stateNames", data.stateNames);
     writer.setOption("lohiBytes", data.lohiByte.keySet());
@@ -109,60 +106,19 @@ public class JavaLexerGenerator extends LexerGenerator {
         + "0x" + Long.toHexString(data.lohiByte.get(i)[3]) + "L\n}";
   }
 
-  private final void dumpClassHeader(PrintWriter writer, String parserName, List<Token> tokens,
-      List<Token> insertionPoint1) {
-    int i, j;
-
-
-    int l = 0, kind;
-    i = 1;
-    for (;;) {
-      if (insertionPoint1.size() <= l) {
-        break;
-      }
-
-      kind = insertionPoint1.get(l).kind;
-      if ((kind == JavaCCParserConstants.PACKAGE) || (kind == JavaCCParserConstants.IMPORT)) {
-        if (kind == JavaCCParserConstants.IMPORT) {}
-        for (; i < insertionPoint1.size(); i++) {
-          kind = insertionPoint1.get(i).kind;
-          if ((kind == JavaCCParserConstants.SEMICOLON) || (kind == JavaCCParserConstants.ABSTRACT)
-              || (kind == JavaCCParserConstants.FINAL) || (kind == JavaCCParserConstants.PUBLIC)
-              || (kind == JavaCCParserConstants.CLASS) || (kind == JavaCCParserConstants.INTERFACE)) {
-            this.cline = (insertionPoint1.get(l)).beginLine;
-            this.ccol = (insertionPoint1.get(l)).beginColumn;
-            for (j = l; j < i; j++) {
-              genToken(writer, insertionPoint1.get(j));
-            }
-            if (kind == JavaCCParserConstants.SEMICOLON) {
-              genToken(writer, insertionPoint1.get(j));
-            }
-            writer.println("");
-            break;
-          }
-        }
-        l = ++i;
-      } else {
-        break;
-      }
-    }
+  private final void dumpClassHeader(PrintWriter writer, String parserName) {
+    writer.print("package " + Options.getJavaPackage());
+    writer.println(";");
 
     writer.println("");
     writer.println("/** Token Manager. */");
 
     writer.print("class " + parserName + "TokenManager");
+    if (Options.getJavaLexer() != null && !Options.getJavaLexer().isEmpty())
+      writer.print(" extends " + Options.getJavaLexer());
     writer.print(" implements " + parserName + "Constants");
 
     writer.println(" {");
-
-    if ((tokens != null) && !tokens.isEmpty()) {
-      genTokenSetup(tokens.get(0));
-      this.ccol = 1;
-
-      tokens.forEach(tt -> genToken(writer, tt));
-
-      writer.println("");
-    }
   }
 
   private static void DumpStaticVarDeclarations(PrintWriter writer, LexerData data) {

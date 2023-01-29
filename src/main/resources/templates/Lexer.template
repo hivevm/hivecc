@@ -113,7 +113,7 @@ private void jjCheckNAddStates(int start)
 
 {{dumpStaticVarDeclarations()}}
 
-    protected JavaCharStream  input_stream;
+    private JavaCharStream  input_stream;
     private final int[] jjrounds = new int[{{stateSetSize}}];
     private final int[] jjstateSet = new int[2 * {{stateSetSize}}];
     private final StringBuilder jjimage = new StringBuilder();
@@ -121,4 +121,8 @@ private void jjCheckNAddStates(int start)
     private int jjimageLen;
     private int lengthOfMatch;
     protected int curChar;
+    
+    protected JavaCharStream inputStream() {
+        return input_stream;
+    }
 }

@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Locale;
 
 import it.smartio.fastcc.generator.LexerData;
@@ -40,8 +39,8 @@ import it.smartio.fastcc.lexer.NfaState;
 import it.smartio.fastcc.parser.Action;
 import it.smartio.fastcc.parser.JavaCCErrors;
 import it.smartio.fastcc.parser.Options;
-import it.smartio.fastcc.parser.Token;
 import it.smartio.fastcc.parser.RStringLiteral.KindInfo;
+import it.smartio.fastcc.parser.Token;
 import it.smartio.fastcc.source.CppWriter;
 import it.smartio.fastcc.utils.Encoding;
 
@@ -51,7 +50,7 @@ import it.smartio.fastcc.utils.Encoding;
 public class CppLexerGenerator extends LexerGenerator {
 
   @Override
-  protected final void dumpAll(LexerData data, List<Token> insertionPoint) throws IOException {
+  protected final void dumpAll(LexerData data) throws IOException {
     CppWriter writer = new CppWriter(data.getParserName() + "TokenManager");
 
     writer.setOption("stateNames", data.stateNames);

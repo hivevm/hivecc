@@ -1,33 +1,29 @@
 // Copyright 2011 Google Inc. All Rights Reserved.
 // Author: sreeni@google.com (Sreeni Viswanadha)
 
-/* Copyright (c) 2006, Sun Microsystems, Inc.
- * All rights reserved.
+/*
+ * Copyright (c) 2006, Sun Microsystems, Inc. All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * Redistribution and use in source and binary forms, with or without modification, are permitted
+ * provided that the following conditions are met:
  *
- *     * Redistributions of source code must retain the above copyright notice,
- *       this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Sun Microsystems, Inc. nor the names of its
- *       contributors may be used to endorse or promote products derived from
- *       this software without specific prior written permission.
+ * * Redistributions of source code must retain the above copyright notice, this list of conditions
+ * and the following disclaimer. * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the documentation and/or other
+ * materials provided with the distribution. * Neither the name of the Sun Microsystems, Inc. nor
+ * the names of its contributors may be used to endorse or promote products derived from this
+ * software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
- * THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
+ * WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package it.smartio.fastcc.parser;
 
 import java.io.File;
@@ -81,10 +77,15 @@ public class Options {
 
     temp.add(new OptionInfo(FastCC.JJPARSER_OUTPUT_DIRECTORY, "."));
     temp.add(new OptionInfo(FastCC.JJPARSER_OUTPUT_LANGUAGE, Options.OUTPUT_LANGUAGE__JAVA));
+    temp.add(new OptionInfo(FastCC.JJPARSER_DEPTH_LIMIT, Integer.valueOf(0)));
+
+    temp.add(new OptionInfo(FastCC.JJPARSER_JAVA_PACKAGE, ""));
+    temp.add(new OptionInfo(FastCC.JJPARSER_JAVA_IMPORTS, ""));
+    temp.add(new OptionInfo(FastCC.JJPARSER_JAVA_EXTENDS, ""));
+    temp.add(new OptionInfo(FastCC.JJPARSER_JAVA_LEXER, ""));
 
     temp.add(new OptionInfo(FastCC.JJPARSER_CPP_NAMESPACE, ""));
     temp.add(new OptionInfo(FastCC.JJPARSER_CPP_STOP_ON_FIRST_ERROR, Boolean.FALSE));
-    temp.add(new OptionInfo(FastCC.JJPARSER_DEPTH_LIMIT, Integer.valueOf(0)));
     temp.add(new OptionInfo(FastCC.JJPARSER_CPP_STACK_LIMIT, ""));
 
     userOptions = Collections.unmodifiableSet(temp);
@@ -486,6 +487,22 @@ public class Options {
    */
   public static String getOutputLanguage() {
     return Options.stringValue(FastCC.JJPARSER_OUTPUT_LANGUAGE);
+  }
+
+  public static String getJavaPackage() {
+    return Options.stringValue(FastCC.JJPARSER_JAVA_PACKAGE);
+  }
+
+  public static String getJavaImports() {
+    return Options.stringValue(FastCC.JJPARSER_JAVA_IMPORTS);
+  }
+
+  public static String getJavaExtends() {
+    return Options.stringValue(FastCC.JJPARSER_JAVA_EXTENDS);
+  }
+
+  public static String getJavaLexer() {
+    return Options.stringValue(FastCC.JJPARSER_JAVA_LEXER);
   }
 
   public static void setStringOption(String optionName, String optionValue) {

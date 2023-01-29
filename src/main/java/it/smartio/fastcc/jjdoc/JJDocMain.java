@@ -32,7 +32,6 @@ package it.smartio.fastcc.jjdoc;
 import java.text.ParseException;
 
 import it.smartio.fastcc.JJMain;
-import it.smartio.fastcc.generator.java.JavaCCToken;
 import it.smartio.fastcc.parser.JavaCCData;
 import it.smartio.fastcc.parser.JavaCCErrors;
 import it.smartio.fastcc.parser.JavaCCParser;
@@ -95,7 +94,6 @@ public final class JJDocMain extends JJDocGlobals {
    * A main program that exercises the parser.
    */
   public static void main(String args[]) throws Exception {
-    JavaCCToken.reset();
     JavaCCErrors.reInit();
     Options.init();
 

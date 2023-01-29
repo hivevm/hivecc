@@ -90,25 +90,6 @@ public class JavaCCData implements SemanticRequest, JavaCCRequest {
   private final Map<String, NormalProduction>                                              production_table     =
       new HashMap<>();
 
-
-  /**
-   * This is a list of tokens that appear after "PARSER_BEGIN(name)" all the way until (but not
-   * including) the opening brace "{" of the class "name".
-   */
-  private final List<Token>           cu_to_insertion_point_1   = new ArrayList<>();
-
-  /**
-   * This is the list of all tokens that appear after the tokens in "cu_to_insertion_point_1" and
-   * until (but not including) the closing brace "}" of the class "name".
-   */
-  private final List<Token>           cu_to_insertion_point_2   = new ArrayList<>();
-
-  /**
-   * This is the list of all tokens that appear after the tokens in "cu_to_insertion_point_2" and
-   * until "PARSER_END(name)".
-   */
-  private final List<Token>           cu_from_insertion_point_2 = new ArrayList<>();
-
   /**
    * The list of all TokenProductions from the input file. This list includes implicit
    * TokenProductions that are created for uses of regular expressions within BNF productions.
@@ -122,11 +103,6 @@ public class JavaCCData implements SemanticRequest, JavaCCRequest {
    * value, then only one label is stored.
    */
   private final Map<Integer, String>  names_of_tokens           = new HashMap<>();
-
-  /**
-   * The declarations to be inserted into the TokenManager class.
-   */
-  private List<Token>                 token_mgr_decls;
 
   /**
    * Constructs an instance of {@link JavaCCData}.
@@ -149,14 +125,6 @@ public class JavaCCData implements SemanticRequest, JavaCCRequest {
     this.simple_tokens_table.put(name, new Hashtable<String, Hashtable<String, RegularExpression>>());
   }
 
-  final void setTokens(Token t, List<Token> decls) {
-    if (this.token_mgr_decls != null) {
-      JavaCCErrors.parse_error(t, "Multiple occurrence of \"TOKEN_MGR_DECLS\".");
-    } else {
-      this.token_mgr_decls = decls;
-    }
-  }
-
   final void addTokenProduction(TokenProduction p) {
     this.rexprlist.add(p);
   }
@@ -172,21 +140,6 @@ public class JavaCCData implements SemanticRequest, JavaCCRequest {
   @Override
   public final boolean isGenerated() {
     return isGenerated;
-  }
-
-  @Override
-  public final List<Token> toInsertionPoint1() {
-    return this.cu_to_insertion_point_1;
-  }
-
-  @Override
-  public final List<Token> toInsertionPoint2() {
-    return this.cu_to_insertion_point_2;
-  }
-
-  @Override
-  public final List<Token> fromInsertionPoint2() {
-    return this.cu_from_insertion_point_2;
   }
 
   @Override
@@ -227,11 +180,6 @@ public class JavaCCData implements SemanticRequest, JavaCCRequest {
   @Override
   public final NormalProduction setProductionTable(NormalProduction production) {
     return this.production_table.put(production.getLhs(), production);
-  }
-
-  @Override
-  public final List<Token> getTokens() {
-    return this.token_mgr_decls;
   }
 
   @Override

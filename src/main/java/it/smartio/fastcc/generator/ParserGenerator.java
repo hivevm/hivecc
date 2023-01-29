@@ -556,9 +556,9 @@ public abstract class ParserGenerator extends CodeGenerator {
       retval += getStringForTokenOnly(tt);
       tt = tt.next;
     }
-    if ((this.ccol != 1) && (this.cline != t.beginLine)) {
+    if ((this.ccol != 1) && (this.crow != t.beginLine)) {
       retval += "\n";
-      this.cline++;
+      this.crow++;
       this.ccol = 1;
     }
     return retval;

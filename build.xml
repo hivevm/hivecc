@@ -128,9 +128,6 @@
 			<arg value="JavaCC.jj" />
 		</java>
 
-		<!-- This class is overwritten -->
-		<delete file="${parser-generated-src}/Token.java" />
-
 		<!-- ReGenerate the JJTree Parser Definition (from the tree definition) -->
 		<java classname="${jjtree-class-name}" classpath="${param-jar}" dir="${basedir}/src/main/resources" fork="true">
 			<arg value="-OUTPUT_DIRECTORY=${basedir}/${jjtree-generated-src}" />
@@ -144,19 +141,14 @@
 		</java>
 
 		<!-- Delete the .jj file created by the jjtree program and the classes that were overwritten and already added into the main source path -->
-		<delete file="${jjtree-generated-src}/JJTree.jj" />
 		<delete file="${jjtree-generated-src}/ASTBNF.java" />
 		<delete file="${jjtree-generated-src}/ASTBNFAction.java" />
 		<delete file="${jjtree-generated-src}/ASTBNFDeclaration.java" />
 		<delete file="${jjtree-generated-src}/ASTBNFNodeScope.java" />
 		<delete file="${jjtree-generated-src}/ASTExpansionNodeScope.java" />
-		<delete file="${jjtree-generated-src}/ASTJavacode.java" />
-		<delete file="${jjtree-generated-src}/ASTJavacodeBody.java" />
 		<delete file="${jjtree-generated-src}/ASTNodeDescriptor.java" />
-		<delete file="${jjtree-generated-src}/ASTNodeDescriptorExpression.java" />
 		<delete file="${jjtree-generated-src}/ASTOptionBinding.java" />
 		<delete file="${jjtree-generated-src}/JJTreeParserDefaultVisitor.java" />
-		<delete file="${jjtree-generated-src}/Token.java" />
 
 		<mkdir dir="classes" />
 

@@ -76,6 +76,11 @@ public interface FastCC {
   String JJPARSER_KEEP_LINE_COLUMN        = "KEEP_LINE_COLUMN";
   String JJPARSER_DEPTH_LIMIT             = "DEPTH_LIMIT";
 
+  String JJPARSER_JAVA_PACKAGE            = "PACKAGE";
+  String JJPARSER_JAVA_IMPORTS            = "IMPORTS";
+  String JJPARSER_JAVA_EXTENDS            = "EXTENDS";
+  String JJPARSER_JAVA_LEXER              = "LEXER";
+
   String JJPARSER_CPP_NAMESPACE           = "NAMESPACE";
   String JJPARSER_CPP_STOP_ON_FIRST_ERROR = "STOP_ON_FIRST_ERROR";
   String JJPARSER_CPP_STACK_LIMIT         = "STACK_LIMIT";

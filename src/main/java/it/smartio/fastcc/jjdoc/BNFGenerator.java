@@ -182,6 +182,4 @@ class BNFGenerator implements Generator {
     text(text);
     this.printing = true;
   }
-
-
 }

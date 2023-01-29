@@ -30,39 +30,8 @@ import java.util.List;
  */
 abstract class AbstractJavaCCParser implements JavaCCParserConstants {
 
-  static final class ModifierSet {
-
-    /* Definitions of the bits in the modifiers field. */
-    static final int PUBLIC       = 0x0001;
-    static final int PROTECTED    = 0x0002;
-    static final int PRIVATE      = 0x0004;
-    static final int ABSTRACT     = 0x0008;
-    static final int STATIC       = 0x0010;
-    static final int FINAL        = 0x0020;
-    static final int SYNCHRONIZED = 0x0040;
-    static final int NATIVE       = 0x0080;
-    static final int TRANSIENT    = 0x0100;
-    static final int VOLATILE     = 0x0200;
-    static final int STRICTFP     = 0x1000;
-  }
-
-
   private JavaCCData  data;
-  private List<Token> add_cu_token_here;
-  private Token       first_cu_token;
-  private boolean     insertionpoint1set;
-  private boolean     insertionpoint2set;
   private int         nextFreeLexState;
-
-
-  // The name of the parser class.
-  protected String parser_class_name;
-
-  // This flag is set to true when the part between PARSER_BEGIN and PARSER_END is being parsed.
-  protected boolean processing_cu;
-
-  // The level of class nesting.
-  protected int class_nesting;
 
   /**
    * This int variable is incremented while parsing local lookaheads. Hence it keeps track of
@@ -87,12 +56,7 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
    *
    */
   protected AbstractJavaCCParser() {
-    first_cu_token = null;
-    insertionpoint1set = false;
-    insertionpoint2set = false;
     nextFreeLexState = 1;
-    processing_cu = false;
-    class_nesting = 0;
     inLocalLA = 0;
     inAction = false;
     jumpPatched = false;
@@ -100,50 +64,10 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
 
   public void initialize(JavaCCData data) {
     this.data = data;
-    this.add_cu_token_here = data.toInsertionPoint1();
   }
 
-  protected void addcuname(String id) {
+  protected void setParserName(String id) {
     this.data.setParser(id);
-  }
-
-  protected void compare(Token t, String id1, String id2) {
-    if (!id2.equals(id1)) {
-      JavaCCErrors.parse_error(t, "Name " + id2 + " must be the same as that used at PARSER_BEGIN (" + id1 + ")");
-    }
-  }
-
-  protected void setinsertionpoint(Token t, int no) {
-    do {
-      this.add_cu_token_here.add(this.first_cu_token);
-      this.first_cu_token = this.first_cu_token.next;
-    } while (this.first_cu_token != t);
-    if (no == 1) {
-      if (this.insertionpoint1set) {
-        JavaCCErrors.parse_error(t, "Multiple declaration of parser class.");
-      } else {
-        this.insertionpoint1set = true;
-        this.add_cu_token_here = this.data.toInsertionPoint2();
-      }
-    } else {
-      this.add_cu_token_here = this.data.fromInsertionPoint2();
-      this.insertionpoint2set = true;
-    }
-    this.first_cu_token = t;
-  }
-
-  protected void insertionpointerrors(Token t) {
-    while (this.first_cu_token != t) {
-      this.add_cu_token_here.add(this.first_cu_token);
-      this.first_cu_token = this.first_cu_token.next;
-    }
-    if (!this.insertionpoint1set || !this.insertionpoint2set) {
-      JavaCCErrors.parse_error(t, "Parser class has not been defined between PARSER_BEGIN and PARSER_END.");
-    }
-  }
-
-  protected void set_initial_cu_token(Token t) {
-    this.first_cu_token = t;
   }
 
   protected void addproduction(NormalProduction p) {
@@ -170,10 +94,6 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
         data.setLexState(p.lexStates[i], this.nextFreeLexState++);
       }
     }
-  }
-
-  protected void add_token_manager_decls(Token t, List<Token> decls) {
-    this.data.setTokens(t, decls);
   }
 
   protected void add_inline_regexpr(RegularExpression r) {
@@ -375,17 +295,6 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
         || t.kind == JavaCCParserConstants.RBRACKET)
       return false;
     return true;
-  }
-
-  /*
-   * return true if the token is allowed in a ResultType. Used to mark a c++ result type as an error
-   * for a java grammar
-   */
-  protected boolean isAllowed(Token t) {
-    if (isJavaLanguage() && (t.kind == JavaCCParserConstants.STAR || t.kind == JavaCCParserConstants.BIT_AND))
-      return false;
-    else
-      return true;
   }
 
   protected void eatUptoCloseBrace(List<Token> tokens) {
