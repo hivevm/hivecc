@@ -14,20 +14,20 @@ public class StreamProvider implements Provider {
   Reader _reader;
 
   public StreamProvider(Reader reader) {
-    _reader = reader;
+    this._reader = reader;
   }
 
   public StreamProvider(InputStream stream) throws IOException {
-    _reader = new BufferedReader(new InputStreamReader(stream));
+    this._reader = new BufferedReader(new InputStreamReader(stream));
   }
 
   public StreamProvider(InputStream stream, String charsetName) throws IOException {
-    _reader = new BufferedReader(new InputStreamReader(stream, charsetName));
+    this._reader = new BufferedReader(new InputStreamReader(stream, charsetName));
   }
 
   @Override
   public int read(char[] buffer, int off, int len) throws IOException {
-    int result = _reader.read(buffer, off, len);
+    int result = this._reader.read(buffer, off, len);
 
     /*
      * CBA -- Added 2014/03/29 -- This logic allows the generated Java code to be easily translated
@@ -38,7 +38,7 @@ public class StreamProvider implements Provider {
      */
 
     if (result == 0) {
-      if (off < buffer.length && len > 0) {
+      if ((off < buffer.length) && (len > 0)) {
         result = -1;
       }
     }
@@ -48,6 +48,6 @@ public class StreamProvider implements Provider {
 
   @Override
   public void close() throws IOException {
-    _reader.close();
+    this._reader.close();
   }
 }

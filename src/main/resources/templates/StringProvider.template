@@ -3,19 +3,19 @@ import java.io.IOException;
 
 public class StringProvider implements Provider {
 
-  private String _string;
-  private int    _size;
-  private int    _position;
+  private String    _string;
+  private final int _size;
+  private int       _position;
 
   public StringProvider(String string) {
-    _string = string;
-    _size = string.length();
-    _position = 0;
+    this._string = string;
+    this._size = string.length();
+    this._position = 0;
   }
 
   @Override
   public int read(char[] cbuf, int off, int len) throws IOException {
-    int numCharsOutstandingInString = _size - _position;
+    int numCharsOutstandingInString = this._size - this._position;
 
     if (numCharsOutstandingInString == 0) {
       return -1;
@@ -29,15 +29,15 @@ public class StringProvider implements Provider {
       numBytesToRead = numCharsOutstandingInString;
     }
 
-    _string.getChars(_position, _position + numBytesToRead, cbuf, off);
+    this._string.getChars(this._position, this._position + numBytesToRead, cbuf, off);
 
-    _position += numBytesToRead;
+    this._position += numBytesToRead;
 
     return numBytesToRead;
   }
 
   @Override
   public void close() throws IOException {
-    _string = null;
+    this._string = null;
   }
 }

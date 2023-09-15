@@ -6,7 +6,7 @@ public interface Provider extends Closeable {
 
   /**
    * Reads characters into an array
-   * 
+   *
    * @param buffer
    * @param offset
    * @param length

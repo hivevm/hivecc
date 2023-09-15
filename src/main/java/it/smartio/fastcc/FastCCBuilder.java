@@ -107,7 +107,7 @@ public class FastCCBuilder {
     return (pathes.length == 0) ? file : new File(file, String.join(File.separator, pathes));
   }
 
-  public static final File BASE = new File("/data/smartIO/develop/parser/parser/src/main/resources/it/smartio/text");
+  public static final File BASE = new File("/data/smartIO/release2304/parser/parser/src/main/resources/it/smartio/text");
 
   /**
    * {@link #main}.
