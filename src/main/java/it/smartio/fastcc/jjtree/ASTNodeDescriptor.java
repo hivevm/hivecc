@@ -49,9 +49,9 @@ public class ASTNodeDescriptor extends JJTreeNode {
   }
 
 
-  String                      name;
-  boolean                     isGT;
-  private String                      text;
+  String         name;
+  boolean        isGT;
+  private String text;
 
 
   boolean isVoid() {
@@ -66,7 +66,7 @@ public class ASTNodeDescriptor extends JJTreeNode {
       return super.toString() + ": " + this.name;
     }
   }
-  
+
   public void setExpressionText(String text) {
     this.text = text;
   }

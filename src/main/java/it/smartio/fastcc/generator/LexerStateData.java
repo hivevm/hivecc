@@ -147,7 +147,7 @@ public class LexerStateData {
 
   public final int addIndexedState(NfaState state) {
     this.indexedAllStates.add(state);
-    return generatedStates++;
+    return this.generatedStates++;
   }
 
   public final int getAllStateCount() {

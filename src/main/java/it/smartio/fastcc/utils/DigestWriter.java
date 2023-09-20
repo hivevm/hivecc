@@ -66,7 +66,7 @@ public class DigestWriter extends PrintWriter {
   }
 
   private final boolean isPrintableOption(Object value) {
-    return value instanceof String || value instanceof Number || value instanceof Boolean;
+    return (value instanceof String) || (value instanceof Number) || (value instanceof Boolean);
   }
 
   /**

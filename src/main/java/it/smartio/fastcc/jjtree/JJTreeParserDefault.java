@@ -34,7 +34,7 @@ public class JJTreeParserDefault extends JJTreeParser {
    */
   public final ASTGrammar parse() throws ParseException {
     javacc_input();
-    return (ASTGrammar) jjtree.rootNode();
+    return (ASTGrammar) this.jjtree.rootNode();
   }
 
   @Override
@@ -47,7 +47,8 @@ public class JJTreeParserDefault extends JJTreeParser {
     ((JJTreeNode) n).setLastToken(getToken(0));
   }
 
+  @Override
   protected final JJTreeOptions getOptions() {
-    return options;
+    return this.options;
   }
 }

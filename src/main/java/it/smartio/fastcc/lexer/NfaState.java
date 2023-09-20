@@ -84,7 +84,7 @@ public class NfaState {
   }
 
   private NfaState CreateClone() {
-    NfaState retVal = new NfaState(data);
+    NfaState retVal = new NfaState(this.data);
 
     retVal.isFinal = this.isFinal;
     retVal.kind = this.kind;
@@ -354,7 +354,7 @@ public class NfaState {
   private NfaState CreateEquivState(List<NfaState> states) {
     NfaState newState = states.get(0).CreateClone();
 
-    newState.next = new NfaState(data);
+    newState.next = new NfaState(this.data);
 
     NfaState.InsertInOrder(newState.next.epsilonMoves, states.get(0).next);
 
@@ -415,7 +415,7 @@ public class NfaState {
     }
 
     if ((this.stateName == -1) && HasTransitions()) {
-      NfaState tmp = GetEquivalentRunTimeState(data);
+      NfaState tmp = GetEquivalentRunTimeState(this.data);
 
       if (tmp != null) {
         this.stateName = tmp.stateName;
@@ -426,7 +426,7 @@ public class NfaState {
         return;
       }
 
-      this.stateName = data.addIndexedState(this);
+      this.stateName = this.data.addIndexedState(this);
       GenerateNextStatesCode();
     }
   }
@@ -590,7 +590,7 @@ public class NfaState {
             tempState.GenerateCode();
           }
 
-          data.getIndexedState(tempState.stateName).inNextOf++;
+          this.data.getIndexedState(tempState.stateName).inNextOf++;
           stateNames[cnt] = tempState.stateName;
           this.epsilonMovesString += tempState.stateName + ", ";
           if ((cnt++ > 0) && ((cnt % 16) == 0)) {
@@ -603,11 +603,11 @@ public class NfaState {
     }
 
     this.usefulEpsilonMoves = cnt;
-    if ((this.epsilonMovesString != null) && (data.getNextStates(this.epsilonMovesString) == null)) {
+    if ((this.epsilonMovesString != null) && (this.data.getNextStates(this.epsilonMovesString) == null)) {
       int[] statesToPut = new int[this.usefulEpsilonMoves];
 
       System.arraycopy(stateNames, 0, statesToPut, 0, cnt);
-      data.setNextStates(this.epsilonMovesString, statesToPut);
+      this.data.setNextStates(this.epsilonMovesString, statesToPut);
     }
 
     return this.epsilonMovesString;
@@ -801,7 +801,7 @@ public class NfaState {
       return false;
     }
 
-    int[] set = data.getNextStates(this.next.epsilonMovesString);
+    int[] set = this.data.getNextStates(this.next.epsilonMovesString);
     return NfaState.ElemOccurs(this.stateName, set) >= 0;
   }
 }

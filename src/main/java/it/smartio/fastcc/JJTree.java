@@ -40,6 +40,7 @@ import it.smartio.fastcc.jjtree.JJTreeGlobals;
 import it.smartio.fastcc.jjtree.JJTreeOptions;
 import it.smartio.fastcc.jjtree.JJTreeParserDefault;
 import it.smartio.fastcc.parser.JavaCCErrors;
+import it.smartio.fastcc.parser.Options;
 
 public class JJTree {
 
@@ -148,9 +149,9 @@ public class JJTree {
           root.dump(" ");
         }
 
-        System.out.println("opt:" + options.getOutputLanguage());
+        System.out.println("opt:" + Options.getOutputLanguage());
 
-        ParserEngine engine = ParserEngine.create(options.getOutputLanguage());
+        ParserEngine engine = ParserEngine.create(Options.getOutputLanguage());
 
         try (PrintWriter writer = new PrintWriter(file)) {
           JJMain.writeGenerated(writer);

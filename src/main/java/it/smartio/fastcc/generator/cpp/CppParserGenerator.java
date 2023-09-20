@@ -26,8 +26,6 @@
 
 package it.smartio.fastcc.generator.cpp;
 
-import it.smartio.fastcc.parser.JavaCCParserConstants;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -45,6 +43,7 @@ import it.smartio.fastcc.parser.Choice;
 import it.smartio.fastcc.parser.CodeProduction;
 import it.smartio.fastcc.parser.Expansion;
 import it.smartio.fastcc.parser.JavaCCErrors;
+import it.smartio.fastcc.parser.JavaCCParserConstants;
 import it.smartio.fastcc.parser.Lookahead;
 import it.smartio.fastcc.parser.NonTerminal;
 import it.smartio.fastcc.parser.NormalProduction;
@@ -784,9 +783,11 @@ public class CppParserGenerator extends ParserGenerator {
       if (e_nrw.label.equals("")) {
         Object label = data.getNameOfToken(e_nrw.ordinal);
         if (label != null) {
-          writer.println("    if (jj_scan_token(" + (String) label + ")) " + genReturn(jj3_expansion, true, data.options()));
+          writer.println(
+              "    if (jj_scan_token(" + (String) label + ")) " + genReturn(jj3_expansion, true, data.options()));
         } else {
-          writer.println("    if (jj_scan_token(" + e_nrw.ordinal + ")) " + genReturn(jj3_expansion, true, data.options()));
+          writer.println(
+              "    if (jj_scan_token(" + e_nrw.ordinal + ")) " + genReturn(jj3_expansion, true, data.options()));
         }
       } else {
         writer.println("    if (jj_scan_token(" + e_nrw.label + ")) " + genReturn(jj3_expansion, true, data.options()));

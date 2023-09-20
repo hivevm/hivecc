@@ -135,7 +135,7 @@ public class ParserData {
   }
 
   public final int getIndex(Lookahead lookahead) {
-    return lookaheadIndex.get(lookahead);
+    return this.lookaheadIndex.get(lookahead);
   }
 
   public final int jj2Index() {

@@ -12,23 +12,23 @@ abstract class AbstractTokenManager {
   void savepoint() {
     int l = inputStream().getBeginLine();
     int c = inputStream().getBeginColumn();
-    if (depth == size) {
-      size += 5;
-      int tmpbeginLine[] = new int[size];
-      int tmpbeginCol[] = new int[size];
+    if (this.depth == this.size) {
+      this.size += 5;
+      int tmpbeginLine[] = new int[this.size];
+      int tmpbeginCol[] = new int[this.size];
 
-      System.arraycopy(beginLine, 0, beginLine = tmpbeginLine, 0, depth);
-      System.arraycopy(beginCol, 0, beginCol = tmpbeginCol, 0, depth);
+      System.arraycopy(this.beginLine, 0, this.beginLine = tmpbeginLine, 0, this.depth);
+      System.arraycopy(this.beginCol, 0, this.beginCol = tmpbeginCol, 0, this.depth);
     }
 
-    beginLine[depth] = l;
-    beginCol[depth] = c;
-    depth++;
+    this.beginLine[this.depth] = l;
+    this.beginCol[this.depth] = c;
+    this.depth++;
   }
 
   void savepointRelease() {
-    depth--;
-    inputStream().adjustBeginLineColumn(beginLine[depth], beginCol[depth]);
+    this.depth--;
+    inputStream().adjustBeginLineColumn(this.beginLine[this.depth], this.beginCol[this.depth]);
     inputStream().backup(1);
   }
 

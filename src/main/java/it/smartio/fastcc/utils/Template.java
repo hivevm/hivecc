@@ -79,7 +79,7 @@ public class Template {
     if ((value instanceof String) && ((String) value).isEmpty()) {
       return false;
     }
-    if ((value instanceof Number) && ((Number) value).intValue() == 0) {
+    if ((value instanceof Number) && (((Number) value).intValue() == 0)) {
       return false;
     }
 
@@ -116,7 +116,7 @@ public class Template {
    * @param writer
    */
   public void write(PrintWriter writer) throws IOException {
-    List<String> lines = new ArrayList<String>();
+    List<String> lines = new ArrayList<>();
     InputStream stream = new ByteArrayInputStream(this.bytes);
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
       String line = null;

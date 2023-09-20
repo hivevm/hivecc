@@ -255,8 +255,9 @@ public class CppLexerGenerator extends LexerGenerator {
                   + "L & (1L << curChar)) != 0L) || \n" + prefix + "          (curChar >> 6) == 1" + " && (0x"
                   + Long.toHexString(data.singlesToSkip[i].asciiMoves[1]) + "L & (1L << (curChar & 077))) != 0L)");
         } else if (data.singlesToSkip[i].asciiMoves[1] == 0L) {
-          writer.println(prefix + "   while (curChar <= " + (int) CppLexerGenerator.MaxChar(data.singlesToSkip[i].asciiMoves[0])
-              + " && (0x" + Long.toHexString(data.singlesToSkip[i].asciiMoves[0]) + "L & (1L << curChar)) != 0L)");
+          writer.println(
+              prefix + "   while (curChar <= " + (int) CppLexerGenerator.MaxChar(data.singlesToSkip[i].asciiMoves[0])
+                  + " && (0x" + Long.toHexString(data.singlesToSkip[i].asciiMoves[0]) + "L & (1L << curChar)) != 0L)");
         } else if (data.singlesToSkip[i].asciiMoves[0] == 0L) {
           writer.println(prefix + "   while (curChar > 63 && curChar <= "
               + (CppLexerGenerator.MaxChar(data.singlesToSkip[i].asciiMoves[1]) + 64) + " && (0x"
@@ -1035,7 +1036,7 @@ public class CppLexerGenerator extends LexerGenerator {
   }
 
   private final void dumpNfaAndDfaHeader(PrintWriter writer, LexerStateData stateData) {
-    if (stateData.hasNFA && !stateData.isMixedState() && stateData.maxStrKind > 0) {
+    if (stateData.hasNFA && !stateData.isMixedState() && (stateData.maxStrKind > 0)) {
       int i, maxKindsReqd = (stateData.maxStrKind / 64) + 1;
       StringBuilder params = new StringBuilder();
       for (i = 0; i < (maxKindsReqd - 1); i++) {

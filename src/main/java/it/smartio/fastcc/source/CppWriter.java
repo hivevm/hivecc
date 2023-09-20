@@ -42,9 +42,9 @@ public class CppWriter extends SourceWriter {
    */
   public CppWriter(String name, Options options) {
     super(name, options);
-    this.writer = (StringWriter) out;
-    header.append("#ifndef JAVACC_" + name.replace('.', '_').toUpperCase() + "_H\n");
-    header.append("#define JAVACC_" + name.replace('.', '_').toUpperCase() + "_H\n");
+    this.writer = (StringWriter) this.out;
+    this.header.append("#ifndef JAVACC_" + name.replace('.', '_').toUpperCase() + "_H\n");
+    this.header.append("#define JAVACC_" + name.replace('.', '_').toUpperCase() + "_H\n");
   }
 
   public final void switchToHeader() {
@@ -55,10 +55,10 @@ public class CppWriter extends SourceWriter {
   public final void saveOutput(File path) {
     // dump the statics into the main file with the code.
     StringBuffer buffer = new StringBuffer();
-    buffer.append(writer.toString());
+    buffer.append(this.writer.toString());
 
     File file = new File(path, getName() + ".h");
-    saveOutput(file, header.getBuffer(), getOptions());
+    saveOutput(file, this.header.getBuffer(), getOptions());
 
     file = new File(path, getName() + ".cc");
     saveOutput(file, buffer, getOptions());

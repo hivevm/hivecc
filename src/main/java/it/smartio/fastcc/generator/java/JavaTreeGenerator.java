@@ -23,6 +23,7 @@ import it.smartio.fastcc.utils.Template;
 
 public class JavaTreeGenerator extends JJTreeCodeGenerator {
 
+  @Override
   protected final String getTryFinally() {
     return "finally ";
   }

@@ -37,4 +37,6 @@ class ASTOptionBinding extends JJTreeNode {
   }
 }
 // FastCC Checksum=1038F18BB537C064FDDD39FC28EA330F (Do not edit this line!)
-// FastCC Options: NODE_FACTORY='', VISITOR_DATA_TYPE='', VISITOR='true', NODE_CLASS='JJTreeNode', NODE_TYPE='ASTOptionBinding', VISITOR_RETURN_TYPE_VOID='false', VISITOR_EXCEPTION='', PARSER_NAME='JJTreeParser', VISITOR_RETURN_TYPE='Object'
+// FastCC Options: NODE_FACTORY='', VISITOR_DATA_TYPE='', VISITOR='true', NODE_CLASS='JJTreeNode',
+// NODE_TYPE='ASTOptionBinding', VISITOR_RETURN_TYPE_VOID='false', VISITOR_EXCEPTION='',
+// PARSER_NAME='JJTreeParser', VISITOR_RETURN_TYPE='Object'

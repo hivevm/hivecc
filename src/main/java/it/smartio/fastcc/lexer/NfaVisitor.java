@@ -55,7 +55,7 @@ public final class NfaVisitor implements RegularExpressionVisitor<Nfa, LexerStat
    * Return <code>true</code> if the cases are ignored.
    */
   private boolean isIgnoreCase() {
-    return ignoreCase;
+    return this.ignoreCase;
   }
 
   @Override
@@ -109,7 +109,7 @@ public final class NfaVisitor implements RegularExpressionVisitor<Nfa, LexerStat
     expr.CompressCharLists();
 
     if (expr.getChoices().size() == 1) {
-      return ((RegularExpression) expr.getChoices().get(0)).accept(this, data);
+      return expr.getChoices().get(0).accept(this, data);
     }
 
     Nfa retVal = new Nfa(data);
@@ -194,12 +194,12 @@ public final class NfaVisitor implements RegularExpressionVisitor<Nfa, LexerStat
 
     RegularExpression curRE;
 
-    curRE = (RegularExpression) expr.units.get(0);
+    curRE = expr.units.get(0);
     temp1 = curRE.accept(this, data);
     startState.AddMove(temp1.start);
 
     for (int i = 1; i < expr.units.size(); i++) {
-      curRE = (RegularExpression) expr.units.get(i);
+      curRE = expr.units.get(i);
 
       temp2 = curRE.accept(this, data);
       temp1.end.AddMove(temp2.start);

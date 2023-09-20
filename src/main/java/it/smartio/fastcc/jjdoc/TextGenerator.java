@@ -220,15 +220,15 @@ class TextGenerator implements Generator {
    */
   protected PrintWriter create_output_stream() {
 
-    if (opts.getOutputFile().equals("")) {
+    if (this.opts.getOutputFile().equals("")) {
       if (JJDocGlobals.input_file.equals("standard input")) {
         return new java.io.PrintWriter(new java.io.OutputStreamWriter(System.out));
       } else {
         String ext = ".html";
 
-        if (opts.getText()) {
+        if (this.opts.getText()) {
           ext = ".txt";
-        } else if (opts.getXText()) {
+        } else if (this.opts.getXText()) {
           ext = ".xtext";
         }
 
@@ -245,13 +245,14 @@ class TextGenerator implements Generator {
         }
       }
     } else {
-      JJDocGlobals.output_file = opts.getOutputFile();
+      JJDocGlobals.output_file = this.opts.getOutputFile();
     }
 
     try {
       this.ostr = new java.io.PrintWriter(new java.io.FileWriter(JJDocGlobals.output_file));
     } catch (java.io.IOException e) {
-      JJDocGlobals.error("JJDoc: can't open output stream on file " + JJDocGlobals.output_file + ".  Using standard output.");
+      JJDocGlobals
+          .error("JJDoc: can't open output stream on file " + JJDocGlobals.output_file + ".  Using standard output.");
       this.ostr = new java.io.PrintWriter(new java.io.OutputStreamWriter(System.out));
     }
 

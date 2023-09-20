@@ -26,8 +26,6 @@
 
 package it.smartio.fastcc.generator.java;
 
-import it.smartio.fastcc.parser.JavaCCParserConstants;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -43,6 +41,7 @@ import it.smartio.fastcc.parser.BNFProduction;
 import it.smartio.fastcc.parser.Choice;
 import it.smartio.fastcc.parser.CodeProduction;
 import it.smartio.fastcc.parser.Expansion;
+import it.smartio.fastcc.parser.JavaCCParserConstants;
 import it.smartio.fastcc.parser.Lookahead;
 import it.smartio.fastcc.parser.NonTerminal;
 import it.smartio.fastcc.parser.NormalProduction;
@@ -644,9 +643,8 @@ public class JavaParserGenerator extends ParserGenerator {
     }
     writer.print(") throws ParseException");
 
-    for (Iterator<List<Token>> it = p.getThrowsList().iterator(); it.hasNext();) {
+    for (List<Token> name : p.getThrowsList()) {
       writer.print(", ");
-      List<Token> name = it.next();
       for (Iterator<Token> it2 = name.iterator(); it2.hasNext();) {
         t = it2.next();
         writer.print(t.image);
@@ -676,9 +674,8 @@ public class JavaParserGenerator extends ParserGenerator {
     }
     writer.print(")");
     writer.print(" throws ParseException");
-    for (Iterator<List<Token>> it = jp.getThrowsList().iterator(); it.hasNext();) {
+    for (List<Token> name : jp.getThrowsList()) {
       writer.print(", ");
-      List<Token> name = it.next();
       for (Iterator<Token> it2 = name.iterator(); it2.hasNext();) {
         t = it2.next();
         writer.print(t.image);

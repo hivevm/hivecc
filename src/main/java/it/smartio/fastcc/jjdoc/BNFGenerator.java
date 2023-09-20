@@ -35,9 +35,9 @@ import it.smartio.fastcc.parser.TokenProduction;
 
 class BNFGenerator implements Generator {
 
-  private PrintWriter  ostr;
-  private JJDocOptions opts;
-  private boolean      printing = true;
+  private PrintWriter        ostr;
+  private final JJDocOptions opts;
+  private boolean            printing = true;
 
   /**
    * Constructs an instance of {@link BNFGenerator}.
@@ -52,7 +52,7 @@ class BNFGenerator implements Generator {
 
   private PrintWriter create_output_stream() {
 
-    if (opts.getOutputFile().equals("")) {
+    if (this.opts.getOutputFile().equals("")) {
       if (JJDocGlobals.input_file.equals("standard input")) {
         return new java.io.PrintWriter(new java.io.OutputStreamWriter(System.out));
       } else {
@@ -70,7 +70,7 @@ class BNFGenerator implements Generator {
         }
       }
     } else {
-      JJDocGlobals.output_file = opts.getOutputFile();
+      JJDocGlobals.output_file = this.opts.getOutputFile();
     }
     try {
       this.ostr = new java.io.PrintWriter(new java.io.FileWriter(JJDocGlobals.output_file));

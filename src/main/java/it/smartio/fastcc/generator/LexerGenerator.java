@@ -141,8 +141,7 @@ public abstract class LexerGenerator extends CodeGenerator {
       throw new Error("What??");
     }
 
-    for (int j = 0; j < v.size(); j++) {
-      NfaState tmp = v.get(j);
+    for (NfaState tmp : v) {
       if ((tmp.stateName != -1) && !tmp.dummy) {
         data.setAllState(tmp.stateName, tmp);
       }

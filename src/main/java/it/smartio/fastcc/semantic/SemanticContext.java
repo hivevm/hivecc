@@ -22,7 +22,7 @@ import it.smartio.fastcc.parser.Options;
  * The {@link SemanticContext} class.
  */
 public class SemanticContext {
-  
+
   private final Options options;
 
   public SemanticContext(Options options) {
@@ -34,23 +34,23 @@ public class SemanticContext {
   }
 
   public final int getLookahead() {
-    return options.getLookahead();
+    return this.options.getLookahead();
   }
 
   public final boolean isForceLaCheck() {
-    return options.getForceLaCheck();
+    return this.options.getForceLaCheck();
   }
 
   public final boolean isSanityCheck() {
-    return options.getSanityCheck();
+    return this.options.getSanityCheck();
   }
 
   public final int getChoiceAmbiguityCheck() {
-    return options.getChoiceAmbiguityCheck();
+    return this.options.getChoiceAmbiguityCheck();
   }
 
   public final int getOtherAmbiguityCheck() {
-    return options.getOtherAmbiguityCheck();
+    return this.options.getOtherAmbiguityCheck();
   }
 
   final void onSemanticError(Object node, String message) {

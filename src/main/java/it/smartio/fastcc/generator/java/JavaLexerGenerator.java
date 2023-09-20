@@ -113,8 +113,9 @@ public class JavaLexerGenerator extends LexerGenerator {
     writer.println("/** Token Manager. */");
 
     writer.print("class " + data.getParserName() + "TokenManager");
-    if (data.options().getJavaLexer() != null && !data.options().getJavaLexer().isEmpty())
+    if ((data.options().getJavaLexer() != null) && !data.options().getJavaLexer().isEmpty()) {
       writer.print(" extends " + data.options().getJavaLexer());
+    }
     writer.print(" implements " + data.getParserName() + "Constants");
 
     writer.println(" {");

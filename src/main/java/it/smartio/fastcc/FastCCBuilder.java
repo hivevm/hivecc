@@ -107,7 +107,10 @@ public class FastCCBuilder {
     return (pathes.length == 0) ? file : new File(file, String.join(File.separator, pathes));
   }
 
-  public static final File BASE = new File("/data/smartIO/release2304/parser/parser/src/main/resources/it/smartio/text");
+  public static final File ROOT        = new File("/data/smartIO/release2304");
+  public static final File PARSER_JJT  = new File(ROOT, "parser/parser/src/main/resources/it/smartio/text/parser");
+  public static final File PARSER_CPP  = new File(ROOT, "core-cpp/text/parser");
+  public static final File PARSER_JAVA = new File(ROOT, "parser/parser/src/main/java/it/smartio/text/parser");
 
   /**
    * {@link #main}.
@@ -116,13 +119,13 @@ public class FastCCBuilder {
    */
   public static void main(String[] args) {
     FastCCBuilder builder = FastCCBuilder.of(Language.Cpp);
-    builder.setOutputDirectory(FastCCBuilder.BASE, "cpp");
-    builder.setJJTreeFile(FastCCBuilder.BASE, "parser/OQL-Cpp.jjt");
+    builder.setOutputDirectory(FastCCBuilder.PARSER_CPP);
+    builder.setJJTreeFile(FastCCBuilder.PARSER_JJT, "OQL-Cpp.jjt");
     builder.build();
 
     builder = FastCCBuilder.of(Language.Java);
-    builder.setOutputDirectory(FastCCBuilder.BASE, "java");
-    builder.setJJTreeFile(FastCCBuilder.BASE, "parser/OQL.jjt");
+    builder.setOutputDirectory(FastCCBuilder.PARSER_JAVA);
+    builder.setJJTreeFile(FastCCBuilder.PARSER_JJT, "OQL.jjt");
     builder.build();
   }
 }

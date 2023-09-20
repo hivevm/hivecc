@@ -97,7 +97,7 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
       }
     }
 
-    return handleJJTreeNode((JJTreeNode) node, io);
+    return handleJJTreeNode(node, io);
   }
 
   @Override
@@ -128,18 +128,18 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
       }
 
       JJTreeCodeGenerator.openJJTreeComment(io, node.node_scope.getNodeDescriptorText());
-      insertOpenNodeCode(node.node_scope, io, indent, node.jjtOptions() );
+      insertOpenNodeCode(node.node_scope, io, indent, node.jjtOptions());
       JJTreeCodeGenerator.closeJJTreeComment(io);
     }
 
-    return handleJJTreeNode((JJTreeNode) node, io);
+    return handleJJTreeNode(node, io);
   }
 
   @Override
   public final Object visit(ASTBNFNodeScope node, Object data) {
     PrintWriter io = (PrintWriter) data;
     if (node.node_scope.isVoid()) {
-      return handleJJTreeNode((JJTreeNode) node, io);
+      return handleJJTreeNode(node, io);
     }
 
     String indent = getIndentation(node.expansion_unit);
@@ -217,7 +217,7 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
     }
     return s;
   }
-  
+
   /*
    * Indicates whether the token should be replaced by white space or replaced with the actual node
    * variable.
@@ -305,7 +305,8 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
 
   protected abstract void insertOpenNodeCode(NodeScope ns, PrintWriter io, String indent, JJTreeOptions options);
 
-  private final void insertCloseNodeCode(NodeScope ns, PrintWriter io, String indent, boolean isFinal, JJTreeOptions options) {
+  private final void insertCloseNodeCode(NodeScope ns, PrintWriter io, String indent, boolean isFinal,
+      JJTreeOptions options) {
     String closeNode = ns.node_descriptor.closeNode(ns.nodeVar);
     io.println(indent + closeNode);
     if (ns.usesCloseNodeVar() && !isFinal) {

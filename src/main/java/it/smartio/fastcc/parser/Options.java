@@ -47,8 +47,8 @@ public class Options {
   // Limit subclassing to derived classes.
   public Options() {
     Options.optionValues = new HashMap<>();
-    cmdLineSetting = new HashSet<>();
-    inputFileSetting = new HashSet<>();
+    this.cmdLineSetting = new HashSet<>();
+    this.inputFileSetting = new HashSet<>();
 
     for (OptionInfo info : Options.userOptions) {
       Options.optionValues.put(info.getName(), info.getDefault());
@@ -131,8 +131,7 @@ public class Options {
 
 
   public final Map<String, Object> getOptions() {
-    HashMap<String, Object> ret = new HashMap<>(Options.optionValues);
-    return ret;
+    return new HashMap<>(Options.optionValues);
   }
 
   /**
@@ -204,12 +203,12 @@ public class Options {
         return;
       }
 
-      if (inputFileSetting.contains(nameUpperCase)) {
+      if (this.inputFileSetting.contains(nameUpperCase)) {
         JavaCCErrors.warning(nameloc, "Duplicate option setting for \"" + name + "\" will be ignored.");
         return;
       }
 
-      if (cmdLineSetting.contains(nameUpperCase)) {
+      if (this.cmdLineSetting.contains(nameUpperCase)) {
         if (!existingValue.equals(value)) {
           JavaCCErrors.warning(nameloc, "Command line setting of \"" + name + "\" modifies option value in file.");
         }
@@ -218,7 +217,7 @@ public class Options {
     }
 
     Options.optionValues.put(nameUpperCase, value);
-    inputFileSetting.add(nameUpperCase);
+    this.inputFileSetting.add(nameUpperCase);
 
     // Special case logic block here for setting indirect flags
 
@@ -308,7 +307,7 @@ public class Options {
       System.out.println("Warning: Bad option value in \"" + arg + "\" will be ignored.");
       return;
     }
-    if (cmdLineSetting.contains(name)) {
+    if (this.cmdLineSetting.contains(name)) {
       System.out.println("Warning: Duplicate option setting \"" + arg + "\" will be ignored.");
       return;
     }
@@ -316,7 +315,7 @@ public class Options {
     Val = upgradeValue(name, Val);
 
     Options.optionValues.put(name, Val);
-    cmdLineSetting.add(name);
+    this.cmdLineSetting.add(name);
     if (name.equalsIgnoreCase(FastCC.JJPARSER_CPP_NAMESPACE)) {
       processCPPNamespaceOption((String) Val);
     }
@@ -324,8 +323,8 @@ public class Options {
 
   public final void normalize() {
     if (getDebugLookahead() && !getDebugParser()) {
-      if (cmdLineSetting.contains(FastCC.JJPARSER_DEBUG_PARSER)
-          || inputFileSetting.contains(FastCC.JJPARSER_DEBUG_PARSER)) {
+      if (this.cmdLineSetting.contains(FastCC.JJPARSER_DEBUG_PARSER)
+          || this.inputFileSetting.contains(FastCC.JJPARSER_DEBUG_PARSER)) {
         JavaCCErrors
             .warning("True setting of option DEBUG_LOOKAHEAD overrides " + "false setting of option DEBUG_PARSER.");
       }
@@ -482,7 +481,7 @@ public class Options {
    * @return the output language. default java
    */
   public static JJLanguage getOutputLanguage() {
-    String language =  (String) Options.optionValues.get(FastCC.JJPARSER_OUTPUT_LANGUAGE);
+    String language = (String) Options.optionValues.get(FastCC.JJPARSER_OUTPUT_LANGUAGE);
     if (language.equalsIgnoreCase(Options.OUTPUT_LANGUAGE__JAVA)) {
       return JJLanguage.Java;
     } else if (language.equalsIgnoreCase(Options.OUTPUT_LANGUAGE__CPP) || language.equalsIgnoreCase("cpp")) {
@@ -560,8 +559,7 @@ public class Options {
       final int prime = 31;
       int result = 1;
       result = (prime * result) + ((this._default == null) ? 0 : this._default.hashCode());
-      result = (prime * result) + ((this._name == null) ? 0 : this._name.hashCode());
-      return result;
+      return (prime * result) + ((this._name == null) ? 0 : this._name.hashCode());
     }
 
     @Override

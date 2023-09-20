@@ -17,4 +17,6 @@ public class ASTBNFDeclaration extends JJTreeNode {
   }
 }
 // FastCC Checksum=B96B197307C037C9BB7885553247912A (Do not edit this line!)
-// FastCC Options: NODE_FACTORY='', VISITOR_DATA_TYPE='', VISITOR='true', NODE_CLASS='JJTreeNode', NODE_TYPE='ASTBNFDeclaration', VISITOR_RETURN_TYPE_VOID='false', VISITOR_EXCEPTION='', PARSER_NAME='JJTreeParser', VISITOR_RETURN_TYPE='Object'
+// FastCC Options: NODE_FACTORY='', VISITOR_DATA_TYPE='', VISITOR='true', NODE_CLASS='JJTreeNode',
+// NODE_TYPE='ASTBNFDeclaration', VISITOR_RETURN_TYPE_VOID='false', VISITOR_EXCEPTION='',
+// PARSER_NAME='JJTreeParser', VISITOR_RETURN_TYPE='Object'

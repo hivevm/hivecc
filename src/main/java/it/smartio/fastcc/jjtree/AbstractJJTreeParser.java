@@ -55,10 +55,11 @@ abstract class AbstractJJTreeParser {
   protected boolean notTailOfExpansionUnit() {
     Token t;
     t = getToken(1);
-    if (t.kind == JJTreeParserConstants.BIT_OR || t.kind == JJTreeParserConstants.COMMA
-        || t.kind == JJTreeParserConstants.RPAREN || t.kind == JJTreeParserConstants.RBRACE
-        || t.kind == JJTreeParserConstants.RBRACKET)
+    if ((t.kind == JJTreeParserConstants.BIT_OR) || (t.kind == JJTreeParserConstants.COMMA)
+        || (t.kind == JJTreeParserConstants.RPAREN) || (t.kind == JJTreeParserConstants.RBRACE)
+        || (t.kind == JJTreeParserConstants.RBRACKET)) {
       return false;
+    }
     return true;
   }
 }

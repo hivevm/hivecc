@@ -441,8 +441,8 @@ public abstract class ParserGenerator extends CodeGenerator {
     if (e instanceof Choice) {
       Sequence nested_seq;
       Choice e_nrw = (Choice) e;
-      for (int i = 0; i < e_nrw.getChoices().size(); i++) {
-        nested_seq = (Sequence) (e_nrw.getChoices().get(i));
+      for (Expansion element : e_nrw.getChoices()) {
+        nested_seq = (Sequence) (element);
         Lookahead la = (Lookahead) (nested_seq.units.get(0));
         if (la.getActionTokens().size() != 0) {
           // We have semantic lookahead that must be evaluated.
@@ -494,7 +494,7 @@ public abstract class ParserGenerator extends CodeGenerator {
       Expansion nested_e;
       Choice e_nrw = (Choice) e;
       for (int i = 0; (min > 1) && (i < e_nrw.getChoices().size()); i++) {
-        nested_e = (Expansion) (e_nrw.getChoices().get(i));
+        nested_e = (e_nrw.getChoices().get(i));
         int min1 = ParserGenerator.minimumSize(data, nested_e, min);
         if (min > min1) {
           min = min1;

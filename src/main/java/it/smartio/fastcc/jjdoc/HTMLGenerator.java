@@ -84,8 +84,8 @@ class HTMLGenerator extends TextGenerator {
     println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">");
     println("<HTML>");
     println("<HEAD>");
-    if (!"".equals(opts.getCSS())) {
-      println("<LINK REL=\"stylesheet\" type=\"text/css\" href=\"" + opts.getCSS() + "\"/>");
+    if (!"".equals(this.opts.getCSS())) {
+      println("<LINK REL=\"stylesheet\" type=\"text/css\" href=\"" + this.opts.getCSS() + "\"/>");
     }
     if (JJDocGlobals.input_file != null) {
       println("<TITLE>BNF for " + JJDocGlobals.input_file + "</TITLE>");
@@ -139,14 +139,14 @@ class HTMLGenerator extends TextGenerator {
   @Override
   public void nonterminalsStart() {
     println("<H2 ALIGN=CENTER>NON-TERMINALS</H2>");
-    if (opts.getOneTable()) {
+    if (this.opts.getOneTable()) {
       println("<TABLE>");
     }
   }
 
   @Override
   public void nonterminalsEnd() {
-    if (opts.getOneTable()) {
+    if (this.opts.getOneTable()) {
       println("</TABLE>");
     }
   }
@@ -164,7 +164,7 @@ class HTMLGenerator extends TextGenerator {
 
   @Override
   public void productionStart(NormalProduction np) {
-    if (!opts.getOneTable()) {
+    if (!this.opts.getOneTable()) {
       println("");
       println("<TABLE ALIGN=CENTER>");
       println("<CAPTION><STRONG>" + np.getLhs() + "</STRONG></CAPTION>");
@@ -177,7 +177,7 @@ class HTMLGenerator extends TextGenerator {
 
   @Override
   public void productionEnd(NormalProduction np) {
-    if (!opts.getOneTable()) {
+    if (!this.opts.getOneTable()) {
       println("</TABLE>");
       println("<HR>");
     }

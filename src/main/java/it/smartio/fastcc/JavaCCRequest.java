@@ -25,7 +25,7 @@ import it.smartio.fastcc.parser.TokenProduction;
  * The {@link JavaCCRequest} class.
  */
 public interface JavaCCRequest {
-  
+
   Options options();
 
   boolean isGenerated();

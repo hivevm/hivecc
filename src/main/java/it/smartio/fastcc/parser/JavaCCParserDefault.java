@@ -33,6 +33,6 @@ public class JavaCCParserDefault extends JavaCCParser {
    */
   @Override
   public final Options getOptions() {
-    return options;
+    return this.options;
   }
 }

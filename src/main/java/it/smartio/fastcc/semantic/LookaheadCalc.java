@@ -124,7 +124,7 @@ class LookaheadCalc {
         m = new MatchInfo(data.laLimit());
         v = new ArrayList<>();
         v.add(m);
-        LookaheadWalk.genFirstSet(data, v, (Expansion) ch.getChoices().get(i));
+        LookaheadWalk.genFirstSet(data, v, ch.getChoices().get(i));
         dbl[i] = data.getSizeLimitedMatches();
       }
       data.setConsiderSemanticLA(false);
@@ -133,12 +133,12 @@ class LookaheadCalc {
         m = new MatchInfo(data.laLimit());
         v = new ArrayList<>();
         v.add(m);
-        LookaheadWalk.genFirstSet(data, v, (Expansion) ch.getChoices().get(i));
+        LookaheadWalk.genFirstSet(data, v, ch.getChoices().get(i));
         dbr[i] = data.getSizeLimitedMatches();
       }
       if (la == 1) {
         for (int i = first; i < (ch.getChoices().size() - 1); i++) {
-          Expansion exp = (Expansion) ch.getChoices().get(i);
+          Expansion exp = ch.getChoices().get(i);
           if (Semanticize.emptyExpansionExists(exp)) {
             context.onWarning(exp, "This choice can expand to the empty token sequence "
                 + "and will therefore always be taken in favor of the choices appearing later.");
@@ -167,24 +167,24 @@ class LookaheadCalc {
       }
     }
     for (int i = first; i < (ch.getChoices().size() - 1); i++) {
-      if (LookaheadCalc.explicitLA((Expansion) ch.getChoices().get(i)) && !context.isForceLaCheck()) {
+      if (LookaheadCalc.explicitLA(ch.getChoices().get(i)) && !context.isForceLaCheck()) {
         continue;
       }
       if (minLA[i] > context.getChoiceAmbiguityCheck()) {
         context.onWarning("Choice conflict involving two expansions at");
-        System.err.print("         line " + ((Expansion) ch.getChoices().get(i)).getLine());
-        System.err.print(", column " + ((Expansion) ch.getChoices().get(i)).getColumn());
-        System.err.print(" and line " + ((Expansion) ch.getChoices().get(other[i])).getLine());
-        System.err.print(", column " + ((Expansion) ch.getChoices().get(other[i])).getColumn());
+        System.err.print("         line " + ch.getChoices().get(i).getLine());
+        System.err.print(", column " + ch.getChoices().get(i).getColumn());
+        System.err.print(" and line " + ch.getChoices().get(other[i]).getLine());
+        System.err.print(", column " + ch.getChoices().get(other[i]).getColumn());
         System.err.println(" respectively.");
         System.err.println("         A common prefix is: " + LookaheadCalc.image(overlapInfo[i], data));
         System.err.println("         Consider using a lookahead of " + minLA[i] + " or more for earlier expansion.");
       } else if (minLA[i] > 1) {
         context.onWarning("Choice conflict involving two expansions at");
-        System.err.print("         line " + ((Expansion) ch.getChoices().get(i)).getLine());
-        System.err.print(", column " + ((Expansion) ch.getChoices().get(i)).getColumn());
-        System.err.print(" and line " + ((Expansion) ch.getChoices().get(other[i])).getLine());
-        System.err.print(", column " + ((Expansion) ch.getChoices().get(other[i])).getColumn());
+        System.err.print("         line " + ch.getChoices().get(i).getLine());
+        System.err.print(", column " + ch.getChoices().get(i).getColumn());
+        System.err.print(" and line " + ch.getChoices().get(other[i]).getLine());
+        System.err.print(", column " + ch.getChoices().get(other[i]).getColumn());
         System.err.println(" respectively.");
         System.err.println("         A common prefix is: " + LookaheadCalc.image(overlapInfo[i], data));
         System.err.println("         Consider using a lookahead of " + minLA[i] + " for earlier expansion.");
@@ -210,7 +210,7 @@ class LookaheadCalc {
       return 0;
     }
     for (int i = 0; i < ch.getChoices().size(); i++) {
-      if (!LookaheadCalc.explicitLA((Expansion) ch.getChoices().get(i))) {
+      if (!LookaheadCalc.explicitLA(ch.getChoices().get(i))) {
         return i;
       }
     }

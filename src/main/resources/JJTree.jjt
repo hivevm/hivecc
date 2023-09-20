@@ -148,52 +148,52 @@ TOKEN :
 TOKEN :
 {
   < INTEGER_LITERAL:
-        <DECIMAL_LITERAL> (["l","L"])?
-      | <HEX_LITERAL> (["l","L"])?
-      | <OCTAL_LITERAL> (["l","L"])?
+      <DECIMAL_LITERAL> (["l","L"])?
+    | <HEX_LITERAL> (["l","L"])?
+    | <OCTAL_LITERAL> (["l","L"])?
   >
 | < #DECIMAL_LITERAL: ["1"-"9"] (["0"-"9"])* >
 | < #HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+ >
 | < #OCTAL_LITERAL: "0" (["0"-"7"])* >
 | < FLOATING_POINT_LITERAL:
-        <DECIMAL_FLOATING_POINT_LITERAL>
-      | <HEXADECIMAL_FLOATING_POINT_LITERAL>
+     <DECIMAL_FLOATING_POINT_LITERAL>
+    | <HEXADECIMAL_FLOATING_POINT_LITERAL>
   >
 | < #DECIMAL_FLOATING_POINT_LITERAL:
-        (["0"-"9"])+ "." (["0"-"9"])* (<DECIMAL_EXPONENT>)? (["f","F","d","D"])?
-      | "." (["0"-"9"])+ (<DECIMAL_EXPONENT>)? (["f","F","d","D"])?
-      | (["0"-"9"])+ <DECIMAL_EXPONENT> (["f","F","d","D"])?
-      | (["0"-"9"])+ (<DECIMAL_EXPONENT>)? ["f","F","d","D"]
+      (["0"-"9"])+ "." (["0"-"9"])* (<DECIMAL_EXPONENT>)? (["f","F","d","D"])?
+    | "." (["0"-"9"])+ (<DECIMAL_EXPONENT>)? (["f","F","d","D"])?
+    | (["0"-"9"])+ <DECIMAL_EXPONENT> (["f","F","d","D"])?
+    | (["0"-"9"])+ (<DECIMAL_EXPONENT>)? ["f","F","d","D"]
   >
 | < #DECIMAL_EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
 | < #HEXADECIMAL_FLOATING_POINT_LITERAL:
-        "0" ["x", "X"] (["0"-"9","a"-"f","A"-"F"])+ (".")? <HEXADECIMAL_EXPONENT> (["f","F","d","D"])?
-      | "0" ["x", "X"] (["0"-"9","a"-"f","A"-"F"])* "." (["0"-"9","a"-"f","A"-"F"])+ <HEXADECIMAL_EXPONENT> (["f","F","d","D"])?
+     "0" ["x", "X"] (["0"-"9","a"-"f","A"-"F"])+ (".")? <HEXADECIMAL_EXPONENT> (["f","F","d","D"])?
+   | "0" ["x", "X"] (["0"-"9","a"-"f","A"-"F"])* "." (["0"-"9","a"-"f","A"-"F"])+ <HEXADECIMAL_EXPONENT> (["f","F","d","D"])?
   >
 | < #HEXADECIMAL_EXPONENT: ["p","P"] (["+","-"])? (["0"-"9"])+ >
 | < CHARACTER_LITERAL:
-      "'"
-      (   (~["'","\\","\n","\r"])
-        | ("\\"
-            ( ["n","t","b","r","f","\\","'","\""]
-            | ["0"-"7"] ( ["0"-"7"] )?
-            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
-            )
+    "'"
+    ((~["'","\\","\n","\r"])
+      | ("\\"
+          ( ["n","t","b","r","f","\\","'","\""]
+          | ["0"-"7"] ( ["0"-"7"] )?
+          | ["0"-"3"] ["0"-"7"] ["0"-"7"]
           )
-      )
-      "'"
+          )
+    )
+    "'"
   >
 | < STRING_LITERAL:
-      "\""
-      (   (~["\"","\\","\n","\r"])
-        | ("\\"
-            ( ["n","t","b","r","f","\\","'","\""]
-            | ["0"-"7"] ( ["0"-"7"] )?
-            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
-            )
+    "\""
+    (   (~["\"","\\","\n","\r"])
+      | ("\\"
+          ( ["n","t","b","r","f","\\","'","\""]
+          | ["0"-"7"] ( ["0"-"7"] )?
+          | ["0"-"3"] ["0"-"7"] ["0"-"7"]
           )
-      )*
-      "\""
+        )
+    )*
+    "\""
   >
 }
 
@@ -296,12 +296,12 @@ void option_binding() #OptionBinding :
     setInputFileOption(o, v, Integer.valueOf(v.image));
     jjtThis.initialize(o.image, v.image);
   }
-   | v=BooleanLiteral()
+  | v=BooleanLiteral()
   {
     setInputFileOption(o, v, Boolean.valueOf(v.image));
     jjtThis.initialize(o.image, v.image);
   }
-   | v=StringLiteral()
+  | v=StringLiteral()
   {	
     String vs = TokenUtils.remove_escapes_and_quotes(v, v.image);
     setInputFileOption(o, v, (Object)vs);
@@ -629,7 +629,7 @@ Token value() :
 | <FALSE>
 | <TRUE>
 )
-	{
+  {
 	  return token;
 	}
 }
@@ -646,26 +646,26 @@ ASTNodeDescriptor node_descriptor() #NodeDescriptor :
 {
   "#"
   ( s=Name()
-                   {
-                     jjtThis.name = s;
-		   }
+	{
+	  jjtThis.name = s;
+    }
   | t=<VOID>
-                   {
-                     jjtThis.name = t.image;
-		   }
+    {
+      jjtThis.name = t.image;
+    }
   )
   [
    LOOKAHEAD(1)
    "("
       [ ">"
-{
-    jjtThis.isGT = true;
+    {
+      jjtThis.isGT = true;
     }
       ]
       t=value()
-{
-    jjtThis.setExpressionText(t.image);
-}
+    {
+      jjtThis.setExpressionText(t.image);
+    }
    ")"
   ]
 {
@@ -876,8 +876,7 @@ void ResultType() :
 {
 (
   "void" [ "*" ]
-|
-  [ "const" ] Type() [ "*" | "&" ]
+| [ "const" ] Type() [ "*" | "&" ]
 )
 }
 
@@ -892,9 +891,9 @@ String Name() :
 {
   s=JavaIdentifier()
   ( LOOKAHEAD(2) "." ss=JavaIdentifier() { s += "." + ss; } )*
-                {
-		  return s;
-		}
+  {
+    return s;
+  }
 }
 
 
@@ -1108,9 +1107,9 @@ Token IntegerLiteral() :
 }
 {
   t=<INTEGER_LITERAL>
-	{
-      return t;
-	}
+  {
+    return t;
+  }
 }
 
 Token BooleanLiteral() :
@@ -1119,13 +1118,13 @@ Token BooleanLiteral() :
 }
 {
   t="true"
-	{
-	  return t;
-	}
+  {
+	return t;
+  }
 | t="false"
-	{
-	  return t;
-	}
+  {
+	return t;
+  }
 }
 
 Token StringLiteral() :
@@ -1152,9 +1151,7 @@ void Arguments() :
 */
 {}
 {
-  "("
-  [ ArgumentList() ]
-  ")"
+  "(" [ ArgumentList() ] ")"
 }
 
 void ArgumentList():
@@ -1169,10 +1166,10 @@ void AllocationExpression():
   LOOKAHEAD(2)
   "new" PrimitiveType() ArrayDimsAndInits()
 | "new" ClassOrInterfaceType() [ TypeArguments() ]
-    (
-      ArrayDimsAndInits()
-    | Arguments()
-    )
+  (
+    ArrayDimsAndInits()
+  | Arguments()
+  )
 }
 
 /*
@@ -1306,8 +1303,7 @@ void ForInit():
 {
   LOOKAHEAD( Type() JavaIdentifier() )
   LocalVariableDeclaration()
-|
-  StatementExpressionList()
+|  StatementExpressionList()
 }
 
 void StatementExpressionList():
@@ -1367,7 +1363,7 @@ void MemberValuePairs():
 void MemberValuePair():
 {}
 {
-  JavaIdentifier() "=" MemberValue()
+   JavaIdentifier() "=" MemberValue()
 }
 
 void MemberValue():

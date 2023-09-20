@@ -117,8 +117,10 @@ public abstract class JJParser {
         System.out.println(args[args.length - 1] + " is a directory. Please use a valid file name.");
         System.exit(1);
       }
-      parser = new JavaCCParserDefault(new StreamProvider(
-          new InputStreamReader(new FileInputStream(args[args.length - 1]), options.getGrammarEncoding())), options);
+      parser = new JavaCCParserDefault(
+          new StreamProvider(
+              new InputStreamReader(new FileInputStream(args[args.length - 1]), options.getGrammarEncoding())),
+          options);
     } catch (SecurityException se) {
       System.out.println("Security violation while trying to open " + args[args.length - 1]);
       System.exit(1);
@@ -137,7 +139,7 @@ public abstract class JJParser {
       parser.javacc_input();
 
       // Initialize the parser data
-      ParserEngine engine = ParserEngine.create(options.getOutputLanguage());
+      ParserEngine engine = ParserEngine.create(Options.getOutputLanguage());
 
       JJMain.createOutputDir(options.getOutputDirectory());
 

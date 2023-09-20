@@ -26,10 +26,12 @@ import it.smartio.fastcc.utils.Template;
 
 public class CppTreeGenerator extends JJTreeCodeGenerator {
 
+  @Override
   protected final String getPointer() {
     return "->";
   }
 
+  @Override
   protected final String getBoolean() {
     return "bool";
   }
@@ -51,8 +53,8 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
       // Old-style multiple-implementations.
       io.println("(" + nodeClass + "*)" + nodeClass + "::jjtCreate(" + ns.node_descriptor.getNodeId() + ");");
     } else if (options.getNodeFactory().length() > 0) {
-      io.println("(" + nodeClass + "*)" + options.getNodeFactory() + "->jjtCreate("
-          + ns.node_descriptor.getNodeId() + ");");
+      io.println(
+          "(" + nodeClass + "*)" + options.getNodeFactory() + "->jjtCreate(" + ns.node_descriptor.getNodeId() + ");");
     } else {
       io.println("new " + nodeClass + "(" + ns.node_descriptor.getNodeId() + ");");
     }
@@ -133,11 +135,11 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
     return new File(o.getOutputDirectory(), "Node.cc").getAbsolutePath();
   }
 
-  private static String jjtreeIncludeFile(String s,JJTreeOptions o) {
+  private static String jjtreeIncludeFile(String s, JJTreeOptions o) {
     return new File(o.getOutputDirectory(), s + ".h").getAbsolutePath();
   }
 
-  private static String jjtreeImplFile(String s,JJTreeOptions o) {
+  private static String jjtreeImplFile(String s, JJTreeOptions o) {
     return new File(o.getOutputDirectory(), s + ".cc").getAbsolutePath();
   }
 
@@ -192,7 +194,7 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
         Boolean.valueOf(CppTreeGenerator.getVisitorReturnType(o).equals("void")));
     optionMap.put(FastCC.JJTREE_NODE_TYPE, node);
 
-    File file = new File(CppTreeGenerator.jjtreeIncludeFile(node,o));
+    File file = new File(CppTreeGenerator.jjtreeIncludeFile(node, o));
     try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, optionMap)) {
       CppTreeGenerator.generateFile(writer, "/templates/cpp/Tree.h.template", writer.options());
     } catch (IOException e) {
@@ -202,7 +204,7 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
 
   private static void generateMultiTreeImpl(JJTreeOptions o) {
     for (String node : CppTreeGenerator.nodesToGenerate) {
-      File file = new File(CppTreeGenerator.jjtreeImplFile(node,o));
+      File file = new File(CppTreeGenerator.jjtreeImplFile(node, o));
       DigestOptions optionMap = DigestOptions.get(o);
       optionMap.put(FastCC.PARSER_NAME, JJTreeGlobals.parserName);
       optionMap.put(FastCC.JJTREE_VISITOR_RETURN_TYPE, CppTreeGenerator.getVisitorReturnType(o));

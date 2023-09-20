@@ -125,7 +125,8 @@ class LexerBuilder {
             continue;
           }
 
-          if (!data.options().getNoDfa() && (curRE instanceof RStringLiteral) && !((RStringLiteral) curRE).image.equals("")) {
+          if (!data.options().getNoDfa() && (curRE instanceof RStringLiteral)
+              && !((RStringLiteral) curRE).image.equals("")) {
             GenerateDfa(stateData, ((RStringLiteral) curRE), curRE.ordinal);
             if ((i != 0) && !stateData.isMixedState() && (ignoring != ignore)) {
               stateData.hasMixed = true;
@@ -257,10 +258,10 @@ class LexerBuilder {
       List<RegExprSpec> respecs = tp.respecs;
       List<TokenProduction> tps;
 
-      for (int i = 0; i < tp.lexStates.length; i++) {
-        if ((tps = allTpsForState.get(tp.lexStates[i])) == null) {
-          tmpLexStateName[maxLexStates++] = tp.lexStates[i];
-          allTpsForState.put(tp.lexStates[i], tps = new ArrayList<>());
+      for (String lexState : tp.lexStates) {
+        if ((tps = allTpsForState.get(lexState)) == null) {
+          tmpLexStateName[maxLexStates++] = lexState;
+          allTpsForState.put(lexState, tps = new ArrayList<>());
         }
         tps.add(tp);
       }
@@ -270,8 +271,8 @@ class LexerBuilder {
       }
 
       RegularExpression re;
-      for (int i = 0; i < respecs.size(); i++) {
-        if (maxOrdinal <= (re = respecs.get(i).rexp).ordinal) {
+      for (RegExprSpec respec : respecs) {
+        if (maxOrdinal <= (re = respec.rexp).ordinal) {
           maxOrdinal = re.ordinal + 1;
         }
       }
@@ -601,8 +602,7 @@ class LexerBuilder {
       throw new Error("What??");
     }
 
-    for (int j = 0; j < v.size(); j++) {
-      NfaState tmp = v.get(j);
+    for (NfaState tmp : v) {
       if ((tmp.stateName != -1) && !tmp.dummy) {
         data.setAllState(tmp.stateName, tmp);
       }
@@ -1337,7 +1337,7 @@ class LexerBuilder {
       }
 
       if (temp.stateForCase != null) {
-        if (temp.inNextOf == 1 || dumped[temp.stateForCase.stateName]) {
+        if ((temp.inNextOf == 1) || dumped[temp.stateForCase.stateName]) {
           continue;
         }
 
@@ -1547,7 +1547,7 @@ class LexerBuilder {
         String tmp;
         Integer ind;
 
-        long[] lohiByte = new long[] { loBytes[i][0], loBytes[i][1], loBytes[i][2], loBytes[i][3] };
+        long[] lohiByte = { loBytes[i][0], loBytes[i][1], loBytes[i][2], loBytes[i][3] };
         tmp = "{\n   0x" + Long.toHexString(loBytes[i][0]) + "L, " + "0x" + Long.toHexString(loBytes[i][1]) + "L, "
             + "0x" + Long.toHexString(loBytes[i][2]) + "L, " + "0x" + Long.toHexString(loBytes[i][3]) + "L\n};";
 

@@ -49,9 +49,9 @@ public class ParserEngine {
 
   public final void generate(JavaCCRequest request) throws IOException, ParseException {
     LexerData data = new LexerBuilder().build(request);
-    lexerGenerator.start(data);
-    parserGenerator.start(request);
-    otherFilesGenerator.start(data, request);
+    this.lexerGenerator.start(data);
+    this.parserGenerator.start(request);
+    this.otherFilesGenerator.start(data, request);
   }
 
   /**
@@ -61,8 +61,8 @@ public class ParserEngine {
    * @param writer
    */
   public void generateJJTree(ASTGrammar node, PrintWriter writer, JJTreeOptions options) throws IOException {
-    node.jjtAccept(treeGenerator, writer);
-    treeGenerator.generateJJTree(options);
+    node.jjtAccept(this.treeGenerator, writer);
+    this.treeGenerator.generateJJTree(options);
   }
 
   /**

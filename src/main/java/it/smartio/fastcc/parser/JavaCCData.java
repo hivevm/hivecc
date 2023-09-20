@@ -31,7 +31,7 @@ import it.smartio.fastcc.semantic.SemanticRequest;
 public class JavaCCData implements SemanticRequest, JavaCCRequest {
 
   private final Options                    options;
-  private boolean                          isGenerated;
+  private final boolean                    isGenerated;
   private Action                           actForEof;
   private String                           nextStateForEof;
 
@@ -116,11 +116,12 @@ public class JavaCCData implements SemanticRequest, JavaCCRequest {
     this.isGenerated = isGenerated;
     this.lexstate_S2I.put("DEFAULT", 0);
     this.lexstate_I2S.put(0, "DEFAULT");
-    this.simple_tokens_table.put("DEFAULT", new Hashtable<String, Hashtable<String, RegularExpression>>());
+    this.simple_tokens_table.put("DEFAULT", new Hashtable<>());
   }
-  
+
+  @Override
   public final Options options() {
-    return options;
+    return this.options;
   }
 
   final void setParser(String name) {
@@ -130,7 +131,7 @@ public class JavaCCData implements SemanticRequest, JavaCCRequest {
   final void setLexState(String name, int index) {
     this.lexstate_I2S.put(index, name);
     this.lexstate_S2I.put(name, index);
-    this.simple_tokens_table.put(name, new Hashtable<String, Hashtable<String, RegularExpression>>());
+    this.simple_tokens_table.put(name, new Hashtable<>());
   }
 
   final void addTokenProduction(TokenProduction p) {
@@ -147,7 +148,7 @@ public class JavaCCData implements SemanticRequest, JavaCCRequest {
 
   @Override
   public final boolean isGenerated() {
-    return isGenerated;
+    return this.isGenerated;
   }
 
   @Override

@@ -23,8 +23,6 @@
 
 package it.smartio.fastcc.semantic;
 
-import it.smartio.fastcc.parser.ParseException;
-
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -39,6 +37,7 @@ import it.smartio.fastcc.parser.Lookahead;
 import it.smartio.fastcc.parser.NonTerminal;
 import it.smartio.fastcc.parser.NormalProduction;
 import it.smartio.fastcc.parser.OneOrMore;
+import it.smartio.fastcc.parser.ParseException;
 import it.smartio.fastcc.parser.RChoice;
 import it.smartio.fastcc.parser.REndOfFile;
 import it.smartio.fastcc.parser.RJustName;
@@ -593,7 +592,7 @@ public class Semanticize {
         this.loopString = prod.getLhs() + "... --> " + prod.getLeftExpansions()[i].getLhs() + "...";
         if (prod.getWalkStatus() == -2) {
           prod.setWalkStatus(1);
-          context.onSemanticError(prod, "Left recursion detected: \"" + this.loopString + "\"");
+          this.context.onSemanticError(prod, "Left recursion detected: \"" + this.loopString + "\"");
           return false;
         } else {
           prod.setWalkStatus(1);
@@ -604,7 +603,7 @@ public class Semanticize {
           this.loopString = prod.getLhs() + "... --> " + this.loopString;
           if (prod.getWalkStatus() == -2) {
             prod.setWalkStatus(1);
-            context.onSemanticError(prod, "Left recursion detected: \"" + this.loopString + "\"");
+            this.context.onSemanticError(prod, "Left recursion detected: \"" + this.loopString + "\"");
             return false;
           } else {
             prod.setWalkStatus(1);
@@ -635,7 +634,8 @@ public class Semanticize {
           this.loopString = "..." + jn.regexpr.label + "... --> " + this.loopString;
           if (jn.regexpr.walkStatus == -2) {
             jn.regexpr.walkStatus = 1;
-            context.onSemanticError(jn.regexpr, "Loop in regular expression detected: \"" + this.loopString + "\"");
+            this.context.onSemanticError(jn.regexpr,
+                "Loop in regular expression detected: \"" + this.loopString + "\"");
             return false;
           } else {
             jn.regexpr.walkStatus = 1;
@@ -763,10 +763,11 @@ public class Semanticize {
         ch.getChoices().add(seq1);
         if (la.getAmount() != 0) {
           if (la.getActionTokens().size() != 0) {
-            context.onWarning(la, "Encountered LOOKAHEAD(...) at a non-choice location.  "
+            Semanticize.this.context.onWarning(la, "Encountered LOOKAHEAD(...) at a non-choice location.  "
                 + "Only semantic lookahead will be considered here.");
           } else {
-            context.onWarning(la, "Encountered LOOKAHEAD(...) at a non-choice location.  This will be ignored.");
+            Semanticize.this.context.onWarning(la,
+                "Encountered LOOKAHEAD(...) at a non-choice location.  This will be ignored.");
           }
         }
         // Now we have moved the lookahead into the singleton choice. Now create
@@ -801,7 +802,7 @@ public class Semanticize {
     public void action(Expansion e) {
       if (e instanceof NonTerminal) {
         NonTerminal nt = (NonTerminal) e;
-        if ((nt.setProd(request.getProductionTable(nt.getName()))) == null) {
+        if ((nt.setProd(Semanticize.this.request.getProductionTable(nt.getName()))) == null) {
           getContext().onSemanticError(e, "Non-terminal " + nt.getName() + " has not been defined.");
         } else {
           nt.getProd().getParents().add(nt);
@@ -830,7 +831,7 @@ public class Semanticize {
         }
       } else if (e instanceof ZeroOrMore) {
         if (Semanticize.emptyExpansionExists(((ZeroOrMore) e).expansion)) {
-          context.onSemanticError(e, "Expansion within \"(...)*\" can be matched by empty string.");
+          Semanticize.this.context.onSemanticError(e, "Expansion within \"(...)*\" can be matched by empty string.");
         }
       } else if (e instanceof ZeroOrOne) {
         if (Semanticize.emptyExpansionExists(((ZeroOrOne) e).expansion)) {

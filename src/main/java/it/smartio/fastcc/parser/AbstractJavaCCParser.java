@@ -58,10 +58,10 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
    *
    */
   protected AbstractJavaCCParser() {
-    nextFreeLexState = 1;
-    inLocalLA = 0;
-    inAction = false;
-    jumpPatched = false;
+    this.nextFreeLexState = 1;
+    this.inLocalLA = 0;
+    this.inAction = false;
+    this.jumpPatched = false;
   }
 
   /**
@@ -99,8 +99,8 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
           JavaCCErrors.parse_error(p, "Multiple occurrence of \"" + p.lexStates[i] + "\" in lexical state list.");
         }
       }
-      if (data.hasLexState(p.lexStates[i])) {
-        data.setLexState(p.lexStates[i], this.nextFreeLexState++);
+      if (this.data.hasLexState(p.lexStates[i])) {
+        this.data.setLexState(p.lexStates[i], this.nextFreeLexState++);
       }
     }
   }
@@ -288,8 +288,9 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
     result.member = tblk;
   }
 
-  protected final boolean isJavaLanguage() {
-    return getOptions().getOutputLanguage() == JJLanguage.Java;
+  protected final boolean isCpp() {
+    getOptions();
+    return Options.getOutputLanguage() == JJLanguage.Cpp;
   }
 
   /*
@@ -299,24 +300,27 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
   protected boolean notTailOfExpansionUnit() {
     Token t;
     t = getToken(1);
-    if (t.kind == JavaCCParserConstants.BIT_OR || t.kind == JavaCCParserConstants.COMMA
-        || t.kind == JavaCCParserConstants.RPAREN || t.kind == JavaCCParserConstants.RBRACE
-        || t.kind == JavaCCParserConstants.RBRACKET)
+    if ((t.kind == JavaCCParserConstants.BIT_OR) || (t.kind == JavaCCParserConstants.COMMA)
+        || (t.kind == JavaCCParserConstants.RPAREN) || (t.kind == JavaCCParserConstants.RBRACE)
+        || (t.kind == JavaCCParserConstants.RBRACKET)) {
       return false;
+    }
     return true;
   }
 
   protected void eatUptoCloseBrace(List<Token> tokens) {
     int b = 1;
     Token t;
-    while ((t = getToken(1)).kind != JavaCCParserConstants.RBRACE || --b != 0) {
+    while (((t = getToken(1)).kind != JavaCCParserConstants.RBRACE) || (--b != 0)) {
       if (tokens != null) {
         tokens.add(t);
       }
-      if (t.kind == JavaCCParserConstants.EOF)
+      if (t.kind == JavaCCParserConstants.EOF) {
         break;
-      if (t.kind == JavaCCParserConstants.LBRACE)
+      }
+      if (t.kind == JavaCCParserConstants.LBRACE) {
         b++;
+      }
       getNextToken(); // eat it
     }
   }
@@ -324,14 +328,16 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
   protected void eatUptoRParen(List<Token> tokens) {
     int b = 1;
     Token t;
-    while ((t = getToken(1)).kind != JavaCCParserConstants.RPAREN || --b != 0) {
+    while (((t = getToken(1)).kind != JavaCCParserConstants.RPAREN) || (--b != 0)) {
       if (tokens != null) {
         tokens.add(t);
       }
-      if (t.kind == JavaCCParserConstants.EOF)
+      if (t.kind == JavaCCParserConstants.EOF) {
         break;
-      if (t.kind == JavaCCParserConstants.LPAREN)
+      }
+      if (t.kind == JavaCCParserConstants.LPAREN) {
         b++;
+      }
       getNextToken(); // eat it
     }
   }

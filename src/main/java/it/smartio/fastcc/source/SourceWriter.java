@@ -53,14 +53,14 @@ public class SourceWriter extends PrintWriter {
    * Gets the name.
    */
   public final String getName() {
-    return name;
+    return this.name;
   }
 
   /**
    * Gets the {@link DigestOptions}.
    */
   public final DigestOptions getOptions() {
-    return options;
+    return this.options;
   }
 
   /**
@@ -100,7 +100,7 @@ public class SourceWriter extends PrintWriter {
    */
   public final void writeTemplate(String path) throws IOException {
     Template template = Template.of(path, getOptions());
-    template.write(new PrintWriter(out));
+    template.write(new PrintWriter(this.out));
   }
 
   /**
@@ -122,6 +122,6 @@ public class SourceWriter extends PrintWriter {
    */
   @Override
   public final String toString() {
-    return ((StringWriter) out).getBuffer().toString();
+    return ((StringWriter) this.out).getBuffer().toString();
   }
 }

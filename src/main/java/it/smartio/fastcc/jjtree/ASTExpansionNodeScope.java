@@ -17,4 +17,6 @@ public class ASTExpansionNodeScope extends JJTreeNode {
   }
 }
 // FastCC Checksum=7B7A74451CC55AAAB18206D85AEFC14B (Do not edit this line!)
-// FastCC Options: NODE_FACTORY='', VISITOR_DATA_TYPE='', VISITOR='true', NODE_CLASS='JJTreeNode', NODE_TYPE='ASTExpansionNodeScope', VISITOR_RETURN_TYPE_VOID='false', VISITOR_EXCEPTION='', PARSER_NAME='JJTreeParser', VISITOR_RETURN_TYPE='Object'
+// FastCC Options: NODE_FACTORY='', VISITOR_DATA_TYPE='', VISITOR='true', NODE_CLASS='JJTreeNode',
+// NODE_TYPE='ASTExpansionNodeScope', VISITOR_RETURN_TYPE_VOID='false', VISITOR_EXCEPTION='',
+// PARSER_NAME='JJTreeParser', VISITOR_RETURN_TYPE='Object'

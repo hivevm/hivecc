@@ -148,7 +148,7 @@ public class LexerData {
 
     this.actions = new Action[this.maxOrdinal];
     this.actions[0] = request.getActionForEof();
-    this.hasTokenActions = this.getActionForEof() != null;
+    this.hasTokenActions = getActionForEof() != null;
     this.canMatchAnyChar = new int[this.maxLexStates];
     this.canLoop = new boolean[this.maxLexStates];
     this.lexStateNames = new String[this.maxLexStates];
@@ -157,7 +157,7 @@ public class LexerData {
     this.maxLongsReqd = new int[this.maxLexStates];
     this.initMatch = new int[this.maxLexStates];
     this.newLexState = new String[this.maxOrdinal];
-    this.newLexState[0] = this.getNextStateForEof();
+    this.newLexState[0] = getNextStateForEof();
     this.hasEmptyMatch = false;
     this.lexStates = new int[this.maxOrdinal];
     this.ignoreCase = new boolean[this.maxOrdinal];
@@ -179,15 +179,15 @@ public class LexerData {
   }
 
   public final boolean ignoreCase() {
-    return request.ignoreCase();
+    return this.request.ignoreCase();
   }
 
   public final String getNextStateForEof() {
-    return request.getNextStateForEof();
+    return this.request.getNextStateForEof();
   }
 
   public final Action getActionForEof() {
-    return request.getActionForEof();
+    return this.request.getActionForEof();
   }
 
   public final int getStateCount() {
@@ -203,7 +203,7 @@ public class LexerData {
   }
 
   public final int getCurrentKind() {
-    return curKind;
+    return this.curKind;
   }
 
   public final int getImageCount() {
@@ -231,15 +231,15 @@ public class LexerData {
    * Reset the {@link LexerData} for another cycle.
    */
   final LexerStateData newStateData(String name) {
-    stateData.put(name, new LexerStateData(this, name));
-    return stateData.get(name);
+    this.stateData.put(name, new LexerStateData(this, name));
+    return this.stateData.get(name);
   }
 
   /**
    * Reset the {@link LexerData} for another cycle.
    */
   public final LexerStateData getStateData(String name) {
-    return stateData.get(name);
+    return this.stateData.get(name);
   }
 
 }

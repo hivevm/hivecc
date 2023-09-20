@@ -15,9 +15,8 @@
 
 package it.smartio.fastcc.generator;
 
-import it.smartio.fastcc.parser.ParseException;
-
 import it.smartio.fastcc.JavaCCRequest;
+import it.smartio.fastcc.parser.ParseException;
 
 /**
  * The {@link OtherFilesGenerator} class.
