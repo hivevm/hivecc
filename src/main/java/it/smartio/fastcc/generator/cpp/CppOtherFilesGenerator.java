@@ -161,7 +161,7 @@ public class CppOtherFilesGenerator implements OtherFilesGenerator {
     });
 
     File file = new File(data.options().getOutputDirectory(), request.getParserName() + "Constants.h");
-    try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, options)) {
+    try (DigestWriter writer = DigestWriter.createCpp(file, FastCC.VERSION, options)) {
       Template.of(String.format(CppOtherFilesGenerator.TEMPLATE, "ParserConstants.h"), writer.options()).write(writer);
     } catch (IOException e) {
       JavaCCErrors.semantic_error("Could not open file " + request.getParserName() + "Constants.h for writing.");
@@ -181,7 +181,7 @@ public class CppOtherFilesGenerator implements OtherFilesGenerator {
 
   private static void generate(String name, Version version, LexerData data) {
     File file = new File(data.options().getOutputDirectory(), name);
-    try (DigestWriter writer = DigestWriter.create(file, version, DigestOptions.get(data.options()))) {
+    try (DigestWriter writer = DigestWriter.createCpp(file, version, DigestOptions.get(data.options()))) {
       Template.of(String.format(CppOtherFilesGenerator.TEMPLATE, name), writer.options()).write(writer);
     } catch (IOException e) {
       System.err.println("Failed to create file: " + file + e);

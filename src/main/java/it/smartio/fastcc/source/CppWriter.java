@@ -67,7 +67,7 @@ public class CppWriter extends SourceWriter {
   private void saveOutput(File file, StringBuffer buffer, DigestOptions options) {
     CppWriter.fixupLongLiterals(buffer);
 
-    try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, options)) {
+    try (DigestWriter writer = DigestWriter.createCpp(file, FastCC.VERSION, options)) {
       writer.print(buffer.toString());
     } catch (IOException ioe) {
       JavaCCErrors.fatal("Could not create output file: " + file);

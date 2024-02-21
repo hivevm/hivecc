@@ -103,14 +103,14 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
 
 
     File file = new File(filePrefix + ".h");
-    try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, options)) {
+    try (DigestWriter writer = DigestWriter.createCpp(file, FastCC.VERSION, options)) {
       CppTreeGenerator.generateFile(writer, "/templates/cpp/TreeState.h.template", writer.options());
     } catch (IOException e) {
       e.printStackTrace();
     }
 
     file = new File(filePrefix + ".cc");
-    try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, options)) {
+    try (DigestWriter writer = DigestWriter.createCpp(file, FastCC.VERSION, options)) {
       CppTreeGenerator.generateFile(writer, "/templates/cpp/TreeState.cc.template", writer.options());
     } catch (IOException e) {
       e.printStackTrace();
@@ -161,7 +161,7 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
         Boolean.valueOf(CppTreeGenerator.getVisitorReturnType(o).equals("void")));
 
     File file = new File(CppTreeGenerator.nodeIncludeFile(o));
-    try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, optionMap)) {
+    try (DigestWriter writer = DigestWriter.createCpp(file, FastCC.VERSION, optionMap)) {
       CppTreeGenerator.generateFile(writer, "/templates/cpp/Node.h.template", writer.options());
     } catch (IOException e) {
       throw new Error(e.toString());
@@ -177,7 +177,7 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
         Boolean.valueOf(CppTreeGenerator.getVisitorReturnType(o).equals("void")));
 
     File file = new File(CppTreeGenerator.nodeImplFile(o));
-    try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, optionMap)) {
+    try (DigestWriter writer = DigestWriter.createCpp(file, FastCC.VERSION, optionMap)) {
       CppTreeGenerator.generateFile(writer, "/templates/cpp/Node.cc.template", writer.options());
     } catch (IOException e) {
       throw new Error(e.toString());
@@ -195,7 +195,7 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
     optionMap.put(FastCC.JJTREE_NODE_TYPE, node);
 
     File file = new File(CppTreeGenerator.jjtreeIncludeFile(node, o));
-    try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, optionMap)) {
+    try (DigestWriter writer = DigestWriter.createCpp(file, FastCC.VERSION, optionMap)) {
       CppTreeGenerator.generateFile(writer, "/templates/cpp/Tree.h.template", writer.options());
     } catch (IOException e) {
       throw new Error(e.toString());
@@ -213,7 +213,7 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
           Boolean.valueOf(CppTreeGenerator.getVisitorReturnType(o).equals("void")));
       optionMap.put(FastCC.JJTREE_NODE_TYPE, node);
 
-      try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, optionMap)) {
+      try (DigestWriter writer = DigestWriter.createCpp(file, FastCC.VERSION, optionMap)) {
         CppTreeGenerator.generateFile(writer, "/templates/cpp/MultiNode.cc.template", writer.options());
       } catch (IOException e) {
         throw new Error(e.toString());
@@ -231,7 +231,7 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
         Boolean.valueOf(CppTreeGenerator.getVisitorReturnType(o).equals("void")));
 
     File file = new File(o.getOutputDirectory(), JJTreeGlobals.parserName + "Tree.h");
-    try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, optionMap)) {
+    try (DigestWriter writer = DigestWriter.createCpp(file, FastCC.VERSION, optionMap)) {
       // PrintWriter ostr = outputFile.getPrintWriter();
       file.getName().replace('.', '_').toUpperCase();
       writer.println("#ifndef JAVACC_ONE_TREE_H");
@@ -252,7 +252,7 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
     File file = new File(o.getOutputDirectory(), name + ".h");
     CppTreeGenerator.headersForJJTreeH.add(file.getName());
 
-    try (DigestWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get(o))) {
+    try (DigestWriter ostr = DigestWriter.createCpp(file, FastCC.VERSION, DigestOptions.get(o))) {
       List<String> nodeIds = ASTNodeDescriptor.getNodeIds();
       List<String> nodeNames = ASTNodeDescriptor.getNodeNames();
 
@@ -317,7 +317,7 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
     }
 
     File file = new File(o.getOutputDirectory(), JJTreeGlobals.parserName + "Visitor.h");
-    try (DigestWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get(o))) {
+    try (DigestWriter ostr = DigestWriter.createCpp(file, FastCC.VERSION, DigestOptions.get(o))) {
       ostr.println("#ifndef " + file.getName().replace('.', '_').toUpperCase());
       ostr.println("#define " + file.getName().replace('.', '_').toUpperCase());
       ostr.println("\n#include \"JavaCC.h\"");
