@@ -35,7 +35,7 @@ public class Choice extends Expansion {
   /**
    * The list of choices of this expansion unit. Each List component will narrow to ExpansionUnit.
    */
-  private List<Expansion> choices = new ArrayList<>();
+  private final List<Expansion> choices = new ArrayList<>();
 
   public Choice() {}
 
@@ -48,13 +48,6 @@ public class Choice extends Expansion {
     setLine(expansion.getLine());
     setColumn(expansion.getColumn());
     getChoices().add(expansion);
-  }
-
-  /**
-   * @param choices the choices to set
-   */
-  public void setChoices(List<Expansion> choices) {
-    this.choices = choices;
   }
 
   /**

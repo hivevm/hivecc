@@ -1,0 +1,77 @@
+plugins {
+  id 'com.gradle.plugin-publish' version '1.2.1'
+  id 'java-gradle-plugin'
+  id 'maven-publish'
+}
+
+
+// Apply the java-library plugin to add support for Java Library
+apply plugin: 'java'
+apply plugin: 'java-library'
+apply plugin: 'java-gradle-plugin'
+
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
+
+version = '0.1.0'
+group	= 'it.smartio'
+
+
+java {
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
+}
+
+
+allprojects {
+    tasks.withType(Javadoc).all { enabled = false }
+}
+
+
+dependencies {
+  implementation gradleApi()
+
+  // Use JUnit test framework
+  // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine
+  testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
+}
+
+
+sourceSets {
+  main {
+    java {
+      srcDirs += 'src/main/generated'
+      // Exclude build of Maven Plugin extending Mojo
+      exclude '**/*Mojo.java'
+    }
+    resources {
+    }
+  }
+  test {
+    java {
+      compileClasspath += configurations.compileOnly
+      runtimeClasspath += configurations.compileOnly
+    }
+  }
+}
+
+
+// Configured to publish your plugin to the plugin portal
+gradlePlugin {
+  website = 'https://www.tol.info'
+  vcsUrl  = 'https://github.com/tol-smartio/markdown.git'
+  plugins {
+    create("gradle") {
+      id = 'it.smartio.fastcc'
+      displayName = 'FastCC'
+      description = 'FastCC parser generator '
+      implementationClass = 'it.smartio.fastcc.gradle.FastCCPlugin'
+      description = "Gradle plugin to use the FastCC generator!"
+      tags.set(["fastcc", "code generator"])
+    }
+  }
+}

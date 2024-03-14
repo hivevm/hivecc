@@ -110,7 +110,7 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
 
     File file = new File(o.getOutputDirectory(), "JJT" + JJTreeGlobals.parserName + "State.java");
     try (DigestWriter ostr = DigestWriter.create(file, FastCC.VERSION, options)) {
-      Template.of("/templates/TreeState.template", options).write(ostr);
+      Template.of("/templates/java/TreeState.template", options).write(ostr);
     } catch (IOException e) {
       throw new Error(e.toString());
     }
@@ -142,13 +142,13 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
       JavaTreeGenerator.nodesGenerated.add(file.getName());
 
       if (nodeType.equals("Tree")) {
-        Template.of("/templates/Tree.template", options).write(writer);
+        Template.of("/templates/java/Tree.template", options).write(writer);
       } else if (nodeType.equals("Node")) {
-        Template.of("/templates/Node.template", options).write(writer);
+        Template.of("/templates/java/Node.template", options).write(writer);
       } else {
         options.put(FastCC.JJTREE_NODE_TYPE, nodeType);
         options.put(FastCC.JJTREE_VISITOR_RETURN_VOID, Boolean.valueOf(o.getVisitorReturnType().equals("void")));
-        Template.of("/templates/MultiNode.template", options).write(writer);
+        Template.of("/templates/java/MultiNode.template", options).write(writer);
       }
     } catch (IOException e) {
       throw new Error(e.toString());

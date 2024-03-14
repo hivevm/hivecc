@@ -69,24 +69,10 @@ public class NonTerminal extends Expansion {
   }
 
   /**
-   * @param name the name to set
-   */
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  /**
    * @return the name
    */
   public String getName() {
     return this.name;
-  }
-
-  /**
-   * @param argument_tokens the argument_tokens to set
-   */
-  public void setParametrizedTypeTokens(List<Token> argument_tokens) {
-    this.argument_tokens = argument_tokens;
   }
 
   /**
@@ -97,13 +83,6 @@ public class NonTerminal extends Expansion {
   }
 
   /**
-   * @param argument_tokens the argument_tokens to set
-   */
-  public void setArgumentTokens(List<Token> parametrized_type__tokens) {
-    this.parametrized_type__tokens = parametrized_type__tokens;
-  }
-
-  /**
    * @return the argument_tokens
    */
   public List<Token> getArgumentTokens() {
@@ -111,16 +90,37 @@ public class NonTerminal extends Expansion {
   }
 
   /**
-   * @param prod the prod to set
-   */
-  public NormalProduction setProd(NormalProduction prod) {
-    return this.prod = prod;
-  }
-
-  /**
    * @return the prod
    */
   public NormalProduction getProd() {
     return this.prod;
+  }
+
+  /**
+   * @param name the name to set
+   */
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  /**
+   * @param argument_tokens the argument_tokens to set
+   */
+  public void setParametrizedTypeTokens(List<Token> argument_tokens) {
+    this.argument_tokens = argument_tokens;
+  }
+
+  /**
+   * @param argument_tokens the argument_tokens to set
+   */
+  public void setArgumentTokens(List<Token> parametrized_type__tokens) {
+    this.parametrized_type__tokens = parametrized_type__tokens;
+  }
+
+  /**
+   * @param prod the prod to set
+   */
+  public NormalProduction setProd(NormalProduction prod) {
+    return this.prod = prod;
   }
 }

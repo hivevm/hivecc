@@ -83,7 +83,7 @@ public class CppOtherFilesGenerator implements OtherFilesGenerator {
 
     List<RegularExpression> expressions = new ArrayList<>();
     for (TokenProduction tp : request.getTokenProductions()) {
-      for (RegExprSpec res : tp.respecs) {
+      for (RegExprSpec res : tp.getRespecs()) {
         expressions.add(res.rexp);
       }
     }
@@ -106,7 +106,7 @@ public class CppOtherFilesGenerator implements OtherFilesGenerator {
       @Override
       public String apply(Object t) {
         RegularExpression re = (RegularExpression) t;
-        return String.format("const int %s = %s;", re.label, re.ordinal);
+        return String.format("const int %s = %s;", re.getLabel(), re.getOrdinal());
       }
     });
     options.put("getTokenImage", new Function<Object, String>() {
@@ -120,15 +120,15 @@ public class CppOtherFilesGenerator implements OtherFilesGenerator {
           if (i == 0) {
             CppOtherFilesGenerator.printCharArray(writer, "<EOF>");
           } else if (expressions.get(i - 1) instanceof RStringLiteral) {
-            CppOtherFilesGenerator.printCharArray(writer, ((RStringLiteral) expressions.get(i - 1)).image);
-          } else if (!expressions.get(i - 1).label.equals("")) {
-            CppOtherFilesGenerator.printCharArray(writer, "<" + expressions.get(i - 1).label + ">");
+            CppOtherFilesGenerator.printCharArray(writer, ((RStringLiteral) expressions.get(i - 1)).getImage());
+          } else if (!expressions.get(i - 1).getLabel().equals("")) {
+            CppOtherFilesGenerator.printCharArray(writer, "<" + expressions.get(i - 1).getLabel() + ">");
           } else {
-            if (expressions.get(i - 1).tpContext.kind == TokenProduction.TOKEN) {
+            if (expressions.get(i - 1).getTpContext().getKind() == TokenProduction.Kind.TOKEN) {
               JavaCCErrors.warning(expressions.get(i - 1),
                   "Consider giving this non-string token a label for better error reporting.");
             }
-            CppOtherFilesGenerator.printCharArray(writer, "<token of kind " + expressions.get(i - 1).ordinal + ">");
+            CppOtherFilesGenerator.printCharArray(writer, "<token of kind " + expressions.get(i - 1).getOrdinal() + ">");
           }
         }
         return builder.toString();
@@ -145,15 +145,15 @@ public class CppOtherFilesGenerator implements OtherFilesGenerator {
           if (i == 0) {
             CppOtherFilesGenerator.printCharArray(writer, "<EOF>");
           } else if (expressions.get(i - 1) instanceof RStringLiteral) {
-            CppOtherFilesGenerator.printCharArray(writer, "<" + ((RStringLiteral) expressions.get(i - 1)).label + ">");
-          } else if (!expressions.get(i - 1).label.equals("")) {
-            CppOtherFilesGenerator.printCharArray(writer, "<" + expressions.get(i - 1).label + ">");
+            CppOtherFilesGenerator.printCharArray(writer, "<" + ((RStringLiteral) expressions.get(i - 1)).getLabel() + ">");
+          } else if (!expressions.get(i - 1).getLabel().equals("")) {
+            CppOtherFilesGenerator.printCharArray(writer, "<" + expressions.get(i - 1).getLabel() + ">");
           } else {
-            if (expressions.get(i - 1).tpContext.kind == TokenProduction.TOKEN) {
+            if (expressions.get(i - 1).getTpContext().getKind() == TokenProduction.Kind.TOKEN) {
               JavaCCErrors.warning(expressions.get(i - 1),
                   "Consider giving this non-string token a label for better error reporting.");
             }
-            CppOtherFilesGenerator.printCharArray(writer, "<token of kind " + expressions.get(i - 1).ordinal + ">");
+            CppOtherFilesGenerator.printCharArray(writer, "<token of kind " + expressions.get(i - 1).getOrdinal() + ">");
           }
         }
         return builder.toString();
@@ -167,7 +167,6 @@ public class CppOtherFilesGenerator implements OtherFilesGenerator {
       JavaCCErrors.semantic_error("Could not open file " + request.getParserName() + "Constants.h for writing.");
       throw new Error();
     }
-
   }
 
   // Used by the CPP code generatror

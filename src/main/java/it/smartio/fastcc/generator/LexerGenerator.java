@@ -378,9 +378,9 @@ public abstract class LexerGenerator extends CodeGenerator {
   protected final String GetLabel(LexerData data, int kind) {
     RegularExpression re = data.rexprs[kind];
     if (re instanceof RStringLiteral) {
-      return " \"" + Encoding.escape(((RStringLiteral) re).image) + "\"";
-    } else if (!re.label.equals("")) {
-      return " <" + re.label + ">";
+      return " \"" + Encoding.escape(((RStringLiteral) re).getImage()) + "\"";
+    } else if (!re.getLabel().equals("")) {
+      return " <" + re.getLabel() + ">";
     } else {
       return " <token of kind " + kind + ">";
     }

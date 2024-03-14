@@ -35,7 +35,7 @@ public class Sequence extends Expansion {
   /**
    * The list of units in this expansion sequence. Each List component will narrow to Expansion.
    */
-  public List<? super Object> units = new ArrayList<>();
+  private final List<? super Object> units = new ArrayList<>();
 
   public Sequence() {}
 
@@ -43,5 +43,13 @@ public class Sequence extends Expansion {
     setLine(token.beginLine);
     setColumn(token.beginColumn);
     this.units.add(lookahead);
+  }
+
+
+  /**
+   * Gets the {@link #units}.
+   */
+  public final List<? super Object> getUnits() {
+    return units;
   }
 }

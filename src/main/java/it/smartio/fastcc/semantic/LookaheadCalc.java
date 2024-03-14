@@ -88,9 +88,9 @@ class LookaheadCalc {
       } else {
         RegularExpression re = semanticize.getRegularExpression(m.match[i]);
         if (re instanceof RStringLiteral) {
-          ret += " \"" + Encoding.escape(((RStringLiteral) re).image) + "\"";
-        } else if ((re.label != null) && !re.label.equals("")) {
-          ret += " <" + re.label + ">";
+          ret += " \"" + Encoding.escape(((RStringLiteral) re).getImage()) + "\"";
+        } else if ((re.getLabel() != null) && !re.getLabel().equals("")) {
+          ret += " <" + re.getLabel() + ">";
         } else {
           ret += " <token of kind " + i + ">";
         }
@@ -197,7 +197,7 @@ class LookaheadCalc {
       return false;
     }
     Sequence seq = (Sequence) exp;
-    Object obj = seq.units.get(0);
+    Object obj = seq.getUnits().get(0);
     if (!(obj instanceof Lookahead)) {
       return false;
     }

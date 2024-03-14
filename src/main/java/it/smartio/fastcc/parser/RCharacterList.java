@@ -32,24 +32,27 @@ import java.util.List;
 
 public class RCharacterList extends RegularExpression {
 
+  private boolean transformed = false;
+
+
   /**
    * This is true if a tilde (~) appears before the character list. Otherwise, this is false.
    */
-  public boolean              negated_list        = false;
+  private boolean             negated_list        = false;
 
   /**
    * This is the list of descriptors of the character list. Each list entry will narrow to either
    * SingleCharacter or to CharacterRange.
    */
-  public List<Object>         descriptors         = new ArrayList<>();
+  private List<Object>        descriptors         = new ArrayList<>();
 
   private static final char[] diffLowerCaseRanges = {
       65, 90, 192, 214, 216, 222, 256, 256, 258, 258, 260, 260, 262, 262, 264, 264, 266, 266, 268, 268, 270, 270, 272,
       272, 274, 274, 276, 276, 278, 278, 280, 280, 282, 282, 284, 284, 286, 286, 288, 288, 290, 290, 292, 292, 294, 294,
-      296, 296, 298, 298, 300, 300, 302, 302, /* new for fixing 1.0.2 */ 304, 304,                                                                                                                                                                                                                                                                          /*
-                                                                                                                                                                                                                                                                                                                                                             * End
-                                                                                                                                                                                                                                                                                                                                                             * new
-                                                                                                                                                                                                                                                                                                                                                             */
+      296, 296, 298, 298, 300, 300, 302, 302, /* new for fixing 1.0.2 */ 304, 304,                                                                                                                                                                                                                                                                                   /*
+                                                                                                                                                                                                                                                                                                                                                                      * End
+                                                                                                                                                                                                                                                                                                                                                                      * new
+                                                                                                                                                                                                                                                                                                                                                                      */
       306, 306, 308, 308, 310, 310, 313, 313, 315, 315, 317, 317, 319, 319, 321, 321, 323, 323, 325, 325, 327, 327, 330,
       330, 332, 332, 334, 334, 336, 336, 338, 338, 340, 340, 342, 342, 344, 344, 346, 346, 348, 348, 350, 350, 352, 352,
       354, 354, 356, 356, 358, 358, 360, 360, 362, 362, 364, 364, 366, 366, 368, 368, 370, 370, 372, 372, 374, 374, 376,
@@ -99,15 +102,15 @@ public class RCharacterList extends RegularExpression {
       468, 468, 470, 470, 472, 472, 474, 474, 476, 476, 479, 479, 481, 481, 483, 483, 485, 485, 487, 487, 489, 489, 491,
       491, 493, 493, 495, 495, 498, 498, 499, 499, 501, 501, 507, 507, 509, 509, 511, 511, 513, 513, 515, 515, 517, 517,
       519, 519, 521, 521, 523, 523, 525, 525, 527, 527, 529, 529, 531, 531, 533, 533, 535, 535, 595, 595, 596, 596, 598,
-      /* new for fixing 1.0.2 */ 598, 599, /* End new */ 599,                                                                                                                                                                                                                                                                                               /*
-                                                                                                                                                                                                                                                                                                                                                             * 600,
-                                                                                                                                                                                                                                                                                                                                                             * Sreeni
-                                                                                                                                                                                                                                                                                                                                                             * fixed
-                                                                                                                                                                                                                                                                                                                                                             * for
-                                                                                                                                                                                                                                                                                                                                                             * 1
-                                                                                                                                                                                                                                                                                                                                                             * .
-                                                                                                                                                                                                                                                                                                                                                             * 2
-                                                                                                                                                                                                                                                                                                                                                             */
+      /* new for fixing 1.0.2 */ 598, 599, /* End new */ 599,                                                                                                                                                                                                                                                                                                        /*
+                                                                                                                                                                                                                                                                                                                                                                      * 600,
+                                                                                                                                                                                                                                                                                                                                                                      * Sreeni
+                                                                                                                                                                                                                                                                                                                                                                      * fixed
+                                                                                                                                                                                                                                                                                                                                                                      * for
+                                                                                                                                                                                                                                                                                                                                                                      * 1
+                                                                                                                                                                                                                                                                                                                                                                      * .
+                                                                                                                                                                                                                                                                                                                                                                      * 2
+                                                                                                                                                                                                                                                                                                                                                                      */
       601, 601, 603, 603, 608, 608, 611, 611, 616, 616, 617, 617, 623, 623, 626, 626, 643, 643, 648, 648, 650, 651, 658,
       658, 940, 940, 941, 943, 945, 961, /* new for fixing 1.0.2 */ 962, 962, /* End new */ 963, 971, 972, 972, 973,
       974, 976, 976, 977, 977, 981, 981, 982, 982, 995, 995, 997, 997, 999, 999, 1001, 1001, 1003, 1003, 1005, 1005,
@@ -346,16 +349,6 @@ public class RCharacterList extends RegularExpression {
 
     SortDescriptors();
 
-    /*
-     * System.out.println("REM. NEG Before:"); for (i = 0; i < descriptors.size(); i++) { if
-     * (descriptors.get(i) instanceof SingleCharacter) { char c =
-     * ((SingleCharacter)descriptors.get(i)).ch; System.out.print((int)c + " "); } else { char l =
-     * ((CharacterRange)descriptors.get(i)).left; char r =
-     * ((CharacterRange)descriptors.get(i)).right;
-     *
-     * System.out.print((int)l + "-" + (int)r + " "); } } System.out.println("");
-     */
-
     List<Object> newDescriptors = new ArrayList<>();
     int lastRemoved = -1; // One less than the first valid character.
 
@@ -410,10 +403,48 @@ public class RCharacterList extends RegularExpression {
     return this.negated_list && ((this.descriptors == null) || (this.descriptors.size() == 0));
   }
 
-  public boolean transformed = false;
-
   @Override
   public final <R, D> R accept(RegularExpressionVisitor<R, D> visitor, D data) {
     return visitor.visit(this, data);
+  }
+
+  
+  /**
+   * Gets the {@link #transformed}.
+   */
+  public final boolean isTransformed() {
+    return transformed;
+  }
+
+  
+  /**
+   * Gets the {@link #negated_list}.
+   */
+  public final boolean isNegated_list() {
+    return negated_list;
+  }
+
+  
+  /**
+   * Gets the {@link #descriptors}.
+   */
+  public final List<Object> getDescriptors() {
+    return descriptors;
+  }
+
+  
+  /**
+   * Sets the {@link #transformed}.
+   */
+  public final void setTransformed() {
+    this.transformed = true;
+  }
+
+  
+  /**
+   * Sets the {@link #negated_list}.
+   */
+  public final void setNegatedList() {
+    this.negated_list = true;
   }
 }

@@ -32,13 +32,54 @@ public class RRepetitionRange extends RegularExpression {
   /**
    * The regular expression which is repeated one or more times.
    */
-  public RegularExpression regexpr;
-  public int               min = 0;
-  public int               max = -1;
-  public boolean           hasMax;
+  private RegularExpression regexpr;
+  private int               min = 0;
+  private int               max = -1;
+  private boolean           hasMax;
 
   @Override
   public final <R, D> R accept(RegularExpressionVisitor<R, D> visitor, D data) {
     return visitor.visit(this, data);
+  }
+
+
+  /**
+   * Gets the {@link #min}.
+   */
+  public final int getMin() {
+    return min;
+  }
+
+
+  /**
+   * Gets the {@link #max}.
+   */
+  public final int getMax() {
+    return max;
+  }
+
+
+  /**
+   * Gets the {@link #hasMax}.
+   */
+  public final boolean hasMax() {
+    return hasMax;
+  }
+
+  /**
+   * Gets the {@link #regexpr}.
+   */
+  public final RegularExpression getRegexpr() {
+    return regexpr;
+  }
+
+  /**
+   * Sets the {@link #regexpr}.
+   */
+  public final void setRegexpr(RegularExpression regexpr, int min, int max, boolean hasMax) {
+    this.regexpr = regexpr;
+    this.min = min;
+    this.max = max;
+    this.hasMax = hasMax;
   }
 }

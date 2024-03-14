@@ -32,7 +32,7 @@ public class RZeroOrMore extends RegularExpression {
   /**
    * The regular expression which is repeated zero or more times.
    */
-  public RegularExpression regexpr;
+  private RegularExpression regexpr;
 
   public RZeroOrMore() {}
 
@@ -45,5 +45,19 @@ public class RZeroOrMore extends RegularExpression {
   @Override
   public final <R, D> R accept(RegularExpressionVisitor<R, D> visitor, D data) {
     return visitor.visit(this, data);
+  }
+
+  /**
+   * Gets the {@link #regexpr}.
+   */
+  public final RegularExpression getRegexpr() {
+    return regexpr;
+  }
+
+  /**
+   * Sets the {@link #regexpr}.
+   */
+  public final void setRegexpr(RegularExpression regexpr) {
+    this.regexpr = regexpr;
   }
 }

@@ -185,7 +185,7 @@ TOKEN :
   >
 | < STRING_LITERAL:
     "\""
-    (   (~["\"","\\","\n","\r"])
+    ((~["\"","\\","\n","\r"])
       | ("\\"
           ( ["n","t","b","r","f","\\","'","\""]
           | ["0"-"7"] ( ["0"-"7"] )?
@@ -260,16 +260,13 @@ void javacc_input() #Grammar :
 {
   javacc_options()
   {}
-  (
-    "PARSER_BEGIN" "(" t=identifier() ")"
+  ( "PARSER_BEGIN" "(" t=identifier() ")"
   {
     setParserName(t.image);
   }
-    "PARSER_END"
+  "PARSER_END"
   ) #CompilationUnit(true)
-  (
-    ( production() )+
-  ) #Productions
+  ( ( production() )+ ) #Productions
   <EOF>
 }
 
@@ -307,7 +304,8 @@ void option_binding() #OptionBinding :
     setInputFileOption(o, v, (Object)vs);
     jjtThis.initialize(o.image, vs);
   }
-  ) ";"
+  )
+  ";"
 }
 
 void production() :
@@ -339,11 +337,11 @@ void bnf_production() #BNF :
   ResultType() t1=identifier() FormalParameters()
   [
     "throws" n=Name()
-        {
+	{
 	  prod.throws_list.addElement(n);
 	}
     ( "," n=Name()
-        {
+	{
 	  prod.throws_list.addElement(n);
 	}
     )*
@@ -378,6 +376,7 @@ void bnf_production() #BNF :
 	  addProduction(prod);
 	}
 }
+
 
 void regular_expr_production() #RE :
 {}
@@ -1035,8 +1034,7 @@ void UnaryExpressionNotPlusMinus():
 void CastLookahead():
 {}
 {
-  LOOKAHEAD(2)
-  "(" PrimitiveType()
+  LOOKAHEAD(2) "(" PrimitiveType()
 | LOOKAHEAD("(" Type() "[") "(" Type() "[" "]"
 | "(" Type() ")" ( "~" | "!" | "(" | JavaIdentifier() | "this" | "super" | "new" | Literal() )
 }
@@ -1050,8 +1048,7 @@ void PostfixExpression():
 void CastExpression():
 {}
 {
-  LOOKAHEAD("(" PrimitiveType())
-  "(" Type() ")" UnaryExpression()
+  LOOKAHEAD("(" PrimitiveType()) "(" Type() ")" UnaryExpression()
 | "(" Type() ")" UnaryExpressionNotPlusMinus()
 }
 
@@ -1119,11 +1116,11 @@ Token BooleanLiteral() :
 {
   t="true"
   {
-	return t;
+    return t;
   }
 | t="false"
   {
-	return t;
+    return t;
   }
 }
 
@@ -1133,9 +1130,9 @@ Token StringLiteral() :
 }
 {
   t=<STRING_LITERAL>
-{
-  return t;
-}
+  {
+    return t;
+  }
 }
 
 void NullLiteral() :
@@ -1148,7 +1145,7 @@ void Arguments() :
 /*
  * Parsing this fills "tokens" with all tokens of the arguments
  * excluding the parentheses at each end.
-*/
+ */
 {}
 {
   "(" [ ArgumentList() ] ")"
@@ -1179,8 +1176,7 @@ void AllocationExpression():
 void ArrayDimsAndInits():
 {}
 {
-  LOOKAHEAD(2)
-  ( LOOKAHEAD(2) "[" Expression() "]" )+ ( LOOKAHEAD(2) "[" "]" )*
+  LOOKAHEAD(2) ( LOOKAHEAD(2) "[" Expression() "]" )+ ( LOOKAHEAD(2) "[" "]" )*
 | ( "[" "]" )+ ArrayInitializer()
 }
 
@@ -1218,8 +1214,7 @@ void Block() :
 void BlockStatement():
 {}
 {
-  LOOKAHEAD( Type() JavaIdentifier() )
-  LocalVariableDeclaration() ";"
+  LOOKAHEAD( Type() JavaIdentifier() ) LocalVariableDeclaration() ";"
 | Statement()
 }
 
@@ -1292,8 +1287,7 @@ void ForStatement():
   (
       LOOKAHEAD(Type() JavaIdentifier() ":")
       Type() JavaIdentifier() ":" Expression()
-    |
-     [ ForInit() ] ";" [ Expression() ] ";" [ ForUpdate() ]
+    | [ ForInit() ] ";" [ Expression() ] ";" [ ForUpdate() ]
   )
   ")" Statement()
 }
@@ -1301,9 +1295,8 @@ void ForStatement():
 void ForInit():
 {}
 {
-  LOOKAHEAD( Type() JavaIdentifier() )
-  LocalVariableDeclaration()
-|  StatementExpressionList()
+  LOOKAHEAD( Type() JavaIdentifier() ) LocalVariableDeclaration()
+| StatementExpressionList()
 }
 
 void StatementExpressionList():
@@ -1343,10 +1336,6 @@ void ThrowStatement() :
 }
 
 void TryStatement():
-/*
- * Semantic check required here to make sure that at least one
- * finally/catch is present.
- */
 {}
 {
   "try" Block()

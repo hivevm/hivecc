@@ -1,4 +1,4 @@
-// Copyright 2011 Google Inc. All Rights Reserved.
+// Copyright 2012 Google Inc. All Rights Reserved.
 // Author: sreeni@google.com (Sreeni Viswanadha)
 
 /*
@@ -56,15 +56,15 @@ public class JavaOtherFilesGenerator implements OtherFilesGenerator {
       throw new ParseException();
     }
 
-    JavaOtherFilesGenerator.generateFile(data, request, "Provider.java", "/templates/Provider.template");
-    JavaOtherFilesGenerator.generateFile(data, request, "StringProvider.java", "/templates/StringProvider.template");
-    JavaOtherFilesGenerator.generateFile(data, request, "StreamProvider.java", "/templates/StreamProvider.template");
+    JavaOtherFilesGenerator.generateFile(data, request, "Provider.java", "/templates/java/Provider.template");
+    JavaOtherFilesGenerator.generateFile(data, request, "StringProvider.java", "/templates/java/StringProvider.template");
+    JavaOtherFilesGenerator.generateFile(data, request, "StreamProvider.java", "/templates/java/StreamProvider.template");
 
-    JavaOtherFilesGenerator.generateFile(data, request, "JavaCharStream.java", "/templates/JavaCharStream.template");
-    JavaOtherFilesGenerator.generateFile(data, request, "ParseException.java", "/templates/ParseException.template");
+    JavaOtherFilesGenerator.generateFile(data, request, "JavaCharStream.java", "/templates/java/JavaCharStream.template");
+    JavaOtherFilesGenerator.generateFile(data, request, "ParseException.java", "/templates/java/ParseException.template");
 
-    JavaOtherFilesGenerator.generateFile(data, request, "Token.java", "/templates/Token.template");
-    JavaOtherFilesGenerator.generateFile(data, request, "TokenMgrException.java", "/templates/TokenMgrError.template");
+    JavaOtherFilesGenerator.generateFile(data, request, "Token.java", "/templates/java/Token.template");
+    JavaOtherFilesGenerator.generateFile(data, request, "TokenMgrException.java", "/templates/java/TokenMgrError.template");
 
     File file = new File(data.options().getOutputDirectory(), request.getParserName() + "Constants.java");
     try (DigestWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get(data.options()))) {
@@ -83,7 +83,7 @@ public class JavaOtherFilesGenerator implements OtherFilesGenerator {
       ostr.println("  int EOF = 0;");
       for (RegularExpression re : request.getOrderedsTokens()) {
         ostr.println("  /** RegularExpression Id. */");
-        ostr.println("  int " + re.label + " = " + re.ordinal + ";");
+        ostr.println("  int " + re.getLabel() + " = " + re.getOrdinal() + ";");
       }
       ostr.println("");
       for (int i = 0; i < data.getStateCount(); i++) {
@@ -97,20 +97,20 @@ public class JavaOtherFilesGenerator implements OtherFilesGenerator {
 
       for (TokenProduction tokenProduction : request.getTokenProductions()) {
         TokenProduction tp = (tokenProduction);
-        List<RegExprSpec> respecs = tp.respecs;
+        List<RegExprSpec> respecs = tp.getRespecs();
         for (RegExprSpec respec : respecs) {
           RegExprSpec res = (respec);
           RegularExpression re = res.rexp;
           ostr.print("    ");
           if (re instanceof RStringLiteral) {
-            ostr.println("\"\\\"" + Encoding.escape(Encoding.escape(((RStringLiteral) re).image)) + "\\\"\",");
-          } else if (!re.label.equals("")) {
-            ostr.println("\"<" + re.label + ">\",");
+            ostr.println("\"\\\"" + Encoding.escape(Encoding.escape(((RStringLiteral) re).getImage())) + "\\\"\",");
+          } else if (!re.getLabel().equals("")) {
+            ostr.println("\"<" + re.getLabel() + ">\",");
           } else {
-            if (re.tpContext.kind == TokenProduction.TOKEN) {
+            if (re.getTpContext().getKind() == TokenProduction.Kind.TOKEN) {
               JavaCCErrors.warning(re, "Consider giving this non-string token a label for better error reporting.");
             }
-            ostr.println("\"<token of kind " + re.ordinal + ">\",");
+            ostr.println("\"<token of kind " + re.getOrdinal() + ">\",");
           }
 
         }
@@ -136,12 +136,12 @@ public class JavaOtherFilesGenerator implements OtherFilesGenerator {
       throws Error {
     File file = new File(data.options().getOutputDirectory(), filename);
 
-    try (DigestWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get(data.options()))) {
-      ostr.println("package " + data.options().getJavaPackage() + ";");
-      ostr.println();
-      Template.of(template, ostr.options()).write(ostr);
+    try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get(data.options()))) {
+      writer.println("package " + data.options().getJavaPackage() + ";");
+      writer.println();
+      Template.of(template, writer.options()).write(writer);
     } catch (IOException e) {
-      System.err.println("Failed to create " + filename + " " + e);
+      System.err.println("Failed to create file: " + filename + " " + e);
       JavaCCErrors.semantic_error("Could not open file " + filename + " for writing.");
       throw new Error();
     }

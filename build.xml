@@ -16,20 +16,14 @@
 	<property name="version" value="${version.major}.${version.minor}.${version.patch}" />
 
 	<property name="javacc" value="${target-folder}/javacc.jar" />
-	<property name="javacc-last" value="${target-folder}/javacc-last.jar" />
-
 	<property name="javacc-with-version" value="javacc-${version}.jar" />
-	<property name="javacc-last-with-version" value="javacc-last-${version}.jar" />
-
 	<property name="javacc-path" value="${target-folder}/${javacc-with-version}" />
-	<property name="javacc-last-path" value="${target-folder}/${javacc-last-with-version}" />
 
 
 	<!-- Cleans all the generated sources, temporary files, dist files and compiled classes -->
 	<target name="clean">
 		<delete dir="classes" />
 		<delete dir="${target-folder}" />
-		<delete dir="dist" />
 		<delete dir="${generated-src}" />
 	</target>
 
@@ -42,7 +36,7 @@
        (named javacc.jar with a copy named javacc-x.y.z.jar)  -->
 	<!-- Here the new version jar does not benefit from enhancements of FastCC itself (e.g. performance) -->
 	<!-- The tests will benefit from these enhancements -->
-	<target name="jar">
+	<target name="jar" depends="clean">
 		<antcall target="compile_create-jars" />
 	</target>
 
@@ -65,52 +59,6 @@
 	<target name="compile" depends="clean">
 		<antcall target="compile-sub">
 			<param name="param-jar" value="${bootstrap-jar}" />
-		</antcall>
-	</target>
-
-
-	<!-- ==================== -->
-	<!-- BUILD a DISTRIBUTION -->
-	<!-- ==================== -->
-
-	<!-- Build a distribution -->
-	<target name="dist" depends="jar" description="build a distribution">
-		<property name="install-name" value="${target-folder}/javacc-${version}" />
-
-		<delete file="${install-name}-distribution.tar.gz" />
-		<tar destfile="${install-name}-distribution.tar.gz" compression="gzip">
-			<tarfileset username="root" uid="1" group="root" prefix="javacc-${version}" filemode="444" file="LICENSE" />
-			<tarfileset username="root" uid="1" group="root" prefix="javacc-${version}/${target-folder}" filemode="444" file="${javacc}" />
-		</tar>
-
-		<delete file="${install-name}-distribution.zip" />
-		<zip destfile="${install-name}-distribution.zip">
-			<zipfileset prefix="javacc-${version}/${target-folder}" filemode="444" file="${javacc}" />
-			<zipfileset prefix="javacc-${version}" filemode="444" file="LICENSE" />
-		</zip>
-
-		<delete dir="." includes="**/*.class" />
-	</target>
-
-
-	<!-- ================================== -->
-	<!-- BUILD with the LAST GENERATED JAR -->
-	<!-- ================================= -->
-
-	<!-- Build the new version with the new jar and create another new jar
-       (named javacc-last.jar with a copy named javacc-last-x.y.z.jar)  -->
-	<!-- Here the new version jar benefits from enhancements of FastCC itself (e.g. performance) -->
-	<!-- The bootstrap jar should be regularly manually updated with a stable last jar -->
-	<target name="jar-last" description="build javacc.jar with last jar">
-		<antcall target="compile-last" />
-		<jar jarfile="${javacc-last}" basedir="classes" compress="true" />
-		<copy file="${javacc-last}" tofile="${javacc-last-path}" />
-	</target>
-
-	<!-- Compiles jj, jjt & java source & generated files with the last generated jar -->
-	<target name="compile-last" depends="">
-		<antcall target="compile-sub">
-			<param name="param-jar" value="${javacc}" />
 		</antcall>
 	</target>
 
@@ -158,7 +106,7 @@
 
 		<copy file="${resources-src}/version.properties" todir="classes" />
 
-		<javac srcdir="${java-src}" destdir="classes" debug="true" classpath="" includeantruntime='false' source="8" target="8" >
+		<javac srcdir="${java-src}" destdir="classes" debug="true" classpath="" includeantruntime='false' source="8" target="8">
 			<src path="${java-src}" />
 			<src path="${generated-src}" />
 			<src path="${resources-src}" />

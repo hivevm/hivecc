@@ -29,15 +29,19 @@ import java.util.Vector;
 
 public class ASTProduction extends JJTreeNode {
 
+  String                name;
+  private int           nextNodeScopeNumber;
+  public Vector<String> throws_list;
+
+
+  private final Hashtable<NodeScope, Integer> scopes;
+
   public ASTProduction(JJTreeParser p, int id) {
     super(p, id);
+    this.nextNodeScopeNumber = 0;
+    this.throws_list = new Vector<>();
+    this.scopes = new Hashtable<>();
   }
-
-  String                                      name;
-  public Vector<String>                       throws_list         = new Vector<>();
-
-  private final Hashtable<NodeScope, Integer> scopes              = new Hashtable<>();
-  private int                                 nextNodeScopeNumber = 0;
 
 
   int getNodeScopeNumber(NodeScope s) {

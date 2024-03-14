@@ -49,9 +49,6 @@ import it.smartio.fastcc.utils.Encoding;
  */
 public class JavaLexerGenerator extends LexerGenerator {
 
-  private static final String TEMPLATE_LEXER = "/templates/Lexer.template";
-
-
   @Override
   protected final void dumpAll(LexerData data) throws IOException {
     SourceWriter writer = new SourceWriter(data.getParserName() + "TokenManager", data.options());
@@ -60,20 +57,20 @@ public class JavaLexerGenerator extends LexerGenerator {
 
     writer.setOption("stateNames", data.stateNames);
     writer.setOption("lohiBytes", data.lohiByte.keySet());
+    writer.setOption("defaultLexState", data.defaultLexState);
     writer.setOption("maxOrdinal", data.maxOrdinal);
     writer.setOption("maxLexStates", data.maxLexStates);
     writer.setOption("hasEmptyMatch", data.hasEmptyMatch);
     writer.setOption("hasSkip", data.hasSkip);
-    writer.setOption("hasLoop", data.hasLoop);
     writer.setOption("hasMore", data.hasMore);
     writer.setOption("hasSpecial", data.hasSpecial);
+    writer.setOption("hasLoop", data.hasLoop);
     writer.setOption("hasMoreActions", data.hasMoreActions);
     writer.setOption("hasSkipActions", data.hasSkipActions);
     writer.setOption("hasTokenActions", data.hasTokenActions);
     writer.setOption("stateSetSize", data.stateSetSize);
     writer.setOption("hasActions", data.hasMoreActions || data.hasSkipActions || data.hasTokenActions);
     writer.setOption("lexStateNameLength", data.getStateCount());
-    writer.setOption("defaultLexState", data.defaultLexState);
     writer.setOption("generatedStates", data.totalNumStates);
     writer.setOption("nonAsciiTableForMethod", data.nonAsciiTableForMethod);
     writer.setOption("jjCheckNAddStatesDualNeeded", data.jjCheckNAddStatesDualNeeded);
@@ -94,12 +91,12 @@ public class JavaLexerGenerator extends LexerGenerator {
     writer.setFunction("getKindForState", i -> getKindForState(data));
     writer.setFunction("getLohiBytes", i -> getLohiBytes(data, (int) i));
 
-    writer.writeTemplate(JavaLexerGenerator.TEMPLATE_LEXER);
+    writer.writeTemplate("/templates/java/Lexer.template");
     saveOutput(writer, data.options().getOutputDirectory());
   }
 
 
-  private String getLohiBytes(LexerData data, int i) {
+  private static String getLohiBytes(LexerData data, int i) {
     return "{\n   0x" + Long.toHexString(data.lohiByte.get(i)[0]) + "L, " + "0x"
         + Long.toHexString(data.lohiByte.get(i)[1]) + "L, " + "0x" + Long.toHexString(data.lohiByte.get(i)[2]) + "L, "
         + "0x" + Long.toHexString(data.lohiByte.get(i)[3]) + "L\n}";
@@ -163,7 +160,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       writer.println("\n};");
     }
 
-    {
+    if (data.hasSkip || data.hasSpecial) {
       // Bit vector for SKIP
       writer.print("static final long[] jjtoSkip = {");
       for (i = 0; i < ((data.maxOrdinal / 64) + 1); i++) {
@@ -175,7 +172,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       writer.println("\n};");
     }
 
-    {
+    if (data.hasSpecial) {
       // Bit vector for SPECIAL
       writer.print("static final long[] jjtoSpecial = {");
       for (i = 0; i < ((data.maxOrdinal / 64) + 1); i++) {
@@ -187,7 +184,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       writer.println("\n};");
     }
 
-    {
+    if (data.hasMore) {
       // Bit vector for MORE
       writer.print("static final long[] jjtoMore = {");
       for (i = 0; i < ((data.maxOrdinal / 64) + 1); i++) {
@@ -613,8 +610,8 @@ public class JavaLexerGenerator extends LexerGenerator {
 
   private void DumpSkipActions(PrintWriter writer, LexerData data) {
     Action act;
-
     writer.println("void SkipLexicalActions(Token matchedToken)");
+
     writer.println("{");
     writer.println("   switch(jjmatchedKind)");
     writer.println("   {");
@@ -626,8 +623,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       }
 
       for (;;) {
-        if ((((act = data.actions[i]) == null) || (act.getActionTokens() == null)
-            || (act.getActionTokens().size() == 0)) && !data.canLoop[data.getState(i)]) {
+        if ((((act = data.actions[i]) == null) || act.getActionTokens().isEmpty()) && !data.canLoop[data.getState(i)]) {
           continue Outer;
         }
 
@@ -649,7 +645,7 @@ public class JavaLexerGenerator extends LexerGenerator {
           writer.println("         }");
         }
 
-        if (((act = data.actions[i]) == null) || (act.getActionTokens().size() == 0)) {
+        if (((act = data.actions[i]) == null) || act.getActionTokens().isEmpty()) {
           break;
         }
 
@@ -697,8 +693,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       }
 
       for (;;) {
-        if ((((act = data.actions[i]) == null) || (act.getActionTokens() == null)
-            || (act.getActionTokens().size() == 0)) && !data.canLoop[data.getState(i)]) {
+        if ((((act = data.actions[i]) == null) || act.getActionTokens().isEmpty()) && !data.canLoop[data.getState(i)]) {
           continue Outer;
         }
 
@@ -720,7 +715,7 @@ public class JavaLexerGenerator extends LexerGenerator {
           writer.println("         }");
         }
 
-        if (((act = data.actions[i]) == null) || (act.getActionTokens().size() == 0)) {
+        if (((act = data.actions[i]) == null) || act.getActionTokens().isEmpty()) {
           break;
         }
 
@@ -757,7 +752,6 @@ public class JavaLexerGenerator extends LexerGenerator {
   private void DumpTokenActions(PrintWriter writer, LexerData data) {
     Action act;
     int i;
-
     writer.println("void TokenLexicalActions(Token matchedToken)");
     writer.println("{");
     writer.println("   switch(jjmatchedKind)");
@@ -770,8 +764,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       }
 
       for (;;) {
-        if ((((act = data.actions[i]) == null) || (act.getActionTokens() == null)
-            || (act.getActionTokens().size() == 0)) && !data.canLoop[data.getState(i)]) {
+        if ((((act = data.actions[i]) == null) || act.getActionTokens().isEmpty()) && !data.canLoop[data.getState(i)]) {
           continue Outer;
         }
 
@@ -793,7 +786,7 @@ public class JavaLexerGenerator extends LexerGenerator {
           writer.println("         }");
         }
 
-        if (((act = data.actions[i]) == null) || (act.getActionTokens().size() == 0)) {
+        if (((act = data.actions[i]) == null) || act.getActionTokens().isEmpty()) {
           break;
         }
 

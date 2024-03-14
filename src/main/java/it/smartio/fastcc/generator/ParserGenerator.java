@@ -118,7 +118,7 @@ public abstract class ParserGenerator extends CodeGenerator {
       for (int i = 0; i < e_nrw.getChoices().size(); i++) {
         Sequence nestedSeq = (Sequence) (e_nrw.getChoices().get(i));
         buildPhase1(data, nestedSeq);
-        conds[i] = (Lookahead) (nestedSeq.units.get(0));
+        conds[i] = (Lookahead) (nestedSeq.getUnits().get(0));
       }
       data.setLookupAhead(e, conds);
 
@@ -127,17 +127,17 @@ public abstract class ParserGenerator extends CodeGenerator {
       Sequence e_nrw = (Sequence) e;
       // We skip the first element in the following iteration since it is the
       // Lookahead object.
-      for (int i = 1; i < e_nrw.units.size(); i++) {
+      for (int i = 1; i < e_nrw.getUnits().size(); i++) {
         // For C++, since we are not using exceptions, we will protect all the
         // expansion choices with if (!error)
-        buildPhase1(data, (Expansion) (e_nrw.units.get(i)));
+        buildPhase1(data, (Expansion) (e_nrw.getUnits().get(i)));
       }
     } else if (e instanceof OneOrMore) {
       OneOrMore e_nrw = (OneOrMore) e;
-      Expansion nested_e = e_nrw.expansion;
+      Expansion nested_e = e_nrw.getExpansion();
       Lookahead la;
       if (nested_e instanceof Sequence) {
-        la = (Lookahead) (((Sequence) nested_e).units.get(0));
+        la = (Lookahead) (((Sequence) nested_e).getUnits().get(0));
       } else {
         la = new Lookahead();
         la.setAmount(data.options().getLookahead());
@@ -151,10 +151,10 @@ public abstract class ParserGenerator extends CodeGenerator {
       buildLookahead(data, conds);
     } else if (e instanceof ZeroOrMore) {
       ZeroOrMore e_nrw = (ZeroOrMore) e;
-      Expansion nested_e = e_nrw.expansion;
+      Expansion nested_e = e_nrw.getExpansion();
       Lookahead la;
       if (nested_e instanceof Sequence) {
-        la = (Lookahead) (((Sequence) nested_e).units.get(0));
+        la = (Lookahead) (((Sequence) nested_e).getUnits().get(0));
       } else {
         la = new Lookahead();
         la.setAmount(data.options().getLookahead());
@@ -168,11 +168,11 @@ public abstract class ParserGenerator extends CodeGenerator {
       buildPhase1(data, nested_e);
     } else if (e instanceof ZeroOrOne) {
       ZeroOrOne e_nrw = (ZeroOrOne) e;
-      Expansion nested_e = e_nrw.expansion;
+      Expansion nested_e = e_nrw.getExpansion();
 
       Lookahead la;
       if (nested_e instanceof Sequence) {
-        la = (Lookahead) (((Sequence) nested_e).units.get(0));
+        la = (Lookahead) (((Sequence) nested_e).getUnits().get(0));
       } else {
         la = new Lookahead();
         la.setAmount(data.options().getLookahead());
@@ -186,7 +186,7 @@ public abstract class ParserGenerator extends CodeGenerator {
       buildLookahead(data, conds);
     } else if (e instanceof TryBlock) {
       TryBlock e_nrw = (TryBlock) e;
-      buildPhase1(data, e_nrw.exp);
+      buildPhase1(data, e_nrw.getExpansion());
     }
   }
 
@@ -315,7 +315,7 @@ public abstract class ParserGenerator extends CodeGenerator {
    */
   protected final boolean genFirstSet(ParserData data, Expansion exp, boolean[] firstSet, boolean jj2la) {
     if (exp instanceof RegularExpression) {
-      firstSet[((RegularExpression) exp).ordinal] = true;
+      firstSet[((RegularExpression) exp).getOrdinal()] = true;
     } else if (exp instanceof NonTerminal) {
       jj2la = genFirstSet(data, ((BNFProduction) (((NonTerminal) exp).getProd())).getExpansion(), firstSet, jj2la);
     } else if (exp instanceof Choice) {
@@ -325,11 +325,11 @@ public abstract class ParserGenerator extends CodeGenerator {
       }
     } else if (exp instanceof Sequence) {
       Sequence seq = (Sequence) exp;
-      Object obj = seq.units.get(0);
+      Object obj = seq.getUnits().get(0);
       if ((obj instanceof Lookahead) && (((Lookahead) obj).getActionTokens().size() != 0)) {
         jj2la = true;
       }
-      for (Object element : seq.units) {
+      for (Object element : seq.getUnits()) {
         // Javacode productions can not have FIRST sets. Instead we generate the FIRST set
         // for the preceding LOOKAHEAD (the semantic checks should have made sure that
         // the LOOKAHEAD is suitable).
@@ -340,16 +340,16 @@ public abstract class ParserGenerator extends CodeGenerator {
       }
     } else if (exp instanceof OneOrMore) {
       OneOrMore om = (OneOrMore) exp;
-      jj2la = genFirstSet(data, om.expansion, firstSet, jj2la);
+      jj2la = genFirstSet(data, om.getExpansion(), firstSet, jj2la);
     } else if (exp instanceof ZeroOrMore) {
       ZeroOrMore zm = (ZeroOrMore) exp;
-      jj2la = genFirstSet(data, zm.expansion, firstSet, jj2la);
+      jj2la = genFirstSet(data, zm.getExpansion(), firstSet, jj2la);
     } else if (exp instanceof ZeroOrOne) {
       ZeroOrOne zo = (ZeroOrOne) exp;
-      jj2la = genFirstSet(data, zo.expansion, firstSet, jj2la);
+      jj2la = genFirstSet(data, zo.getExpansion(), firstSet, jj2la);
     } else if (exp instanceof TryBlock) {
       TryBlock tb = (TryBlock) exp;
-      jj2la = genFirstSet(data, tb.exp, firstSet, jj2la);
+      jj2la = genFirstSet(data, tb.getExpansion(), firstSet, jj2la);
     }
     return jj2la;
   }
@@ -376,8 +376,8 @@ public abstract class ParserGenerator extends CodeGenerator {
       // We skip the first element in the following iteration since it is the
       // Lookahead object.
       int cnt = p3d.count;
-      for (int i = 1; i < e_nrw.units.size(); i++) {
-        Expansion eseq = (Expansion) (e_nrw.units.get(i));
+      for (int i = 1; i < e_nrw.getUnits().size(); i++) {
+        Expansion eseq = (Expansion) (e_nrw.getUnits().get(i));
         setupPhase3Builds(data, data.new Phase3Data(eseq, cnt));
         cnt -= ParserGenerator.minimumSize(data, eseq);
         if (cnt <= 0) {
@@ -386,16 +386,16 @@ public abstract class ParserGenerator extends CodeGenerator {
       }
     } else if (e instanceof TryBlock) {
       TryBlock e_nrw = (TryBlock) e;
-      setupPhase3Builds(data, data.new Phase3Data(e_nrw.exp, p3d.count));
+      setupPhase3Builds(data, data.new Phase3Data(e_nrw.getExpansion(), p3d.count));
     } else if (e instanceof OneOrMore) {
       OneOrMore e_nrw = (OneOrMore) e;
-      generate3R(data, e_nrw.expansion, p3d);
+      generate3R(data, e_nrw.getExpansion(), p3d);
     } else if (e instanceof ZeroOrMore) {
       ZeroOrMore e_nrw = (ZeroOrMore) e;
-      generate3R(data, e_nrw.expansion, p3d);
+      generate3R(data, e_nrw.getExpansion(), p3d);
     } else if (e instanceof ZeroOrOne) {
       ZeroOrOne e_nrw = (ZeroOrOne) e;
-      generate3R(data, e_nrw.expansion, p3d);
+      generate3R(data, e_nrw.getExpansion(), p3d);
     }
   }
 
@@ -404,8 +404,8 @@ public abstract class ParserGenerator extends CodeGenerator {
     Expansion seq = e;
     if (e.internal_name.equals("")) {
       while (true) {
-        if ((seq instanceof Sequence) && (((Sequence) seq).units.size() == 2)) {
-          seq = (Expansion) ((Sequence) seq).units.get(1);
+        if ((seq instanceof Sequence) && (((Sequence) seq).getUnits().size() == 2)) {
+          seq = (Expansion) ((Sequence) seq).getUnits().get(1);
         } else if (seq instanceof NonTerminal) {
           NonTerminal e_nrw = (NonTerminal) seq;
           NormalProduction ntprod = data.getProduction(e_nrw.getName());
@@ -417,8 +417,8 @@ public abstract class ParserGenerator extends CodeGenerator {
 
       if (seq instanceof RegularExpression) {
         RegularExpression re = (RegularExpression) seq;
-        e.internal_name =
-            "jj_scan_token(" + ((re.label == null) || re.label.isEmpty() ? "" + re.ordinal : re.label) + ")";
+        e.internal_name = "jj_scan_token("
+            + ((re.getLabel() == null) || re.getLabel().isEmpty() ? "" + re.getOrdinal() : re.getLabel()) + ")";
         return;
       }
 
@@ -443,7 +443,7 @@ public abstract class ParserGenerator extends CodeGenerator {
       Choice e_nrw = (Choice) e;
       for (Expansion element : e_nrw.getChoices()) {
         nested_seq = (Sequence) (element);
-        Lookahead la = (Lookahead) (nested_seq.units.get(0));
+        Lookahead la = (Lookahead) (nested_seq.getUnits().get(0));
         if (la.getActionTokens().size() != 0) {
           // We have semantic lookahead that must be evaluated.
           data.setLookAheadNeeded(true);
@@ -454,8 +454,8 @@ public abstract class ParserGenerator extends CodeGenerator {
       // We skip the first element in the following iteration since it is the
       // Lookahead object.
       int cnt = count;
-      for (int i = 1; i < e_nrw.units.size(); i++) {
-        Expansion eseq = (Expansion) (e_nrw.units.get(i));
+      for (int i = 1; i < e_nrw.getUnits().size(); i++) {
+        Expansion eseq = (Expansion) (e_nrw.getUnits().get(i));
         buildPhase3Routine(data, eseq, cnt);
         cnt -= ParserGenerator.minimumSize(data, eseq);
         if (cnt <= 0) {
@@ -464,7 +464,7 @@ public abstract class ParserGenerator extends CodeGenerator {
       }
     } else if (e instanceof TryBlock) {
       TryBlock e_nrw = (TryBlock) e;
-      buildPhase3Routine(data, e_nrw.exp, count);
+      buildPhase3Routine(data, e_nrw.getExpansion(), count);
     }
   }
 
@@ -506,8 +506,8 @@ public abstract class ParserGenerator extends CodeGenerator {
       Sequence e_nrw = (Sequence) e;
       // We skip the first element in the following iteration since it is the
       // Lookahead object.
-      for (int i = 1; i < e_nrw.units.size(); i++) {
-        Expansion eseq = (Expansion) (e_nrw.units.get(i));
+      for (int i = 1; i < e_nrw.getUnits().size(); i++) {
+        Expansion eseq = (Expansion) (e_nrw.getUnits().get(i));
         int mineseq = ParserGenerator.minimumSize(data, eseq);
         if ((min == Integer.MAX_VALUE) || (mineseq == Integer.MAX_VALUE)) {
           min = Integer.MAX_VALUE; // Adding infinity to something results in infinity.
@@ -521,10 +521,10 @@ public abstract class ParserGenerator extends CodeGenerator {
       retval = min;
     } else if (e instanceof TryBlock) {
       TryBlock e_nrw = (TryBlock) e;
-      retval = ParserGenerator.minimumSize(data, e_nrw.exp);
+      retval = ParserGenerator.minimumSize(data, e_nrw.getExpansion());
     } else if (e instanceof OneOrMore) {
       OneOrMore e_nrw = (OneOrMore) e;
-      retval = ParserGenerator.minimumSize(data, e_nrw.expansion);
+      retval = ParserGenerator.minimumSize(data, e_nrw.getExpansion());
     } else if (e instanceof ZeroOrMore) {
       retval = 0;
     } else if (e instanceof ZeroOrOne) {

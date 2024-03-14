@@ -36,7 +36,7 @@ public class RSequence extends RegularExpression {
    * The list of units in this regular expression sequence. Each list component will narrow to
    * RegularExpression.
    */
-  public List<RegularExpression> units = new ArrayList<>();
+  private List<RegularExpression> units = new ArrayList<>();
 
   RSequence() {}
 
@@ -48,5 +48,13 @@ public class RSequence extends RegularExpression {
   @Override
   public final <R, D> R accept(RegularExpressionVisitor<R, D> visitor, D data) {
     return visitor.visit(this, data);
+  }
+
+  
+  /**
+   * Gets the {@link #units}.
+   */
+  public final List<RegularExpression> getUnits() {
+    return units;
   }
 }

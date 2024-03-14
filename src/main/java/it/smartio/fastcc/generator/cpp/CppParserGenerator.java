@@ -189,7 +189,6 @@ public class CppParserGenerator extends ParserGenerator {
     char ch = ' ';
     char prevChar;
     boolean indentOn = true;
-
     for (int i = 0; i < code.length(); i++) {
       prevChar = ch;
       ch = code.charAt(i);
@@ -241,31 +240,30 @@ public class CppParserGenerator extends ParserGenerator {
     if (e instanceof RegularExpression) {
       RegularExpression e_nrw = (RegularExpression) e;
       retval += "\n";
-      if (e_nrw.lhsTokens.size() != 0) {
-        genTokenSetup((e_nrw.lhsTokens.get(0)));
-        for (Iterator<Token> it = e_nrw.lhsTokens.iterator(); it.hasNext();) {
+      if (e_nrw.getLhsTokens().size() != 0) {
+        genTokenSetup((e_nrw.getLhsTokens().get(0)));
+        for (Iterator<Token> it = e_nrw.getLhsTokens().iterator(); it.hasNext();) {
           t = it.next();
           retval += getStringToPrint(t);
         }
         retval += getTrailingComments(t);
         retval += " = ";
       }
-      String tail = e_nrw.rhsToken == null ? ");" : ")->" + e_nrw.rhsToken.image + ";";
-      if (e_nrw.label.equals("")) {
-        Object label = data.getNameOfToken(e_nrw.ordinal);
+      String tail = e_nrw.getRhsToken() == null ? ");" : ")->" + e_nrw.getRhsToken().image + ";";
+      if (e_nrw.getLabel().equals("")) {
+        Object label = data.getNameOfToken(e_nrw.getOrdinal());
         if (label != null) {
           retval += "jj_consume_token(" + (String) label + tail;
         } else {
-          retval += "jj_consume_token(" + e_nrw.ordinal + tail;
+          retval += "jj_consume_token(" + e_nrw.getOrdinal() + tail;
         }
       } else {
-        retval += "jj_consume_token(" + e_nrw.label + tail;
+        retval += "jj_consume_token(" + e_nrw.getLabel() + tail;
       }
 
       if (data.options().booleanValue(FastCC.JJPARSER_CPP_STOP_ON_FIRST_ERROR)) {
         retval += "\n    { if (hasError) { return __ERROR_RET__; } }\n";
       }
-
     } else if (e instanceof NonTerminal) {
       NonTerminal e_nrw = (NonTerminal) e;
       retval += "\n";
@@ -294,7 +292,7 @@ public class CppParserGenerator extends ParserGenerator {
     } else if (e instanceof Action) {
       Action e_nrw = (Action) e;
       retval += "\u0003\n";
-      if (e_nrw.getActionTokens().size() != 0) {
+      if (!e_nrw.getActionTokens().isEmpty()) {
         genTokenSetup((e_nrw.getActionTokens().get(0)));
         for (Iterator<Token> it = e_nrw.getActionTokens().iterator(); it.hasNext();) {
           t = it.next();
@@ -307,9 +305,7 @@ public class CppParserGenerator extends ParserGenerator {
       Choice e_nrw = (Choice) e;
       Lookahead[] conds = data.getLoakaheads(e);
       String[] actions = new String[e_nrw.getChoices().size() + 1];
-      actions[e_nrw.getChoices().size()] =
-          "\n" + "jj_consume_token(-1);\nerrorHandler->parseError(token, getToken(1), __FUNCTION__), hasError = true;"
-              + (data.options().booleanValue(FastCC.JJPARSER_CPP_STOP_ON_FIRST_ERROR) ? "return __ERROR_RET__;\n" : "");
+      actions[e_nrw.getChoices().size()] = "\n" + "jj_consume_token(-1);\nerrorHandler->parseError(token, getToken(1), __FUNCTION__), hasError = true;" + (data.options().booleanValue(FastCC.JJPARSER_CPP_STOP_ON_FIRST_ERROR) ? "return __ERROR_RET__;\n" : "");
 
       // In previous line, the "throw" never throws an exception since the
       // evaluation of jj_consume_token(-1) causes ParseException to be
@@ -324,39 +320,38 @@ public class CppParserGenerator extends ParserGenerator {
       Sequence e_nrw = (Sequence) e;
       // We skip the first element in the following iteration since it is the
       // Lookahead object.
-      for (int i = 1; i < e_nrw.units.size(); i++) {
+      for (int i = 1; i < e_nrw.getUnits().size(); i++) {
         // For C++, since we are not using exceptions, we will protect all the
         // expansion choices with if (!error)
         boolean wrap_in_block = false;
         if (!data.isGenerated()) {
           // for the last one, if it's an action, we will not protect it.
-          Expansion elem = (Expansion) e_nrw.units.get(i);
-          if (!(elem instanceof Action) || !(e.parent instanceof BNFProduction) || (i != (e_nrw.units.size() - 1))) {
+          Expansion elem = (Expansion) e_nrw.getUnits().get(i);
+          if (!(elem instanceof Action) || !(e.parent instanceof BNFProduction) || (i != (e_nrw.getUnits().size() - 1))) {
             wrap_in_block = true;
             retval += "\nif (!hasError) {";
           }
         }
-        retval += generatePhase1Expansion(data, (Expansion) (e_nrw.units.get(i)));
+        retval += generatePhase1Expansion(data, (Expansion) (e_nrw.getUnits().get(i)));
         if (wrap_in_block) {
           retval += "\n}";
         }
       }
     } else if (e instanceof OneOrMore) {
       OneOrMore e_nrw = (OneOrMore) e;
-      Expansion nested_e = e_nrw.expansion;
+      Expansion nested_e = e_nrw.getExpansion();
       retval += "\n";
       int labelIndex = nextLabelIndex();
       retval += "while (!hasError) {\u0001";
       retval += generatePhase1Expansion(data, nested_e);
       Lookahead[] conds = data.getLoakaheads(e);
       String[] actions = { "\n;", "\ngoto end_label_" + labelIndex + ";" };
-
       retval += genLookaheadChecker(data, conds, actions);
       retval += "\u0002\n" + "}";
       retval += "\nend_label_" + labelIndex + ": ;";
     } else if (e instanceof ZeroOrMore) {
       ZeroOrMore e_nrw = (ZeroOrMore) e;
-      Expansion nested_e = e_nrw.expansion;
+      Expansion nested_e = e_nrw.getExpansion();
       retval += "\n";
       int labelIndex = nextLabelIndex();
       retval += "while (!hasError) {\u0001";
@@ -368,21 +363,21 @@ public class CppParserGenerator extends ParserGenerator {
       retval += "\nend_label_" + labelIndex + ": ;";
     } else if (e instanceof ZeroOrOne) {
       ZeroOrOne e_nrw = (ZeroOrOne) e;
-      Expansion nested_e = e_nrw.expansion;
+      Expansion nested_e = e_nrw.getExpansion();
       Lookahead[] conds = data.getLoakaheads(e);
       String[] actions = { generatePhase1Expansion(data, nested_e), "\n;" };
       retval += genLookaheadChecker(data, conds, actions);
     } else if (e instanceof TryBlock) {
       TryBlock e_nrw = (TryBlock) e;
-      Expansion nested_e = e_nrw.exp;
+      Expansion nested_e = e_nrw.getExpansion();
       List<Token> list;
       retval += "\n";
       retval += "try {\u0001";
       retval += generatePhase1Expansion(data, nested_e);
       retval += "\u0002\n" + "}";
-      for (int i = 0; i < e_nrw.catchblks.size(); i++) {
+      for (int i = 0; i < e_nrw.getCatchBlocks().size(); i++) {
         retval += " catch (";
-        list = e_nrw.types.get(i);
+        list = e_nrw.getTypes().get(i);
         if (list.size() != 0) {
           genTokenSetup((list.get(0)));
           for (Iterator<Token> it = list.iterator(); it.hasNext();) {
@@ -392,12 +387,12 @@ public class CppParserGenerator extends ParserGenerator {
           retval += getTrailingComments(t);
         }
         retval += " ";
-        t = (e_nrw.ids.get(i));
+        t = (e_nrw.getIds().get(i));
         genTokenSetup(t);
         retval += getStringToPrint(t);
         retval += getTrailingComments(t);
         retval += ") {\u0003\n";
-        list = e_nrw.catchblks.get(i);
+        list = e_nrw.getCatchBlocks().get(i);
         if (list.size() != 0) {
           genTokenSetup((list.get(0)));
           for (Iterator<Token> it = list.iterator(); it.hasNext();) {
@@ -408,12 +403,12 @@ public class CppParserGenerator extends ParserGenerator {
         }
         retval += "\u0004\n" + "}";
       }
-      if (e_nrw.finallyblk != null) {
+      if (!e_nrw.getFinallyBlock().isEmpty()) {
         retval += " finally {\u0003\n";
 
-        if (e_nrw.finallyblk.size() != 0) {
-          genTokenSetup((e_nrw.finallyblk.get(0)));
-          for (Iterator<Token> it = e_nrw.finallyblk.iterator(); it.hasNext();) {
+        if (e_nrw.getFinallyBlock().size() != 0) {
+          genTokenSetup((e_nrw.getFinallyBlock().get(0)));
+          for (Iterator<Token> it = e_nrw.getFinallyBlock().iterator(); it.hasNext();) {
             t = it.next();
             retval += getStringToPrint(t);
           }
@@ -437,7 +432,6 @@ public class CppParserGenerator extends ParserGenerator {
    * A particular action entry ("actions[i]") can be null, in which case, a noop is generated for
    * that action.
    */
-
   private String genLookaheadChecker(ParserData data, Lookahead[] conds, String[] actions) {
     // The state variables.
     LookaheadState state = LookaheadState.NOOPENSTM;
@@ -456,7 +450,6 @@ public class CppParserGenerator extends ParserGenerator {
       jj2LA = false;
 
       if ((la.getAmount() == 0) || Semanticize.emptyExpansionExists(la.getLaExpansion())) {
-
         // This handles the following cases:
         // . If syntactic lookahead is not wanted (and hence explicitly specified
         // as 0).
@@ -780,17 +773,17 @@ public class CppParserGenerator extends ParserGenerator {
     Token t = null;
     if (e instanceof RegularExpression) {
       RegularExpression e_nrw = (RegularExpression) e;
-      if (e_nrw.label.equals("")) {
-        Object label = data.getNameOfToken(e_nrw.ordinal);
+      if (e_nrw.getLabel().equals("")) {
+        Object label = data.getNameOfToken(e_nrw.getOrdinal());
         if (label != null) {
           writer.println(
               "    if (jj_scan_token(" + (String) label + ")) " + genReturn(jj3_expansion, true, data.options()));
         } else {
           writer.println(
-              "    if (jj_scan_token(" + e_nrw.ordinal + ")) " + genReturn(jj3_expansion, true, data.options()));
+              "    if (jj_scan_token(" + e_nrw.getOrdinal() + ")) " + genReturn(jj3_expansion, true, data.options()));
         }
       } else {
-        writer.println("    if (jj_scan_token(" + e_nrw.label + ")) " + genReturn(jj3_expansion, true, data.options()));
+        writer.println("    if (jj_scan_token(" + e_nrw.getLabel() + ")) " + genReturn(jj3_expansion, true, data.options()));
       }
     } else if (e instanceof NonTerminal) {
       // All expansions of non-terminals have the "name" fields set. So
@@ -813,7 +806,7 @@ public class CppParserGenerator extends ParserGenerator {
       }
       for (int i = 0; i < e_nrw.getChoices().size(); i++) {
         nested_seq = (Sequence) (e_nrw.getChoices().get(i));
-        Lookahead la = (Lookahead) (nested_seq.units.get(0));
+        Lookahead la = (Lookahead) (nested_seq.getUnits().get(0));
         if (la.getActionTokens().size() != 0) {
           writer.println("    jj_lookingAhead = true;");
           writer.print("    jj_semLA = ");
@@ -838,15 +831,15 @@ public class CppParserGenerator extends ParserGenerator {
         }
       }
       for (int i = 1; i < e_nrw.getChoices().size(); i++) {
-        writer.println(" }");
+        writer.println("    }");
       }
     } else if (e instanceof Sequence) {
       Sequence e_nrw = (Sequence) e;
       // We skip the first element in the following iteration since it is the
       // Lookahead object.
       int cnt = count;
-      for (int i = 1; i < e_nrw.units.size(); i++) {
-        Expansion eseq = (Expansion) (e_nrw.units.get(i));
+      for (int i = 1; i < e_nrw.getUnits().size(); i++) {
+        Expansion eseq = (Expansion) (e_nrw.getUnits().get(i));
         xsp_declared = buildPhase3RoutineRecursive(data, jj3_expansion, xsp_declared, eseq, cnt, writer);
         cnt -= ParserGenerator.minimumSize(data, eseq);
         if (cnt <= 0) {
@@ -855,14 +848,14 @@ public class CppParserGenerator extends ParserGenerator {
       }
     } else if (e instanceof TryBlock) {
       TryBlock e_nrw = (TryBlock) e;
-      xsp_declared = buildPhase3RoutineRecursive(data, jj3_expansion, xsp_declared, e_nrw.exp, count, writer);
+      xsp_declared = buildPhase3RoutineRecursive(data, jj3_expansion, xsp_declared, e_nrw.getExpansion(), count, writer);
     } else if (e instanceof OneOrMore) {
       if (!xsp_declared) {
         xsp_declared = true;
         writer.println("    Token* xsp;");
       }
       OneOrMore e_nrw = (OneOrMore) e;
-      Expansion nested_e = e_nrw.expansion;
+      Expansion nested_e = e_nrw.getExpansion();
       writer.println("    if (" + genjj_3Call(nested_e) + ") " + genReturn(jj3_expansion, true, data.options()));
       writer.println("    while (true) {");
       writer.println("      xsp = jj_scanpos;");
@@ -874,7 +867,7 @@ public class CppParserGenerator extends ParserGenerator {
         writer.println("    Token* xsp;");
       }
       ZeroOrMore e_nrw = (ZeroOrMore) e;
-      Expansion nested_e = e_nrw.expansion;
+      Expansion nested_e = e_nrw.getExpansion();
       writer.println("    while (true) {");
       writer.println("      xsp = jj_scanpos;");
       writer.println("      if (" + genjj_3Call(nested_e) + ") { jj_scanpos = xsp; break; }");
@@ -885,17 +878,16 @@ public class CppParserGenerator extends ParserGenerator {
         writer.println("    Token* xsp;");
       }
       ZeroOrOne e_nrw = (ZeroOrOne) e;
-      Expansion nested_e = e_nrw.expansion;
+      Expansion nested_e = e_nrw.getExpansion();
       writer.println("    xsp = jj_scanpos;");
       writer.println("    if (" + genjj_3Call(nested_e) + ") jj_scanpos = xsp;");
     }
-
     return xsp_declared;
   }
 
 
   private String genReturn(Expansion expansion, boolean value, Options options) {
-    String retval = (value ? "true" : "false");
+    String retval = value ? "true" : "false";
     if (options.getDebugLookahead() && (expansion != null)) {
       String tracecode = "trace_return(\"" + Encoding.escapeUnicode(((NormalProduction) expansion.parent).getLhs())
           + "(LOOKAHEAD " + (value ? "FAILED" : "SUCCEEDED") + ")\");";

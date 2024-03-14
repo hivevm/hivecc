@@ -60,36 +60,36 @@ public final class NfaVisitor implements RegularExpressionVisitor<Nfa, LexerStat
 
   @Override
   public Nfa visit(RCharacterList expr, LexerStateData data) {
-    if (!expr.transformed) {
+    if (!expr.isTransformed()) {
       if (data.ignoreCase() || isIgnoreCase()) {
         expr.ToCaseNeutral();
         expr.SortDescriptors();
       }
 
-      if (expr.negated_list) {
+      if (expr.isNegated_list()) {
         expr.RemoveNegation(); // This also sorts the list
       } else {
         expr.SortDescriptors();
       }
     }
 
-    if ((expr.descriptors.size() == 0) && !expr.negated_list) {
+    if ((expr.getDescriptors().size() == 0) && !expr.isNegated_list()) {
       JavaCCErrors.semantic_error(this, "Empty character set is not allowed as it will not match any character.");
       return new Nfa(data);
     }
 
-    expr.transformed = true;
+    expr.setTransformed();
     Nfa retVal = new Nfa(data);
     NfaState startState = retVal.start;
     NfaState finalState = retVal.end;
     int i;
 
-    for (i = 0; i < expr.descriptors.size(); i++) {
-      if (expr.descriptors.get(i) instanceof SingleCharacter) {
-        startState.AddChar(((SingleCharacter) expr.descriptors.get(i)).ch);
+    for (i = 0; i < expr.getDescriptors().size(); i++) {
+      if (expr.getDescriptors().get(i) instanceof SingleCharacter) {
+        startState.AddChar(((SingleCharacter) expr.getDescriptors().get(i)).ch);
       } else // if (descriptors.get(i) instanceof CharacterRange)
       {
-        CharacterRange cr = (CharacterRange) expr.descriptors.get(i);
+        CharacterRange cr = (CharacterRange) expr.getDescriptors().get(i);
 
         if (cr.getLeft() == cr.getRight()) {
           startState.AddChar(cr.getLeft());
@@ -136,7 +136,7 @@ public final class NfaVisitor implements RegularExpressionVisitor<Nfa, LexerStat
 
   @Override
   public Nfa visit(RJustName expr, LexerStateData data) {
-    return expr.regexpr.accept(this, data);
+    return expr.getRegexpr().accept(this, data);
   }
 
   @Override
@@ -145,7 +145,7 @@ public final class NfaVisitor implements RegularExpressionVisitor<Nfa, LexerStat
     NfaState startState = retVal.start;
     NfaState finalState = retVal.end;
 
-    Nfa temp = expr.regexpr.accept(this, data);
+    Nfa temp = expr.getRegexpr().accept(this, data);
 
     startState.AddMove(temp.start);
     temp.end.AddMove(temp.start);
@@ -160,20 +160,20 @@ public final class NfaVisitor implements RegularExpressionVisitor<Nfa, LexerStat
     RSequence seq;
     int i;
 
-    for (i = 0; i < expr.min; i++) {
-      units.add(expr.regexpr);
+    for (i = 0; i < expr.getMin(); i++) {
+      units.add(expr.getRegexpr());
     }
 
-    if (expr.hasMax && (expr.max == -1)) // Unlimited
+    if (expr.hasMax() && (expr.getMax() == -1)) // Unlimited
     {
       RZeroOrMore zoo = new RZeroOrMore();
-      zoo.regexpr = expr.regexpr;
+      zoo.setRegexpr(expr.getRegexpr());
       units.add(zoo);
     }
 
-    while (i++ < expr.max) {
+    while (i++ < expr.getMax()) {
       RZeroOrOne zoo = new RZeroOrOne();
-      zoo.regexpr = expr.regexpr;
+      zoo.setRegexpr(expr.getRegexpr());
       units.add(zoo);
     }
     seq = new RSequence(units);
@@ -182,8 +182,8 @@ public final class NfaVisitor implements RegularExpressionVisitor<Nfa, LexerStat
 
   @Override
   public Nfa visit(RSequence expr, LexerStateData data) {
-    if (expr.units.size() == 1) {
-      return expr.units.get(0).accept(this, data);
+    if (expr.getUnits().size() == 1) {
+      return expr.getUnits().get(0).accept(this, data);
     }
 
     Nfa retVal = new Nfa(data);
@@ -194,12 +194,12 @@ public final class NfaVisitor implements RegularExpressionVisitor<Nfa, LexerStat
 
     RegularExpression curRE;
 
-    curRE = expr.units.get(0);
+    curRE = expr.getUnits().get(0);
     temp1 = curRE.accept(this, data);
     startState.AddMove(temp1.start);
 
-    for (int i = 1; i < expr.units.size(); i++) {
-      curRE = expr.units.get(i);
+    for (int i = 1; i < expr.getUnits().size(); i++) {
+      curRE = expr.getUnits().get(i);
 
       temp2 = curRE.accept(this, data);
       temp1.end.AddMove(temp2.start);
@@ -213,8 +213,8 @@ public final class NfaVisitor implements RegularExpressionVisitor<Nfa, LexerStat
 
   @Override
   public Nfa visit(RStringLiteral expr, LexerStateData data) {
-    if (expr.image.length() == 1) {
-      RCharacterList temp = new RCharacterList(expr.image.charAt(0));
+    if (expr.getImage().length() == 1) {
+      RCharacterList temp = new RCharacterList(expr.getImage().charAt(0));
       return temp.accept(this, data);
     }
 
@@ -222,20 +222,20 @@ public final class NfaVisitor implements RegularExpressionVisitor<Nfa, LexerStat
     NfaState theStartState = startState;
     NfaState finalState = null;
 
-    if (expr.image.length() == 0) {
+    if (expr.getImage().length() == 0) {
       return new Nfa(theStartState, theStartState);
     }
 
     int i;
 
-    for (i = 0; i < expr.image.length(); i++) {
+    for (i = 0; i < expr.getImage().length(); i++) {
       finalState = new NfaState(data);
       startState.charMoves = new char[1];
-      startState.AddChar(expr.image.charAt(i));
+      startState.AddChar(expr.getImage().charAt(i));
 
       if (data.ignoreCase() || isIgnoreCase()) {
-        startState.AddChar(Character.toLowerCase(expr.image.charAt(i)));
-        startState.AddChar(Character.toUpperCase(expr.image.charAt(i)));
+        startState.AddChar(Character.toLowerCase(expr.getImage().charAt(i)));
+        startState.AddChar(Character.toUpperCase(expr.getImage().charAt(i)));
       }
 
       startState.next = finalState;
@@ -251,7 +251,7 @@ public final class NfaVisitor implements RegularExpressionVisitor<Nfa, LexerStat
     NfaState startState = retVal.start;
     NfaState finalState = retVal.end;
 
-    Nfa temp = expr.regexpr.accept(this, data);
+    Nfa temp = expr.getRegexpr().accept(this, data);
 
     startState.AddMove(temp.start);
     startState.AddMove(finalState);
@@ -267,7 +267,7 @@ public final class NfaVisitor implements RegularExpressionVisitor<Nfa, LexerStat
     NfaState startState = retVal.start;
     NfaState finalState = retVal.end;
 
-    Nfa temp = expr.regexpr.accept(this, data);
+    Nfa temp = expr.getRegexpr().accept(this, data);
 
     startState.AddMove(temp.start);
     startState.AddMove(finalState);

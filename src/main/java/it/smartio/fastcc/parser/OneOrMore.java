@@ -32,7 +32,7 @@ public class OneOrMore extends Expansion {
   /**
    * The expansion which is repeated one or more times.
    */
-  public Expansion expansion;
+  private Expansion expansion;
 
   public OneOrMore() {}
 
@@ -41,5 +41,12 @@ public class OneOrMore extends Expansion {
     setColumn(t.beginColumn);
     this.expansion = e;
     this.expansion.parent = this;
+  }
+
+  /**
+   * Gets the {@link Expansionn}.
+   */
+  public final Expansion getExpansion() {
+    return expansion;
   }
 }

@@ -135,7 +135,6 @@ public class JavaParserGenerator extends ParserGenerator {
         p.println(
             "protected JJT" + data.getParserName() + "State jjtree = new JJT" + data.getParserName() + "State();");
       }
-
       return writer.toString();
     };
 
@@ -155,7 +154,7 @@ public class JavaParserGenerator extends ParserGenerator {
     writer.setOption("writeExpansions", writeExpansions);
     writer.setOption("preInsertion", preInsertion);
 
-    writer.writeTemplate("/templates/Parser.template");
+    writer.writeTemplate("/templates/java/Parser.template");
     saveOutput(writer, data.options().getOutputDirectory());
   }
 
@@ -254,25 +253,25 @@ public class JavaParserGenerator extends ParserGenerator {
     if (e instanceof RegularExpression) {
       RegularExpression e_nrw = (RegularExpression) e;
       retval += "\n";
-      if (e_nrw.lhsTokens.size() != 0) {
-        genTokenSetup((e_nrw.lhsTokens.get(0)));
-        for (Iterator<Token> it = e_nrw.lhsTokens.iterator(); it.hasNext();) {
+      if (e_nrw.getLhsTokens().size() != 0) {
+        genTokenSetup((e_nrw.getLhsTokens().get(0)));
+        for (Iterator<Token> it = e_nrw.getLhsTokens().iterator(); it.hasNext();) {
           t = it.next();
           retval += getStringToPrint(t);
         }
         retval += getTrailingComments(t);
         retval += " = ";
       }
-      String tail = e_nrw.rhsToken == null ? ");" : ")." + e_nrw.rhsToken.image + ";";
-      if (e_nrw.label.equals("")) {
-        Object label = data.getNameOfToken(e_nrw.ordinal);
+      String tail = e_nrw.getRhsToken() == null ? ");" : ")." + e_nrw.getRhsToken().image + ";";
+      if (e_nrw.getLabel().equals("")) {
+        Object label = data.getNameOfToken(e_nrw.getOrdinal());
         if (label != null) {
           retval += "jj_consume_token(" + (String) label + tail;
         } else {
-          retval += "jj_consume_token(" + e_nrw.ordinal + tail;
+          retval += "jj_consume_token(" + e_nrw.getOrdinal() + tail;
         }
       } else {
-        retval += "jj_consume_token(" + e_nrw.label + tail;
+        retval += "jj_consume_token(" + e_nrw.getLabel() + tail;
       }
 
     } else if (e instanceof NonTerminal) {
@@ -300,7 +299,7 @@ public class JavaParserGenerator extends ParserGenerator {
     } else if (e instanceof Action) {
       Action e_nrw = (Action) e;
       retval += "\u0003\n";
-      if (e_nrw.getActionTokens().size() != 0) {
+      if (!e_nrw.getActionTokens().isEmpty()) {
         genTokenSetup((e_nrw.getActionTokens().get(0)));
         for (Iterator<Token> it = e_nrw.getActionTokens().iterator(); it.hasNext();) {
           t = it.next();
@@ -328,18 +327,18 @@ public class JavaParserGenerator extends ParserGenerator {
       Sequence e_nrw = (Sequence) e;
       // We skip the first element in the following iteration since it is the
       // Lookahead object.
-      for (int i = 1; i < e_nrw.units.size(); i++) {
+      for (int i = 1; i < e_nrw.getUnits().size(); i++) {
         // For C++, since we are not using exceptions, we will protect all the
         // expansion choices with if (!error)
         boolean wrap_in_block = false;
-        retval += generatePhase1Expansion(data, (Expansion) e_nrw.units.get(i));
+        retval += generatePhase1Expansion(data, (Expansion) e_nrw.getUnits().get(i));
         if (wrap_in_block) {
           retval += "\n}";
         }
       }
     } else if (e instanceof OneOrMore) {
       OneOrMore e_nrw = (OneOrMore) e;
-      Expansion nested_e = e_nrw.expansion;
+      Expansion nested_e = e_nrw.getExpansion();
       retval += "\n";
       int labelIndex = nextLabelIndex();
       retval += "label_" + labelIndex + ":\n";
@@ -351,7 +350,7 @@ public class JavaParserGenerator extends ParserGenerator {
       retval += "\u0002\n" + "}";
     } else if (e instanceof ZeroOrMore) {
       ZeroOrMore e_nrw = (ZeroOrMore) e;
-      Expansion nested_e = e_nrw.expansion;
+      Expansion nested_e = e_nrw.getExpansion();
       retval += "\n";
       int labelIndex = nextLabelIndex();
       retval += "label_" + labelIndex + ":\n";
@@ -363,21 +362,21 @@ public class JavaParserGenerator extends ParserGenerator {
       retval += "\u0002\n" + "}";
     } else if (e instanceof ZeroOrOne) {
       ZeroOrOne e_nrw = (ZeroOrOne) e;
-      Expansion nested_e = e_nrw.expansion;
+      Expansion nested_e = e_nrw.getExpansion();
       Lookahead[] conds = data.getLoakaheads(e);
       String[] actions = { generatePhase1Expansion(data, nested_e), "\n;" };
       retval += genLookaheadChecker(data, conds, actions);
     } else if (e instanceof TryBlock) {
       TryBlock e_nrw = (TryBlock) e;
-      Expansion nested_e = e_nrw.exp;
+      Expansion nested_e = e_nrw.getExpansion();
       List<Token> list;
       retval += "\n";
       retval += "try {\u0001";
       retval += generatePhase1Expansion(data, nested_e);
       retval += "\u0002\n" + "}";
-      for (int i = 0; i < e_nrw.catchblks.size(); i++) {
+      for (int i = 0; i < e_nrw.getCatchBlocks().size(); i++) {
         retval += " catch (";
-        list = e_nrw.types.get(i);
+        list = e_nrw.getTypes().get(i);
         if (list.size() != 0) {
           genTokenSetup((list.get(0)));
           for (Iterator<Token> it = list.iterator(); it.hasNext();) {
@@ -387,12 +386,12 @@ public class JavaParserGenerator extends ParserGenerator {
           retval += getTrailingComments(t);
         }
         retval += " ";
-        t = (e_nrw.ids.get(i));
+        t = (e_nrw.getIds().get(i));
         genTokenSetup(t);
         retval += getStringToPrint(t);
         retval += getTrailingComments(t);
         retval += ") {\u0003\n";
-        list = e_nrw.catchblks.get(i);
+        list = e_nrw.getCatchBlocks().get(i);
         if (list.size() != 0) {
           genTokenSetup((list.get(0)));
           for (Iterator<Token> it = list.iterator(); it.hasNext();) {
@@ -403,12 +402,12 @@ public class JavaParserGenerator extends ParserGenerator {
         }
         retval += "\u0004\n" + "}";
       }
-      if (e_nrw.finallyblk != null) {
+      if (!e_nrw.getFinallyBlock().isEmpty()) {
         retval += " finally {\u0003\n";
 
-        if (e_nrw.finallyblk.size() != 0) {
-          genTokenSetup((e_nrw.finallyblk.get(0)));
-          for (Iterator<Token> it = e_nrw.finallyblk.iterator(); it.hasNext();) {
+        if (e_nrw.getFinallyBlock().size() != 0) {
+          genTokenSetup((e_nrw.getFinallyBlock().get(0)));
+          for (Iterator<Token> it = e_nrw.getFinallyBlock().iterator(); it.hasNext();) {
             t = it.next();
             retval += getStringToPrint(t);
           }
@@ -777,11 +776,11 @@ public class JavaParserGenerator extends ParserGenerator {
     if (e instanceof RegularExpression) {
       RegularExpression e_nrw = (RegularExpression) e;
       writer.print("    if (jj_scan_token(");
-      if (e_nrw.label.equals("")) {
-        Object label = data.getNameOfToken(e_nrw.ordinal);
-        writer.print((label == null) ? e_nrw.ordinal : data.getParserName() + "Constants." + label);
+      if (e_nrw.getLabel().equals("")) {
+        Object label = data.getNameOfToken(e_nrw.getOrdinal());
+        writer.print((label == null) ? e_nrw.getOrdinal() : data.getParserName() + "Constants." + label);
       } else {
-        writer.print(data.getParserName() + "Constants." + e_nrw.label);
+        writer.print(data.getParserName() + "Constants." + e_nrw.getLabel());
       }
       writer.println("))");
       writer.println("      " + genReturn(jj3_expansion, true, data.options()));
@@ -809,7 +808,7 @@ public class JavaParserGenerator extends ParserGenerator {
       Token t = null;
       for (int i = 0; i < e_nrw.getChoices().size(); i++) {
         nested_seq = (Sequence) (e_nrw.getChoices().get(i));
-        Lookahead la = (Lookahead) (nested_seq.units.get(0));
+        Lookahead la = (Lookahead) (nested_seq.getUnits().get(0));
         if (la.getActionTokens().size() != 0) {
           writer.println("    jj_lookingAhead = true;");
           writer.print("    jj_semLA = ");
@@ -842,8 +841,8 @@ public class JavaParserGenerator extends ParserGenerator {
       // We skip the first element in the following iteration since it is the
       // Lookahead object.
       int cnt = count;
-      for (int i = 1; i < e_nrw.units.size(); i++) {
-        Expansion eseq = (Expansion) (e_nrw.units.get(i));
+      for (int i = 1; i < e_nrw.getUnits().size(); i++) {
+        Expansion eseq = (Expansion) (e_nrw.getUnits().get(i));
         xsp_declared = buildPhase3RoutineRecursive(data, jj3_expansion, xsp_declared, eseq, cnt, writer);
         cnt -= ParserGenerator.minimumSize(data, eseq);
         if (cnt <= 0) {
@@ -852,14 +851,14 @@ public class JavaParserGenerator extends ParserGenerator {
       }
     } else if (e instanceof TryBlock) {
       TryBlock e_nrw = (TryBlock) e;
-      xsp_declared = buildPhase3RoutineRecursive(data, jj3_expansion, xsp_declared, e_nrw.exp, count, writer);
+      xsp_declared = buildPhase3RoutineRecursive(data, jj3_expansion, xsp_declared, e_nrw.getExpansion(), count, writer);
     } else if (e instanceof OneOrMore) {
       if (!xsp_declared) {
         xsp_declared = true;
         writer.println("    Token xsp;");
       }
       OneOrMore e_nrw = (OneOrMore) e;
-      Expansion nested_e = e_nrw.expansion;
+      Expansion nested_e = e_nrw.getExpansion();
       writer.println("    if (" + genjj_3Call(nested_e) + ") " + genReturn(jj3_expansion, true, data.options()));
       writer.println("    while (true) {");
       writer.println("      xsp = jj_scanpos;");
@@ -871,7 +870,7 @@ public class JavaParserGenerator extends ParserGenerator {
         writer.println("    Token xsp;");
       }
       ZeroOrMore e_nrw = (ZeroOrMore) e;
-      Expansion nested_e = e_nrw.expansion;
+      Expansion nested_e = e_nrw.getExpansion();
       writer.println("    while (true) {");
       writer.println("      xsp = jj_scanpos;");
       writer.println("      if (" + genjj_3Call(nested_e) + ") { jj_scanpos = xsp; break; }");
@@ -882,8 +881,8 @@ public class JavaParserGenerator extends ParserGenerator {
         writer.println("    Token xsp;");
       }
       ZeroOrOne e_nrw = (ZeroOrOne) e;
-      Expansion nested_e = e_nrw.expansion;
-      writer.println("      xsp = jj_scanpos;");
+      Expansion nested_e = e_nrw.getExpansion();
+      writer.println("    xsp = jj_scanpos;");
       writer.println("    if (" + genjj_3Call(nested_e) + ") jj_scanpos = xsp;");
     }
     return xsp_declared;

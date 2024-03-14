@@ -90,17 +90,17 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
 
   protected void addregexpr(TokenProduction p) {
     this.data.addTokenProduction(p);
-    if (p.lexStates == null) {
+    if (p.getLexStates() == null) {
       return;
     }
-    for (int i = 0; i < p.lexStates.length; i++) {
+    for (int i = 0; i < p.getLexStates().length; i++) {
       for (int j = 0; j < i; j++) {
-        if (p.lexStates[i].equals(p.lexStates[j])) {
-          JavaCCErrors.parse_error(p, "Multiple occurrence of \"" + p.lexStates[i] + "\" in lexical state list.");
+        if (p.getLexStates()[i].equals(p.getLexStates()[j])) {
+          JavaCCErrors.parse_error(p, "Multiple occurrence of \"" + p.getLexStates()[i] + "\" in lexical state list.");
         }
       }
-      if (this.data.hasLexState(p.lexStates[i])) {
-        this.data.setLexState(p.lexStates[i], this.nextFreeLexState++);
+      if (this.data.hasLexState(p.getLexStates()[i])) {
+        this.data.setLexState(p.getLexStates()[i], this.nextFreeLexState++);
       }
     }
   }
@@ -108,16 +108,16 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
   protected void add_inline_regexpr(RegularExpression r) {
     if (!(r instanceof REndOfFile)) {
       TokenProduction p = new TokenProduction();
-      p.isExplicit = false;
-      p.lexStates = new String[] { "DEFAULT" };
-      p.kind = TokenProduction.TOKEN;
+      p.setExplicit(false);
+      p.setLexStates(new String[] { "DEFAULT" });
+      p.setKind(TokenProduction.Kind.TOKEN);
       RegExprSpec res = new RegExprSpec();
       res.rexp = r;
-      res.rexp.tpContext = p;
+      res.rexp.setTpContext(p);
       res.act = new Action();
       res.nextState = null;
       res.nsTok = null;
-      p.respecs.add(res);
+      p.getRespecs().add(res);
       this.data.addTokenProduction(p);
     }
   }
@@ -275,16 +275,12 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
       JavaCCErrors.parse_error(tryLoc, "Try block must contain at least one catch or finally block.");
       return;
     }
-    TryBlock tblk = new TryBlock();
+    TryBlock tblk = new TryBlock(ids, types, catchblks, finallyblk);
     tblk.setLine(tryLoc.beginLine);
     tblk.setColumn(tryLoc.beginColumn);
-    tblk.exp = (Expansion) (nestedExp.member);
-    tblk.exp.parent = tblk;
-    tblk.exp.ordinal = 0;
-    tblk.types = types;
-    tblk.ids = ids;
-    tblk.catchblks = catchblks;
-    tblk.finallyblk = finallyblk;
+    tblk.setExpansion((Expansion) nestedExp.member);
+    tblk.getExpansion().parent = tblk;
+    tblk.getExpansion().ordinal = 0;
     result.member = tblk;
   }
 

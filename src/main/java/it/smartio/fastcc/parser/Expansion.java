@@ -34,18 +34,7 @@ public class Expansion {
    * The line and column number of the construct that corresponds most closely to this node.
    */
   private int line;
-
   private int column;
-
-  /**
-   * A reimplementing of Object.hashCode() to be deterministic. This uses the line and column fields
-   * to generate an arbitrary number - we assume that this method is called only after line and
-   * column are set to their actual values.
-   */
-  @Override
-  public int hashCode() {
-    return getLine() + getColumn();
-  }
 
   /**
    * An internal name for this expansion. This is used to generate parser routines.
@@ -78,6 +67,16 @@ public class Expansion {
    */
   public boolean inMinimumSize = false;
 
+  /**
+   * A reimplementing of Object.hashCode() to be deterministic. This uses the line and column fields
+   * to generate an arbitrary number - we assume that this method is called only after line and
+   * column are set to their actual values.
+   */
+  @Override
+  public int hashCode() {
+    return getLine() + getColumn();
+  }
+
   private String getSimpleName() {
     String name = getClass().getName();
     return name.substring(name.lastIndexOf(".") + 1); // strip the package name
@@ -88,7 +87,7 @@ public class Expansion {
     return "[" + getLine() + "," + getColumn() + " " + System.identityHashCode(this) + " " + getSimpleName() + "]";
   }
 
-  public String getProductionName() {
+  public final String getProductionName() {
     Object next = this;
     // Limit the number of iterations in case there's a cycle
     for (int i = 0; (i < 42) && (next != null); i++) {
@@ -104,10 +103,10 @@ public class Expansion {
   }
 
   /**
-   * @param column the column to set
+   * @return the line
    */
-  public void setColumn(int column) {
-    this.column = column;
+  public int getLine() {
+    return this.line;
   }
 
   /**
@@ -125,9 +124,9 @@ public class Expansion {
   }
 
   /**
-   * @return the line
+   * @param column the column to set
    */
-  public int getLine() {
-    return this.line;
+  public void setColumn(int column) {
+    this.column = column;
   }
 }

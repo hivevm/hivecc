@@ -253,6 +253,6 @@ public class JavaCCData implements SemanticRequest, JavaCCRequest {
 
   @Override
   public final void setNamesOfToken(RegularExpression expression) {
-    this.names_of_tokens.put(expression.ordinal, expression.label);
+    this.names_of_tokens.put(expression.ordinal, expression.getLabel());
   }
 }

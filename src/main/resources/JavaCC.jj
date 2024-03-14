@@ -152,52 +152,52 @@ TOKEN :
 TOKEN :
 {
   < INTEGER_LITERAL:
-        <DECIMAL_LITERAL> (["l","L"])?
-      | <HEX_LITERAL> (["l","L"])?
-      | <OCTAL_LITERAL> (["l","L"])?
+      <DECIMAL_LITERAL> (["l","L"])?
+    | <HEX_LITERAL> (["l","L"])?
+    | <OCTAL_LITERAL> (["l","L"])?
   >
 | < #DECIMAL_LITERAL: ["1"-"9"] (["0"-"9"])* >
 | < #HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+ >
 | < #OCTAL_LITERAL: "0" (["0"-"7"])* >
 | < FLOATING_POINT_LITERAL:
-        <DECIMAL_FLOATING_POINT_LITERAL>
-      | <HEXADECIMAL_FLOATING_POINT_LITERAL>
+     <DECIMAL_FLOATING_POINT_LITERAL>
+    | <HEXADECIMAL_FLOATING_POINT_LITERAL>
   >
 | < #DECIMAL_FLOATING_POINT_LITERAL:
-        (["0"-"9"])+ "." (["0"-"9"])* (<DECIMAL_EXPONENT>)? (["f","F","d","D"])?
-      | "." (["0"-"9"])+ (<DECIMAL_EXPONENT>)? (["f","F","d","D"])?
-      | (["0"-"9"])+ <DECIMAL_EXPONENT> (["f","F","d","D"])?
-      | (["0"-"9"])+ (<DECIMAL_EXPONENT>)? ["f","F","d","D"]
+      (["0"-"9"])+ "." (["0"-"9"])* (<DECIMAL_EXPONENT>)? (["f","F","d","D"])?
+    | "." (["0"-"9"])+ (<DECIMAL_EXPONENT>)? (["f","F","d","D"])?
+    | (["0"-"9"])+ <DECIMAL_EXPONENT> (["f","F","d","D"])?
+    | (["0"-"9"])+ (<DECIMAL_EXPONENT>)? ["f","F","d","D"]
   >
 | < #DECIMAL_EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
 | < #HEXADECIMAL_FLOATING_POINT_LITERAL:
-        "0" ["x", "X"] (["0"-"9","a"-"f","A"-"F"])+ (".")? <HEXADECIMAL_EXPONENT> (["f","F","d","D"])?
-      | "0" ["x", "X"] (["0"-"9","a"-"f","A"-"F"])* "." (["0"-"9","a"-"f","A"-"F"])+ <HEXADECIMAL_EXPONENT> (["f","F","d","D"])?
+     "0" ["x", "X"] (["0"-"9","a"-"f","A"-"F"])+ (".")? <HEXADECIMAL_EXPONENT> (["f","F","d","D"])?
+   | "0" ["x", "X"] (["0"-"9","a"-"f","A"-"F"])* "." (["0"-"9","a"-"f","A"-"F"])+ <HEXADECIMAL_EXPONENT> (["f","F","d","D"])?
   >
 | < #HEXADECIMAL_EXPONENT: ["p","P"] (["+","-"])? (["0"-"9"])+ >
 | < CHARACTER_LITERAL:
-      "'"
-      (   (~["'","\\","\n","\r"])
-        | ("\\"
-            ( ["n","t","b","r","f","\\","'","\""]
-            | ["0"-"7"] ( ["0"-"7"] )?
-            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
-            )
+    "'"
+    ((~["'","\\","\n","\r"])
+      | ("\\"
+          ( ["n","t","b","r","f","\\","'","\""]
+          | ["0"-"7"] ( ["0"-"7"] )?
+          | ["0"-"3"] ["0"-"7"] ["0"-"7"]
           )
-      )
-      "'"
+          )
+    )
+    "'"
   >
 | < STRING_LITERAL:
-      "\""
-      (   (~["\"","\\","\n","\r"])
-        | ("\\"
-            ( ["n","t","b","r","f","\\","'","\""]
-            | ["0"-"7"] ( ["0"-"7"] )?
-            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
-            )
+    "\""
+    ((~["\"","\\","\n","\r"])
+      | ("\\"
+          ( ["n","t","b","r","f","\\","'","\""]
+          | ["0"-"7"] ( ["0"-"7"] )?
+          | ["0"-"3"] ["0"-"7"] ["0"-"7"]
           )
-      )*
-      "\""
+        )
+    )*
+    "\""
   >
 }
 
@@ -262,16 +262,21 @@ void javacc_input() :
   String t;
 }
 {
-  javacc_options() "PARSER_BEGIN" "(" t=identifier()
+  javacc_options()
+  "PARSER_BEGIN" "(" t=identifier()
   {
     setParserName(t);
-  } ")" "PARSER_END" ( production() )+ <EOF>
+  } 
+  ")"
+  "PARSER_END" ( production() )+
+  <EOF>
 }
 
 void javacc_options() :
 {}
 {
-  [ LOOKAHEAD({ getToken(1).image.equals("options") }) <IDENTIFIER> "{" ( option_binding() )* "}" ]
+  [ LOOKAHEAD({ getToken(1).image.equals("options") })
+  <IDENTIFIER> "{" ( option_binding() )* "}" ]
   {
     getOptions().normalize();
   }
@@ -309,7 +314,8 @@ void option_binding() :
     {
 	  getOptions().setInputFileOption(t, getToken(0), option_name, string_list);
     }
-  ) ";"
+  )
+  ";"
 }
 
 List<String> StringList() :
@@ -365,7 +371,8 @@ void bnf_production() :
     p.setLhs(lhs);
   }
   FormalParameters(p.getParameterListTokens())
-  [ "throws"
+  [
+    "throws"
 	{
 	  excName = new ArrayList<>();
 	}
@@ -378,9 +385,9 @@ void bnf_production() :
 	  excName = new ArrayList<>();
 	}
       "," Name(excName)
-	{
-	  p.getThrowsList().add(excName);
-	}
+	  {
+	    p.getThrowsList().add(excName);
+	  }
     )*
   ]
   ":" Block(p.getDeclarationTokens()) "{" expansion_choices(c) t="}"
@@ -396,7 +403,8 @@ void regular_expr_production() :
 {
   TokenProduction p = new TokenProduction();
   List<String> states;
-  Token t = p.firstToken = getToken(1);
+  Token t = getToken(1);
+  p.setFirstToken(t);
   p.setLine(t.beginLine);
   p.setColumn(t.beginColumn);
 }
@@ -404,12 +412,12 @@ void regular_expr_production() :
   {
     // set p.lexStates assuming there is no state spec.
     // and then override if necessary.
-    p.lexStates = new String[] {"DEFAULT"};
+    p.setLexStates(new String[] {"DEFAULT"});
   }
   [
     LOOKAHEAD(2) "<" "*" ">"
 	{
-	  p.lexStates = null;
+	  p.setLexStates(null);
 	}
   | "<"
 	{
@@ -426,9 +434,9 @@ void regular_expr_production() :
       )*
     ">"
 	{
-	  p.lexStates = new String[states.size()];
+	  p.setLexStates(new String[states.size()]);
 	  for (int i = 0; i < states.size(); i++) {
-	    p.lexStates[i] = (String)states.get(i);
+	    p.setLexState((String)states.get(i), i);
 	  }
 	}
   ]
@@ -438,7 +446,7 @@ void regular_expr_production() :
   [
     "[" t="IGNORE_CASE" "]"
 	{
-	  p.ignoreCase = true;
+	  p.setIgnoreCase(true);
 	}
   ]
   ":"
@@ -452,20 +460,20 @@ void regexpr_kind(TokenProduction p) :
 {}
 {
   "TOKEN"
-	{
-	  p.kind = TokenProduction.TOKEN;
-	}
+  {
+    p.setKind(TokenProduction.Kind.TOKEN);
+  }
 | "SPECIAL_TOKEN"
-	{
-	  p.kind = TokenProduction.SPECIAL;
-	}
+  {
+    p.setKind(TokenProduction.Kind.SPECIAL);
+  }
 | "SKIP"
 	{
-	  p.kind = TokenProduction.SKIP;
+	  p.setKind(TokenProduction.Kind.SKIP);
 	}
 | "MORE"
 	{
-	  p.kind = TokenProduction.MORE;
+	  p.setKind(TokenProduction.Kind.MORE);
 	}
 }
 
@@ -480,7 +488,7 @@ void regexpr_spec(TokenProduction p) :
   regular_expression(c)
   {
     res.rexp = (RegularExpression)c.member;
-    res.rexp.tpContext = p;
+    res.rexp.setTpContext(p);
   }
   [
 	{
@@ -488,7 +496,7 @@ void regexpr_spec(TokenProduction p) :
 	}
     Block(act.getActionTokens())
 	{
-	  if (res.rexp.private_rexp) {
+	  if (res.rexp.isPrivateExp()) {
 	    JavaCCErrors.parse_error(t, "Actions are not permitted on private (#) regular expressions.");
 	  }
 	}
@@ -496,7 +504,7 @@ void regexpr_spec(TokenProduction p) :
   [ ":" t=<IDENTIFIER>
 	{
 	  res.nextState = t.image;
-	  if (res.rexp.private_rexp) {
+	  if (res.rexp.isPrivateExp()) {
 	    JavaCCErrors.parse_error(t, "Lexical state changes are not permitted after private (#) regular expressions.");
 	  }
 	}
@@ -504,7 +512,7 @@ void regexpr_spec(TokenProduction p) :
 	{
 	  res.act = act;
 	  res.nsTok = t;
-	  p.respecs.add(res);
+	  p.getRespecs().add(res);
 	}
 }
 
@@ -563,14 +571,14 @@ void expansion(Container c1) :
 	}
   )?
   {
-    seq.units.add(la);
+    seq.getUnits().add(la);
   }
   ( LOOKAHEAD(0, { notTailOfExpansionUnit() } )
     expansion_unit(c2)
 	{
-	  seq.units.add(c2.member);
+	  seq.getUnits().add(c2.member);
 	  ((Expansion)c2.member).parent = seq;
-	  ((Expansion)c2.member).ordinal = seq.units.size()-1;
+	  ((Expansion)c2.member).ordinal = seq.getUnits().size()-1;
 	}
   )+
   {
@@ -682,7 +690,7 @@ void expansion_unit(Container c) :
 	  act = new Action();
 	  act.setLine(t.beginLine);
 	  act.setColumn(t.beginColumn);
-	  seq.units.add(act);
+	  seq.getUnits().add(act);
 	  act.parent = seq; act.ordinal = 1;
 	  ch.getChoices().add(seq);
 	  seq.parent = ch; seq.ordinal = 0;
@@ -810,10 +818,10 @@ void expansion_unit(Container c) :
   |
     regular_expression(c)
 	{
-	  ((RegularExpression)(c.member)).lhsTokens = lhsTokens;
+	  ((RegularExpression)(c.member)).setLhsTokens(lhsTokens);
 	  add_inline_regexpr((RegularExpression)(c.member));
 	}
-	[ "." t=<IDENTIFIER> { ((RegularExpression)(c.member)).rhsToken = t; } ]
+	[ "." t=<IDENTIFIER> { ((RegularExpression)(c.member)).setRhsToken(t); } ]
   )
 |
   t="(" expansion_choices(c) ")"
@@ -836,9 +844,9 @@ void regular_expression(Container c) :
 	c.member = new RStringLiteral(t, image);
   }
 | LOOKAHEAD(3)
-	{
-	  image = "";
-	}
+  {
+	image = "";
+  }
   < LANGLE: "<" >
   [
     [ "#"
@@ -849,34 +857,34 @@ void regular_expression(Container c) :
     image=identifier() ":"
   ]
   complex_regular_expression_choices(c) < RANGLE: ">" >
-	{
-	  RegularExpression re;
-	  if (c.member instanceof RJustName) {
-	    RSequence seq = new RSequence();
-	    seq.units.add((RegularExpression)c.member);
-	    re = seq;
-	  } else {
-	    re = (RegularExpression)c.member;
-	  }
-	  re.label = image;
-	  re.private_rexp = private_rexp;
-	  re.setLine(t.beginLine);
-	  re.setColumn(t.beginColumn);
-	  c.member = re;
+  {
+	RegularExpression re;
+	if (c.member instanceof RJustName) {
+	  RSequence seq = new RSequence();
+	  seq.getUnits().add((RegularExpression)c.member);
+	  re = seq;
+	} else {
+	  re = (RegularExpression)c.member;
 	}
+	re.label = image;
+	re.setPrivateRegExp(private_rexp);
+	re.setLine(t.beginLine);
+	re.setColumn(t.beginColumn);
+	c.member = re;
+  }
 | LOOKAHEAD(2)
   "<" image=identifier() ">"
-	{
-	  c.member = new RJustName(t, image);
-	}
+  {
+	c.member = new RJustName(t, image);
+  }
 | "<" "EOF" ">"
-	{
-	  ef = new REndOfFile();
-	  ef.setLine(t.beginLine);
-	  ef.setColumn(t.beginColumn);
-	  ef.ordinal = 0;
-	  c.member = ef;
-	}
+  {
+	ef = new REndOfFile();
+	ef.setLine(t.beginLine);
+	ef.setColumn(t.beginColumn);
+	ef.ordinal = 0;
+	c.member = ef;
+  }
 }
 
 void complex_regular_expression_choices(Container c1) :
@@ -901,11 +909,11 @@ void complex_regular_expression_choices(Container c1) :
 	  }
 	}
   )*
-	{
-	  if (morethanone) {
-	    c1.member = ch;
-	  }
+  {
+	if (morethanone) {
+	  c1.member = ch;
 	}
+  }
 }
 
 void complex_regular_expression(Container c1) :
@@ -924,18 +932,18 @@ void complex_regular_expression(Container c1) :
 	    seq = new RSequence();
 	    seq.setLine(((RegularExpression)c1.member).getLine());
 	    seq.setColumn(((RegularExpression)c1.member).getColumn());
-	    seq.units.add((RegularExpression)c1.member);
-	    seq.units.add((RegularExpression)c2.member);
+	    seq.getUnits().add((RegularExpression)c1.member);
+	    seq.getUnits().add((RegularExpression)c2.member);
 	  } else {
-	    seq.units.add((RegularExpression)c2.member);
+	    seq.getUnits().add((RegularExpression)c2.member);
 	  }
 	}
   )+
-	{
-	  if (count > 1) {
-	    c1.member = seq;
-	  }
+  {
+	if (count > 1) {
+	  c1.member = seq;
 	}
+  }
 }
 
 void complex_regular_expression_unit(Container c) :
@@ -947,13 +955,13 @@ void complex_regular_expression_unit(Container c) :
 }
 {
   image=StringLiteral()
-	{
-	  c.member = new RStringLiteral(t, image);
-	}
+  {
+	c.member = new RStringLiteral(t, image);
+  }
 | "<" image=identifier() ">"
-	{
-	  c.member = new RJustName(t, image);
-	}
+  {
+	c.member = new RJustName(t, image);
+  }
 | character_list(c)
 | "(" complex_regular_expression_choices(c) ")"
   (  "+"
@@ -969,7 +977,7 @@ void complex_regular_expression_unit(Container c) :
 	  RZeroOrOne zorexp = new RZeroOrOne();
 	  zorexp.setLine(t.beginLine);
 	  zorexp.setColumn(t.beginColumn);
-	  zorexp.regexpr = (RegularExpression)c.member;
+	  zorexp.setRegexpr((RegularExpression)c.member);
 	  c.member = zorexp;
 	}
    | "{" r1 = IntegerLiteral()
@@ -979,10 +987,7 @@ void complex_regular_expression_unit(Container c) :
 	  RRepetitionRange rrrexp = new RRepetitionRange();
 	  rrrexp.setLine(t.beginLine);
 	  rrrexp.setColumn(t.beginColumn);
-	  rrrexp.min = r1;
-	  rrrexp.max = r2;
-        rrrexp.hasMax = hasMax;
-	  rrrexp.regexpr = (RegularExpression)c.member;
+	  rrrexp.setRegexpr((RegularExpression)c.member, r1, r2, hasMax);
 	  c.member = rrrexp;
 	}
   )?
@@ -998,24 +1003,24 @@ void character_list(Container c1) :
 }
 {
   ["~"
-	{
-	  chlist.negated_list = true;
-	}
+  {
+	chlist.setNegatedList();
+  }
   ]
   "[" [ character_descriptor(c2)
-	{
-	  chlist.descriptors.add(c2.member);
-	}
-        ( "," character_descriptor(c2)
-	{
-	  chlist.descriptors.add(c2.member);
-	}
-        )*
-      ]
+  {
+	chlist.getDescriptors().add(c2.member);
+  }
+  ( "," character_descriptor(c2)
+  {
+	chlist.getDescriptors().add(c2.member);
+  }
+  )*
+  ]
   "]"
-	{
-	  c1.member = chlist;
-	}
+  {
+	c1.member = chlist;
+  }
 }
 
 void character_descriptor(Container c) :
@@ -1027,31 +1032,31 @@ void character_descriptor(Container c) :
 }
 {
   imageL=StringLiteral()
-	{
-	  c1 = character_descriptor_assign(getToken(0), imageL);
-	}
+  {
+	c1 = character_descriptor_assign(getToken(0), imageL);
+  }
   [ "-" imageR=StringLiteral()
-	{
-	  isrange = true;
-	  c2 = character_descriptor_assign(getToken(0), imageR, imageL);
-	}
+  {
+	isrange = true;
+	c2 = character_descriptor_assign(getToken(0), imageR, imageL);
+  }
   ]
-	{
-	  if (isrange) {
-	    CharacterRange cr = new CharacterRange();
-	    cr.setLine(t.beginLine);
-	    cr.setColumn(t.beginColumn);
-        cr.setLeft(c1);
-        cr.setRight(c2);
-	    c.member = cr;
-	  } else {
-	    SingleCharacter sc = new SingleCharacter();
-	    sc.setLine(t.beginLine);
-	    sc.setColumn(t.beginColumn);
-	    sc.ch = c1;
-	    c.member = sc;
-	  }
+  {
+	if (isrange) {
+	  CharacterRange cr = new CharacterRange();
+	  cr.setLine(t.beginLine);
+	  cr.setColumn(t.beginColumn);
+      cr.setLeft(c1);
+      cr.setRight(c2);
+	  c.member = cr;
+	} else {
+	  SingleCharacter sc = new SingleCharacter();
+	  sc.setLine(t.beginLine);
+	  sc.setColumn(t.beginColumn);
+	  sc.ch = c1;
+	  c.member = sc;
 	}
+  }
 }
 
 String identifier() :
@@ -1060,9 +1065,9 @@ String identifier() :
 }
 {
   t=<IDENTIFIER>
-	{
-	  return t.image;
-	}
+  {
+	return t.image;
+  }
 }
 
 /**********************************************
@@ -1177,30 +1182,30 @@ void FormalParameters(List<Token> tokens) :
  * parameters excluding the parentheses at each end.
  */
 {
-	  Token first, last;
-	  if (tokens == null)
-	    tokens = new ArrayList<>();
+  Token first, last;
+  if (tokens == null)
+    tokens = new ArrayList<>();
 }
 {
   "("
-	{
-	  first = getToken(1);
-	}
+  {
+	first = getToken(1);
+  }
   [ FormalParameter() ( "," FormalParameter() )* ]
-	{
-	  last = getToken(0);
-	}
+  {
+	last = getToken(0);
+  }
   ")"
-	{
-	  if (last.next != first) { // i.e., this is not an empty sequence
-	    Token t = first;
-	    while (true) {
-	      tokens.add(t);
-	      if (t == last) break;
-	      t = t.next;
-	    }
+  {
+	if (last.next != first) { // i.e., this is not an empty sequence
+	  Token t = first;
+	  while (true) {
+	    tokens.add(t);
+	    if (t == last) break;
+	    t = t.next;
 	  }
 	}
+  }
 }
 
 void FormalParameter():
@@ -1208,9 +1213,7 @@ void FormalParameter():
   Token t;
 }
 {
-  Type()
-  [ ( t = "&" | t = "*") | "..." ]
-  VariableDeclaratorId()
+  Type() [ ( t = "&" | t = "*") | "..." ] VariableDeclaratorId()
 }
 
 void ConstructorDeclaration():
@@ -1319,18 +1322,17 @@ void ResultType(List<Token> tokens) :
 {
 (
   "void" [ "*" ]
-|
-  [ "const" ] Type() [ "*" | "&" ]
+| [ "const" ] Type() [ "*" | "&" ]
 )
-	{
-	  Token last = getToken(0);
-	  Token t = first;
-	  while (true) {
-        tokens.add(t);
-        if (t == last) break;
-        t = t.next;
-	  }
+  {
+	Token last = getToken(0);
+	Token t = first;
+	while (true) {
+      tokens.add(t);
+      if (t == last) break;
+      t = t.next;
 	}
+  }
 }
 
 void Name(List<Token> tokens) :
@@ -1345,17 +1347,16 @@ void Name(List<Token> tokens) :
 }
 {
   JavaIdentifier()
-  ( LOOKAHEAD(2) "." JavaIdentifier()
-  )*
-	{
-	  Token last = getToken(0);
-	  Token t = first;
-	  while (true) {
-	    tokens.add(t);
-	    if (t == last) break;
-	    t = t.next;
-	  }
+  ( LOOKAHEAD(2) "." JavaIdentifier() )*
+  {
+	Token last = getToken(0);
+	Token t = first;
+	while (true) {
+	  tokens.add(t);
+	  if (t == last) break;
+	  t = t.next;
 	}
+  }
 }
 
 
@@ -1391,15 +1392,15 @@ void Expression(List<Token> tokens) :
 	LOOKAHEAD(2)
     AssignmentOperator() Expression(null)
   ]
-	{
-	  Token last = getToken(0);
-	  Token t = first;
-	  while (true) {
-	    tokens.add(t);
-	    if (t == last) break;
-	    t = t.next;
-	  }
+  {
+	Token last = getToken(0);
+	Token t = first;
+	while (true) {
+	  tokens.add(t);
+	  if (t == last) break;
+	  t = t.next;
 	}
+  }
 }
 
 
@@ -1578,13 +1579,13 @@ int IntegerLiteral() :
 {}
 {
   <INTEGER_LITERAL>
-	{
-	  try {
-	    return Integer.parseInt(token.image);
-	  } catch (NumberFormatException e) {
-	    throw new Error();
-	  }
+  {
+    try {
+	  return Integer.parseInt(token.image);
+	} catch (NumberFormatException e) {
+	  throw new Error();
 	}
+  }
 }
 
 boolean BooleanLiteral() :
@@ -1943,7 +1944,7 @@ void MemberValuePairs():
 void MemberValuePair():
 {}
 {
-  JavaIdentifier() "=" MemberValue()
+   JavaIdentifier() "=" MemberValue()
 }
 
 void MemberValue():

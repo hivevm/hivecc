@@ -35,19 +35,19 @@ public class TokenProduction {
   /**
    * Definitions of constants that identify the kind of regular expression production this is.
    */
-  public static final int      TOKEN      = 0, SKIP = 1, MORE = 2, SPECIAL = 3;
-
-  /**
-   * The image of the above constants.
-   */
-  public static final String[] kindImage  = { "TOKEN", "SKIP", "MORE", "SPECIAL" };
+  public enum Kind {
+    TOKEN,
+    SKIP,
+    MORE,
+    SPECIAL
+  };
 
   /**
    * The starting line and column of this token production.
    */
-  private int                  column;
+  private int                     column;
 
-  private int                  line;
+  private int                     line;
 
   /**
    * The states in which this regular expression production exists. If this array is null, then
@@ -55,35 +55,35 @@ public class TokenProduction {
    * value is replaced by a String array that includes all lexical state names during the
    * semanticization phase.
    */
-  public String[]              lexStates;
+  private String[]                lexStates;
 
   /**
    * The kind of this token production - TOKEN, SKIP, MORE, or SPECIAL.
    */
-  public int                   kind;
+  private Kind                     kind;
 
   /**
    * The list of regular expression specifications that comprise this production. Each entry is a
    * "RegExprSpec".
    */
-  public List<RegExprSpec>     respecs    = new ArrayList<>();
+  private final List<RegExprSpec> respecs    = new ArrayList<>();
 
   /**
    * This is true if this corresponds to a production that actually appears in the input grammar.
    * Otherwise (if this is created to describe a regular expression that is part of the BNF) this is
    * set to false.
    */
-  public boolean               isExplicit = true;
+  private boolean                 isExplicit = true;
 
   /**
    * This is true if case is to be ignored within the regular expressions of this token production.
    */
-  public boolean               ignoreCase = false;
+  private boolean                 ignoreCase = false;
 
   /**
    * The first and last tokens from the input stream that represent this production.
    */
-  public Token                 firstToken;
+  private Token                   firstToken;
 
   /**
    * @param line the line to set
@@ -113,4 +113,98 @@ public class TokenProduction {
     return this.column;
   }
 
+
+  /**
+   * Gets the {@link #kind}.
+   */
+  public final Kind getKind() {
+    return kind;
+  }
+
+
+  /**
+   * Sets the {@link #kind}.
+   */
+  public final void setKind(Kind kind) {
+    this.kind = kind;
+  }
+
+
+  /**
+   * Gets the {@link #respecs}.
+   */
+  public final List<RegExprSpec> getRespecs() {
+    return respecs;
+  }
+
+  /**
+   * Gets the {@link #isExplicit}.
+   */
+  public final boolean isExplicit() {
+    return isExplicit;
+  }
+
+
+  /**
+   * Sets the {@link #isExplicit}.
+   */
+  public final void setExplicit(boolean isExplicit) {
+    this.isExplicit = isExplicit;
+  }
+
+
+  /**
+   * Gets the {@link #ignoreCase}.
+   */
+  public final boolean isIgnoreCase() {
+    return ignoreCase;
+  }
+
+
+  /**
+   * Sets the {@link #ignoreCase}.
+   */
+  public final void setIgnoreCase(boolean ignoreCase) {
+    this.ignoreCase = ignoreCase;
+  }
+
+
+  /**
+   * Gets the {@link #firstToken}.
+   */
+  public final Token getFirstToken() {
+    return firstToken;
+  }
+
+
+  /**
+   * Sets the {@link #firstToken}.
+   */
+  public final void setFirstToken(Token firstToken) {
+    this.firstToken = firstToken;
+  }
+
+
+  /**
+   * Gets the {@link #lexStates}.
+   */
+  public final String[] getLexStates() {
+    return lexStates;
+  }
+
+
+  /**
+   * Gets the {@link #lexStates}.
+   */
+  public final void setLexStates(String[] lexstates) {
+    this.lexStates = lexstates;
+  }
+
+
+  /**
+   * Gets the {@link #lexStates}.
+   */
+  public final void setLexState(String lexstate, int index) {
+    this.lexStates[index] = lexstate;
+  }
 }

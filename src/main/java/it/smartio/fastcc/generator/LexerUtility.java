@@ -27,15 +27,15 @@ abstract class LexerUtility {
   static void CheckUnmatchability(RChoice choice, LexerData data) {
     for (Object element : choice.getChoices()) {
       RegularExpression curRE = (RegularExpression) element;
-      if (!curRE.private_rexp && (// curRE instanceof RJustName &&
-      curRE.ordinal > 0) && (curRE.ordinal < choice.ordinal)
-          && (data.getState(curRE.ordinal) == data.getState(choice.ordinal))) {
-        if (choice.label != null) {
+      if (!curRE.isPrivateExp() && (// curRE instanceof RJustName &&
+      curRE.getOrdinal() > 0) && (curRE.getOrdinal() < choice.getOrdinal())
+          && (data.getState(curRE.getOrdinal()) == data.getState(choice.getOrdinal()))) {
+        if (choice.getLabel() != null) {
           JavaCCErrors.warning(choice,
-              "Regular Expression choice : " + curRE.label + " can never be matched as : " + choice.label);
+              "Regular Expression choice : " + curRE.getLabel() + " can never be matched as : " + choice.getLabel());
         } else {
-          JavaCCErrors.warning(choice, "Regular Expression choice : " + curRE.label
-              + " can never be matched as token of kind : " + choice.ordinal);
+          JavaCCErrors.warning(choice, "Regular Expression choice : " + curRE.getLabel()
+              + " can never be matched as token of kind : " + choice.getOrdinal());
         }
       }
     }

@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class FastCCBuilder {
 
-  enum Language {
+  public enum Language {
 
     Java("Java"),
     Cpp("C++");
@@ -105,27 +105,5 @@ public class FastCCBuilder {
 
   private static File toFile(File file, String... pathes) {
     return (pathes.length == 0) ? file : new File(file, String.join(File.separator, pathes));
-  }
-
-  public static final File ROOT        = new File("/data/smartIO/release2304");
-  public static final File PARSER_JJT  = new File(ROOT, "parser/parser/src/main/resources/it/smartio/text/parser");
-  public static final File PARSER_CPP  = new File(ROOT, "core-cpp/text/parser");
-  public static final File PARSER_JAVA = new File(ROOT, "parser/parser/src/main/java/it/smartio/text/parser");
-
-  /**
-   * {@link #main}.
-   *
-   * @param args
-   */
-  public static void main(String[] args) {
-    FastCCBuilder builder = FastCCBuilder.of(Language.Cpp);
-    builder.setOutputDirectory(FastCCBuilder.PARSER_CPP);
-    builder.setJJTreeFile(FastCCBuilder.PARSER_JJT, "OQL-Cpp.jjt");
-    builder.build();
-
-    builder = FastCCBuilder.of(Language.Java);
-    builder.setOutputDirectory(FastCCBuilder.PARSER_JAVA);
-    builder.setJJTreeFile(FastCCBuilder.PARSER_JJT, "OQL.jjt");
-    builder.build();
   }
 }

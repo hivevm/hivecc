@@ -11,6 +11,36 @@ In addition to the parser generator itself, FastCC provides other standard capab
 
 All you need to run a FastCC parser, once generated, is a Java Runtime Environment (JRE).
 
+## Publishing
+
+Gradle allows to define custom plugins that can be published to the Gradle repository. For testing usually we publish only to the local maven repository.
+
+~~~
+./gradlew clean publishToMavenLocal
+	OR
+./gradlew clean publishPlugins
+~~~
+
+
+
+## Configure
+
+The plugin implements the FastCC generated.
+
+~~~
+plugins {
+  id "it.smartio.fastcc" version "0.1.0"
+}
+
+fastcc {
+  sourceCpp    = 'src/main/resources/Cpp.jjt'
+  targetCpp    = 'src/main/cpp'
+
+  sourceJava   = 'src/main/resources/Java.jjt'
+  targetJava   = 'src/main/java'
+}
+~~~
+
 ## <a name="toc"></a>Contents
 
 - [Introduction](#introduction)

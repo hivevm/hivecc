@@ -67,13 +67,6 @@ public class Lookahead extends Expansion {
   }
 
   /**
-   * @param amount the amount to set
-   */
-  public void setAmount(int amount) {
-    this.amount = amount;
-  }
-
-  /**
    * @return the amount
    */
   public int getAmount() {
@@ -81,10 +74,10 @@ public class Lookahead extends Expansion {
   }
 
   /**
-   * @param la_expansion the la_expansion to set
+   * @return the isExplicit
    */
-  public void setLaExpansion(Expansion la_expansion) {
-    this.la_expansion = la_expansion;
+  public boolean isExplicit() {
+    return this.isExplicit;
   }
 
   /**
@@ -95,6 +88,13 @@ public class Lookahead extends Expansion {
   }
 
   /**
+   * @param amount the amount to set
+   */
+  public void setAmount(int amount) {
+    this.amount = amount;
+  }
+
+  /**
    * @param isExplicit the isExplicit to set
    */
   public void setExplicit(boolean isExplicit) {
@@ -102,9 +102,9 @@ public class Lookahead extends Expansion {
   }
 
   /**
-   * @return the isExplicit
+   * @param la_expansion the la_expansion to set
    */
-  public boolean isExplicit() {
-    return this.isExplicit;
+  public void setLaExpansion(Expansion la_expansion) {
+    this.la_expansion = la_expansion;
   }
 }

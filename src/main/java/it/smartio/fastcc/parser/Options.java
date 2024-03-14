@@ -85,7 +85,7 @@ public class Options {
     temp.add(new OptionInfo(FastCC.JJPARSER_KEEP_LINE_COLUMN, Boolean.TRUE));
 
     temp.add(new OptionInfo(FastCC.JJPARSER_OUTPUT_DIRECTORY, "."));
-    temp.add(new OptionInfo(FastCC.JJPARSER_OUTPUT_LANGUAGE, Options.OUTPUT_LANGUAGE__JAVA));
+    temp.add(new OptionInfo(FastCC.JJPARSER_CODEGENERATOR, Options.OUTPUT_LANGUAGE__JAVA));
     temp.add(new OptionInfo(FastCC.JJPARSER_DEPTH_LIMIT, Integer.valueOf(0)));
 
     temp.add(new OptionInfo(FastCC.JJPARSER_JAVA_PACKAGE, ""));
@@ -481,7 +481,7 @@ public class Options {
    * @return the output language. default java
    */
   public static JJLanguage getOutputLanguage() {
-    String language = (String) Options.optionValues.get(FastCC.JJPARSER_OUTPUT_LANGUAGE);
+    String language = (String) Options.optionValues.get(FastCC.JJPARSER_CODEGENERATOR);
     if (language.equalsIgnoreCase(Options.OUTPUT_LANGUAGE__JAVA)) {
       return JJLanguage.Java;
     } else if (language.equalsIgnoreCase(Options.OUTPUT_LANGUAGE__CPP) || language.equalsIgnoreCase("cpp")) {

@@ -23,6 +23,7 @@
 
 package it.smartio.fastcc.parser;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -34,28 +35,85 @@ public class TryBlock extends Expansion {
   /**
    * The expansion contained within the try block.
    */
-  public Expansion         exp;
+  private Expansion               expansion;
 
   /**
    * The types of each catch block. Each list entry is itself a list which in turn contains tokens
    * as entries.
    */
-  public List<List<Token>> types;
+  private final List<List<Token>> types;
 
   /**
    * The exception identifiers of each catch block. Each list entry is a token.
    */
-  public List<Token>       ids;
+  private final List<Token>       ids;
 
   /**
    * The block part of each catch block. Each list entry is itself a list which in turn contains
    * tokens as entries.
    */
-  public List<List<Token>> catchblks;
+  private final List<List<Token>> catchblks;
 
   /**
    * The block part of the finally block. Each list entry is a token. If there is no finally block,
    * this is null.
    */
-  public List<Token>       finallyblk;
+  private final List<Token>       finallyblk;
+
+  /**
+   * Constructs an instance of {@link TryBlock}.
+   *
+   * @param ids
+   * @param types
+   * @param catchblks
+   * @param finallyblk
+   */
+  public TryBlock(List<Token> ids, List<List<Token>> types, List<List<Token>> catchblks, List<Token> finallyblk) {
+    this.ids = ids == null ? Collections.emptyList() : ids;
+    this.types = types == null ? Collections.emptyList() : types;
+    this.catchblks = catchblks == null ? Collections.emptyList() : catchblks;
+    this.finallyblk = finallyblk == null ? Collections.emptyList() : finallyblk;
+  }
+
+  /**
+   * Gets the {@link #expansion}.
+   */
+  public final Expansion getExpansion() {
+    return expansion;
+  }
+
+  /**
+   * Gets the {@link #ids}.
+   */
+  public final List<Token> getIds() {
+    return ids;
+  }
+
+  /**
+   * Gets the {@link #types}.
+   */
+  public final List<List<Token>> getTypes() {
+    return types;
+  }
+
+  /**
+   * Gets the {@link #catchblks}.
+   */
+  public final List<List<Token>> getCatchBlocks() {
+    return catchblks;
+  }
+
+  /**
+   * Gets the {@link #finallyblk}.
+   */
+  public final List<Token> getFinallyBlock() {
+    return finallyblk;
+  }
+
+  /**
+   * Sets the {@link #expansion}.
+   */
+  public final void setExpansion(Expansion expansion) {
+    this.expansion = expansion;
+  }
 }

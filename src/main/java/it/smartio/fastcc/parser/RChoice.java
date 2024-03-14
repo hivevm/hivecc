@@ -61,19 +61,19 @@ public class RChoice extends RegularExpression {
       curRE = getChoices().get(i);
 
       while (curRE instanceof RJustName) {
-        curRE = ((RJustName) curRE).regexpr;
+        curRE = ((RJustName) curRE).getRegexpr();
       }
 
-      if ((curRE instanceof RStringLiteral) && (((RStringLiteral) curRE).image.length() == 1)) {
-        getChoices().set(i, curRE = new RCharacterList(((RStringLiteral) curRE).image.charAt(0)));
+      if ((curRE instanceof RStringLiteral) && (((RStringLiteral) curRE).getImage().length() == 1)) {
+        getChoices().set(i, curRE = new RCharacterList(((RStringLiteral) curRE).getImage().charAt(0)));
       }
 
       if (curRE instanceof RCharacterList) {
-        if (((RCharacterList) curRE).negated_list) {
+        if (((RCharacterList) curRE).isNegated_list()) {
           ((RCharacterList) curRE).RemoveNegation();
         }
 
-        List<Object> tmp = ((RCharacterList) curRE).descriptors;
+        List<Object> tmp = ((RCharacterList) curRE).getDescriptors();
 
         if (curCharList == null) {
           getChoices().set(i, curRE = curCharList = new RCharacterList());
@@ -82,7 +82,7 @@ public class RChoice extends RegularExpression {
         }
 
         for (int j = tmp.size(); j-- > 0;) {
-          curCharList.descriptors.add(tmp.get(j));
+          curCharList.getDescriptors().add(tmp.get(j));
         }
       }
 
@@ -96,7 +96,7 @@ public class RChoice extends RegularExpression {
       curRE = getChoices().get(i);
 
       while (curRE instanceof RJustName) {
-        curRE = ((RJustName) curRE).regexpr;
+        curRE = ((RJustName) curRE).getRegexpr();
       }
 
       if (curRE instanceof RChoice) {

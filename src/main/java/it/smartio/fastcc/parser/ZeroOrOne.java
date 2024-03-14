@@ -32,7 +32,7 @@ public class ZeroOrOne extends Expansion {
   /**
    * The expansion which is repeated zero or one times.
    */
-  public Expansion expansion;
+  private Expansion expansion;
 
   public ZeroOrOne() {}
 
@@ -41,5 +41,12 @@ public class ZeroOrOne extends Expansion {
     setColumn(t.beginColumn);
     this.expansion = e;
     e.parent = this;
+  }
+
+  /**
+   * Gets the {@link Expansionn}.
+   */
+  public final Expansion getExpansion() {
+    return expansion;
   }
 }

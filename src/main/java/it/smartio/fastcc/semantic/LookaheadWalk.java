@@ -58,7 +58,7 @@ abstract class LookaheadWalk {
           mnew.match[j] = m.match[j];
         }
         mnew.firstFreeLoc = m.firstFreeLoc;
-        mnew.match[mnew.firstFreeLoc++] = ((RegularExpression) exp).ordinal;
+        mnew.match[mnew.firstFreeLoc++] = ((RegularExpression) exp).getOrdinal();
         if (mnew.firstFreeLoc == data.laLimit()) {
           data.getSizeLimitedMatches().add(mnew);
         } else {
@@ -80,7 +80,7 @@ abstract class LookaheadWalk {
     } else if (exp instanceof Sequence) {
       List<MatchInfo> v = partialMatches;
       Sequence seq = (Sequence) exp;
-      for (Object element : seq.units) {
+      for (Object element : seq.getUnits()) {
         v = LookaheadWalk.genFirstSet(data, v, (Expansion) element);
         if (v.size() == 0) {
           break;
@@ -92,7 +92,7 @@ abstract class LookaheadWalk {
       List<MatchInfo> v = partialMatches;
       OneOrMore om = (OneOrMore) exp;
       while (true) {
-        v = LookaheadWalk.genFirstSet(data, v, om.expansion);
+        v = LookaheadWalk.genFirstSet(data, v, om.getExpansion());
         if (v.size() == 0) {
           break;
         }
@@ -105,7 +105,7 @@ abstract class LookaheadWalk {
       List<MatchInfo> v = partialMatches;
       ZeroOrMore zm = (ZeroOrMore) exp;
       while (true) {
-        v = LookaheadWalk.genFirstSet(data, v, zm.expansion);
+        v = LookaheadWalk.genFirstSet(data, v, zm.getExpansion());
         if (v.size() == 0) {
           break;
         }
@@ -115,10 +115,10 @@ abstract class LookaheadWalk {
     } else if (exp instanceof ZeroOrOne) {
       List<MatchInfo> retval = new ArrayList<>();
       LookaheadWalk.listAppend(retval, partialMatches);
-      LookaheadWalk.listAppend(retval, LookaheadWalk.genFirstSet(data, partialMatches, ((ZeroOrOne) exp).expansion));
+      LookaheadWalk.listAppend(retval, LookaheadWalk.genFirstSet(data, partialMatches, ((ZeroOrOne) exp).getExpansion()));
       return retval;
     } else if (exp instanceof TryBlock) {
-      return LookaheadWalk.genFirstSet(data, partialMatches, ((TryBlock) exp).exp);
+      return LookaheadWalk.genFirstSet(data, partialMatches, ((TryBlock) exp).getExpansion());
     } else if (data.considerSemanticLA() && (exp instanceof Lookahead)
         && (((Lookahead) exp).getActionTokens().size() != 0)) {
       return new ArrayList<>();
@@ -170,8 +170,8 @@ abstract class LookaheadWalk {
     if (exp.parent instanceof Sequence) {
       Sequence seq = (Sequence) exp.parent;
       List<MatchInfo> v = partialMatches;
-      for (int i = exp.ordinal + 1; i < seq.units.size(); i++) {
-        v = LookaheadWalk.genFirstSet(data, v, (Expansion) seq.units.get(i));
+      for (int i = exp.ordinal + 1; i < seq.getUnits().size(); i++) {
+        v = LookaheadWalk.genFirstSet(data, v, (Expansion) seq.getUnits().get(i));
         if (v.size() == 0) {
           return v;
         }

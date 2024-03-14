@@ -66,7 +66,7 @@ public class RStringLiteral extends RegularExpression {
   /**
    * The string image of the literal.
    */
-  public String image;
+  private String image;
 
   public RStringLiteral() {}
 
@@ -84,5 +84,21 @@ public class RStringLiteral extends RegularExpression {
   @Override
   public final <R, D> R accept(RegularExpressionVisitor<R, D> visitor, D data) {
     return visitor.visit(this, data);
+  }
+
+
+  /**
+   * Gets the {@link #image}.
+   */
+  public final String getImage() {
+    return image;
+  }
+
+
+  /**
+   * Sets the {@link #image}.
+   */
+  public final void setImage(String image) {
+    this.image = image;
   }
 }

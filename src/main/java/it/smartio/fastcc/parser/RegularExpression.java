@@ -35,37 +35,45 @@ public abstract class RegularExpression extends Expansion {
   /**
    * The label of the regular expression (if any). If no label is present, this is set to "".
    */
-  public String          label        = "";
+  protected String        label        = "";
 
   /**
    * The ordinal value assigned to the regular expression. It is used for internal processing and
    * passing information between the parser and the lexical analyzer.
    */
-  public int             ordinal;
+  protected int           ordinal;
 
   /**
    * The LHS to which the token value of the regular expression is assigned. In case there is no
    * LHS, then the list remains empty.
    */
-  public List<Token>     lhsTokens    = new ArrayList<>();
+  private List<Token>     lhsTokens    = new ArrayList<>();
 
   /**
    * We now allow qualified access to token members. Store it here.
    */
-  public Token           rhsToken;
+  private Token           rhsToken;
 
   /**
    * This flag is set if the regular expression has a label prefixed with the # symbol - this
    * indicates that the purpose of the regular expression is solely for defining other regular
    * expressions.
    */
-  public boolean         private_rexp = false;
+  private boolean         private_rexp = false;
 
   /**
    * If this is a top-level regular expression (nested directly within a TokenProduction), then this
    * field point to that TokenProduction object.
    */
-  public TokenProduction tpContext    = null;
+  private TokenProduction tpContext    = null;
+
+
+  /**
+   * Gets the {@link #label}.
+   */
+  public final String getLabel() {
+    return label;
+  }
 
   public boolean CanMatchAnyChar() {
     return false;
@@ -77,7 +85,99 @@ public abstract class RegularExpression extends Expansion {
    * walk, and then it is set to 1 if the pre-order walk of the whole graph from this node has been
    * traversed. i.e., -1 indicates partially processed, and 1 indicates fully processed.
    */
-  public int walkStatus = 0;
+  private int walkStatus = 0;
 
   public abstract <R, D> R accept(RegularExpressionVisitor<R, D> visitor, D data);
+
+
+  /**
+   * Gets the {@link #rhsToken}.
+   */
+  public final Token getRhsToken() {
+    return rhsToken;
+  }
+
+  /**
+   * Gets the {@link #rhsToken}.
+   */
+  public final void setRhsToken(Token token) {
+    this.rhsToken = token;
+  }
+
+  /**
+   * Gets the {@link #lhsTokens}.
+   */
+  public final List<Token> getLhsTokens() {
+    return lhsTokens;
+  }
+
+
+  /**
+   * Sets the {@link #lhsTokens}.
+   */
+  public final void setLhsTokens(List<Token> lhsTokens) {
+    this.lhsTokens = lhsTokens;
+  }
+
+
+  /**
+   * Gets the {@link #private_rexp}.
+   */
+  public final boolean isPrivateExp() {
+    return private_rexp;
+  }
+
+
+  /**
+   * Sets the {@link #private_rexp}.
+   */
+  public final void setPrivateRegExp(boolean private_rexp) {
+    this.private_rexp = private_rexp;
+  }
+
+
+  /**
+   * Gets the {@link #ordinal}.
+   */
+  public final int getOrdinal() {
+    return ordinal;
+  }
+
+
+  /**
+   * Sets the {@link #ordinal}.
+   */
+  public final void setOrdinal(int ordinal) {
+    this.ordinal = ordinal;
+  }
+
+
+  /**
+   * Gets the {@link #walkStatus}.
+   */
+  public final int getWalkStatus() {
+    return walkStatus;
+  }
+
+
+  /**
+   * Sets the {@link #walkStatus}.
+   */
+  public final void setWalkStatus(int walkStatus) {
+    this.walkStatus = walkStatus;
+  }
+
+  /**
+   * Gets the {@link #tpContext}.
+   */
+  public final TokenProduction getTpContext() {
+    return tpContext;
+  }
+
+  /**
+   * Sets the {@link #tpContext}.
+   */
+  public final void setTpContext(TokenProduction tpContext) {
+    this.tpContext = tpContext;
+  }
 }

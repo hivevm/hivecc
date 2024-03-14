@@ -34,6 +34,7 @@ import it.smartio.fastcc.parser.RStringLiteral.KindInfo;
 import it.smartio.fastcc.parser.RegExprSpec;
 import it.smartio.fastcc.parser.RegularExpression;
 import it.smartio.fastcc.parser.TokenProduction;
+import it.smartio.fastcc.parser.TokenProduction.Kind;
 
 /**
  * The {@link LexerBuilder} class.
@@ -88,7 +89,7 @@ class LexerBuilder {
 
     // IMPORTANT: Init after buildLexStatesTable
     RegularExpression curRE = null;
-    int[] kinds = new int[data.maxOrdinal];
+    Kind[] kinds = new Kind[data.maxOrdinal];
     Hashtable<String, NfaState> initStates = new Hashtable<>();
 
     for (String key : allTpsForState.keySet()) {
@@ -106,35 +107,35 @@ class LexerBuilder {
       List<TokenProduction> allTps = allTpsForState.get(key);
       for (int i = 0; i < allTps.size(); i++) {
         TokenProduction tp = allTps.get(i);
-        int kind = tp.kind;
-        boolean ignore = tp.ignoreCase;
+        Kind kind = tp.getKind();
+        boolean ignore = tp.isIgnoreCase();
 
         if (i == 0) {
           ignoring = ignore;
         }
 
-        for (RegExprSpec respec : tp.respecs) {
+        for (RegExprSpec respec : tp.getRespecs()) {
           curRE = respec.rexp;
 
-          data.rexprs[data.curKind = curRE.ordinal] = curRE;
-          data.lexStates[curRE.ordinal] = stateData.getStateIndex();
-          data.ignoreCase[curRE.ordinal] = ignore;
+          data.rexprs[data.curKind = curRE.getOrdinal()] = curRE;
+          data.lexStates[curRE.getOrdinal()] = stateData.getStateIndex();
+          data.ignoreCase[curRE.getOrdinal()] = ignore;
 
-          if (curRE.private_rexp) {
-            kinds[curRE.ordinal] = -1;
+          if (curRE.isPrivateExp()) {
+            kinds[curRE.getOrdinal()] = null;
             continue;
           }
 
           if (!data.options().getNoDfa() && (curRE instanceof RStringLiteral)
-              && !((RStringLiteral) curRE).image.equals("")) {
-            GenerateDfa(stateData, ((RStringLiteral) curRE), curRE.ordinal);
+              && !((RStringLiteral) curRE).getImage().equals("")) {
+            GenerateDfa(stateData, ((RStringLiteral) curRE), curRE.getOrdinal());
             if ((i != 0) && !stateData.isMixedState() && (ignoring != ignore)) {
               stateData.hasMixed = true;
             }
           } else if (curRE.CanMatchAnyChar()) {
             if ((data.canMatchAnyChar[stateData.getStateIndex()] == -1)
-                || (data.canMatchAnyChar[stateData.getStateIndex()] > curRE.ordinal)) {
-              data.canMatchAnyChar[stateData.getStateIndex()] = curRE.ordinal;
+                || (data.canMatchAnyChar[stateData.getStateIndex()] > curRE.getOrdinal())) {
+              data.canMatchAnyChar[stateData.getStateIndex()] = curRE.getOrdinal();
             }
           } else {
             Nfa temp;
@@ -145,53 +146,52 @@ class LexerBuilder {
 
             temp = curRE.accept(new NfaVisitor(ignore), stateData);
             temp.end.isFinal = true;
-            temp.end.kind = curRE.ordinal;
+            temp.end.kind = curRE.getOrdinal();
             stateData.getInitialState().AddMove(temp.start);
           }
 
-          if (kinds.length < curRE.ordinal) {
-            int[] tmp = new int[curRE.ordinal + 1];
+          if (kinds.length < curRE.getOrdinal()) {
+            Kind[] tmp = new Kind[curRE.getOrdinal() + 1];
             System.arraycopy(kinds, 0, tmp, 0, kinds.length);
             kinds = tmp;
           }
-          kinds[curRE.ordinal] = kind;
+          kinds[curRE.getOrdinal()] = kind;
 
           if ((respec.nextState != null) && !respec.nextState.equals(data.getStateName(stateData.getStateIndex()))) {
-            data.newLexState[curRE.ordinal] = respec.nextState;
+            data.newLexState[curRE.getOrdinal()] = respec.nextState;
           }
 
-          if ((respec.act != null) && (respec.act.getActionTokens() != null)
-              && (respec.act.getActionTokens().size() > 0)) {
-            data.actions[curRE.ordinal] = respec.act;
+          if ((respec.act != null) && !respec.act.getActionTokens().isEmpty()) {
+            data.actions[curRE.getOrdinal()] = respec.act;
           }
 
           switch (kind) {
-            case TokenProduction.SPECIAL:
-              data.hasSkipActions |= (data.actions[curRE.ordinal] != null) || (data.newLexState[curRE.ordinal] != null);
+            case SPECIAL:
+              data.hasSkipActions |= (data.actions[curRE.getOrdinal()] != null) || (data.newLexState[curRE.getOrdinal()] != null);
               data.hasSpecial = true;
-              data.toSpecial[curRE.ordinal / 64] |= 1L << (curRE.ordinal % 64);
-              data.toSkip[curRE.ordinal / 64] |= 1L << (curRE.ordinal % 64);
+              data.toSpecial[curRE.getOrdinal() / 64] |= 1L << (curRE.getOrdinal() % 64);
+              data.toSkip[curRE.getOrdinal() / 64] |= 1L << (curRE.getOrdinal() % 64);
               break;
-            case TokenProduction.SKIP:
-              data.hasSkipActions |= (data.actions[curRE.ordinal] != null);
+            case SKIP:
+              data.hasSkipActions |= (data.actions[curRE.getOrdinal()] != null);
               data.hasSkip = true;
-              data.toSkip[curRE.ordinal / 64] |= 1L << (curRE.ordinal % 64);
+              data.toSkip[curRE.getOrdinal() / 64] |= 1L << (curRE.getOrdinal() % 64);
               break;
-            case TokenProduction.MORE:
-              data.hasMoreActions |= (data.actions[curRE.ordinal] != null);
+            case MORE:
+              data.hasMoreActions |= (data.actions[curRE.getOrdinal()] != null);
               data.hasMore = true;
-              data.toMore[curRE.ordinal / 64] |= 1L << (curRE.ordinal % 64);
+              data.toMore[curRE.getOrdinal() / 64] |= 1L << (curRE.getOrdinal() % 64);
 
-              if (data.newLexState[curRE.ordinal] != null) {
-                data.canReachOnMore[data.getStateIndex(data.newLexState[curRE.ordinal])] = true;
+              if (data.newLexState[curRE.getOrdinal()] != null) {
+                data.canReachOnMore[data.getStateIndex(data.newLexState[curRE.getOrdinal()])] = true;
               } else {
                 data.canReachOnMore[stateData.getStateIndex()] = true;
               }
 
               break;
-            case TokenProduction.TOKEN:
-              data.hasTokenActions |= (data.actions[curRE.ordinal] != null);
-              data.toToken[curRE.ordinal / 64] |= 1L << (curRE.ordinal % 64);
+            case TOKEN:
+              data.hasTokenActions |= (data.actions[curRE.getOrdinal()] != null);
+              data.toToken[curRE.getOrdinal() / 64] |= 1L << (curRE.getOrdinal() % 64);
               break;
           }
         }
@@ -255,10 +255,10 @@ class LexerBuilder {
     int maxOrdinal = 1;
     int maxLexStates = 0;
     for (TokenProduction tp : request.getTokenProductions()) {
-      List<RegExprSpec> respecs = tp.respecs;
+      List<RegExprSpec> respecs = tp.getRespecs();
       List<TokenProduction> tps;
 
-      for (String lexState : tp.lexStates) {
+      for (String lexState : tp.getLexStates()) {
         if ((tps = allTpsForState.get(lexState)) == null) {
           tmpLexStateName[maxLexStates++] = lexState;
           allTpsForState.put(lexState, tps = new ArrayList<>());
@@ -272,8 +272,8 @@ class LexerBuilder {
 
       RegularExpression re;
       for (RegExprSpec respec : respecs) {
-        if (maxOrdinal <= (re = respec.rexp).ordinal) {
-          maxOrdinal = re.ordinal + 1;
+        if (maxOrdinal <= (re = respec.rexp).getOrdinal()) {
+          maxOrdinal = re.getOrdinal() + 1;
         }
       }
     }
@@ -516,20 +516,20 @@ class LexerBuilder {
     KindInfo info;
     int len;
 
-    if (data.maxStrKind <= rstring.ordinal) {
-      data.maxStrKind = rstring.ordinal + 1;
+    if (data.maxStrKind <= rstring.getOrdinal()) {
+      data.maxStrKind = rstring.getOrdinal() + 1;
     }
 
-    if ((len = rstring.image.length()) > data.maxLen) {
+    if ((len = rstring.getImage().length()) > data.maxLen) {
       data.maxLen = len;
     }
 
     char c;
     for (int i = 0; i < len; i++) {
       if (data.ignoreCase()) {
-        s = ("" + (c = rstring.image.charAt(i))).toLowerCase(Locale.ENGLISH);
+        s = ("" + (c = rstring.getImage().charAt(i))).toLowerCase(Locale.ENGLISH);
       } else {
-        s = "" + (c = rstring.image.charAt(i));
+        s = "" + (c = rstring.getImage().charAt(i));
       }
 
       if (i >= data.charPosKind.size()) { // Kludge, but OK
@@ -543,13 +543,13 @@ class LexerBuilder {
       }
 
       if ((i + 1) == len) {
-        info.InsertFinalKind(rstring.ordinal);
+        info.InsertFinalKind(rstring.getOrdinal());
       } else {
-        info.InsertValidKind(rstring.ordinal);
+        info.InsertValidKind(rstring.getOrdinal());
       }
 
-      if (!data.ignoreCase() && data.global.ignoreCase[rstring.ordinal] && (c != Character.toLowerCase(c))) {
-        s = ("" + rstring.image.charAt(i)).toLowerCase(Locale.ENGLISH);
+      if (!data.ignoreCase() && data.global.ignoreCase[rstring.getOrdinal()] && (c != Character.toLowerCase(c))) {
+        s = ("" + rstring.getImage().charAt(i)).toLowerCase(Locale.ENGLISH);
 
         if (i >= data.charPosKind.size()) { // Kludge, but OK
           data.charPosKind.add(temp = new Hashtable<>());
@@ -562,14 +562,14 @@ class LexerBuilder {
         }
 
         if ((i + 1) == len) {
-          info.InsertFinalKind(rstring.ordinal);
+          info.InsertFinalKind(rstring.getOrdinal());
         } else {
-          info.InsertValidKind(rstring.ordinal);
+          info.InsertValidKind(rstring.getOrdinal());
         }
       }
 
-      if (!data.ignoreCase() && data.global.ignoreCase[rstring.ordinal] && (c != Character.toUpperCase(c))) {
-        s = ("" + rstring.image.charAt(i)).toUpperCase();
+      if (!data.ignoreCase() && data.global.ignoreCase[rstring.getOrdinal()] && (c != Character.toUpperCase(c))) {
+        s = ("" + rstring.getImage().charAt(i)).toUpperCase();
 
         if (i >= data.charPosKind.size()) { // Kludge, but OK
           data.charPosKind.add(temp = new Hashtable<>());
@@ -582,15 +582,15 @@ class LexerBuilder {
         }
 
         if ((i + 1) == len) {
-          info.InsertFinalKind(rstring.ordinal);
+          info.InsertFinalKind(rstring.getOrdinal());
         } else {
-          info.InsertValidKind(rstring.ordinal);
+          info.InsertValidKind(rstring.getOrdinal());
         }
       }
     }
 
-    data.maxLenForActive[rstring.ordinal / 64] = Math.max(data.maxLenForActive[rstring.ordinal / 64], len - 1);
-    data.global.allImages[rstring.ordinal] = rstring.image;
+    data.maxLenForActive[rstring.getOrdinal() / 64] = Math.max(data.maxLenForActive[rstring.getOrdinal() / 64], len - 1);
+    data.global.allImages[rstring.getOrdinal()] = rstring.getImage();
   }
 
   // ////////////////////////// NFaState
@@ -917,15 +917,15 @@ class LexerBuilder {
       if (len == 0) {
         JavaCCErrors.warning(data.rexprs[data.initMatch[i]],
             "Regular expression"
-                + ((data.rexprs[data.initMatch[i]].label.equals("")) ? ""
-                    : (" for " + data.rexprs[data.initMatch[i]].label))
+                + ((data.rexprs[data.initMatch[i]].getLabel().equals("")) ? ""
+                    : (" for " + data.rexprs[data.initMatch[i]].getLabel()))
                 + " can be matched by the empty string (\"\") in lexical state " + data.getStateName(i)
                 + ". This can result in an endless loop of " + "empty string matches.");
       } else {
         JavaCCErrors.warning(data.rexprs[data.initMatch[i]],
             "Regular expression"
-                + ((data.rexprs[data.initMatch[i]].label.equals("")) ? ""
-                    : (" for " + data.rexprs[data.initMatch[i]].label))
+                + ((data.rexprs[data.initMatch[i]].getLabel().equals("")) ? ""
+                    : (" for " + data.rexprs[data.initMatch[i]].getLabel()))
                 + " can be matched by the empty string (\"\") in lexical state " + data.getStateName(i)
                 + ". This regular expression along with the " + "regular expressions at " + reList
                 + " forms the cycle \n   " + cycle + "\ncontaining regular expressions with empty matches."
