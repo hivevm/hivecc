@@ -13,7 +13,6 @@ import it.smartio.fastcc.jjtree.ASTBNFNodeScope;
 import it.smartio.fastcc.jjtree.ASTBNFNonTerminal;
 import it.smartio.fastcc.jjtree.ASTBNFOneOrMore;
 import it.smartio.fastcc.jjtree.ASTBNFSequence;
-import it.smartio.fastcc.jjtree.ASTBNFTryBlock;
 import it.smartio.fastcc.jjtree.ASTBNFZeroOrMore;
 import it.smartio.fastcc.jjtree.ASTBNFZeroOrOne;
 import it.smartio.fastcc.jjtree.ASTCompilationUnit;
@@ -73,7 +72,7 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
       JJTreeNode n = node;
       while (true) {
         Node p = n.jjtGetParent();
-        if ((p instanceof ASTBNFSequence) || (p instanceof ASTBNFTryBlock)) {
+        if (p instanceof ASTBNFSequence) {
           if (n.getOrdinal() != (p.jjtGetNumChildren() - 1)) {
             /* We're not the final unit in the sequence. */
             needClose = false;

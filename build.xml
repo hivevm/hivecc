@@ -96,7 +96,6 @@
 		<delete file="${jjtree-generated-src}/ASTExpansionNodeScope.java" />
 		<delete file="${jjtree-generated-src}/ASTNodeDescriptor.java" />
 		<delete file="${jjtree-generated-src}/ASTOptionBinding.java" />
-		<delete file="${jjtree-generated-src}/JJTreeParserDefaultVisitor.java" />
 
 		<mkdir dir="classes" />
 
@@ -107,7 +106,7 @@
 		<copy file="${resources-src}/version.properties" todir="classes" />
 
 		<javac srcdir="${java-src}" destdir="classes" debug="true" classpath="" includeantruntime='false' source="8" target="8">
-			<src path="${java-src}" />
+			<src path="${java-src}"/>
 			<src path="${generated-src}" />
 			<src path="${resources-src}" />
 		</javac>

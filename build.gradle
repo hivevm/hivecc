@@ -44,6 +44,7 @@ dependencies {
 sourceSets {
   main {
     java {
+      srcDirs += 'src/main/gradle'
       srcDirs += 'src/main/generated'
       // Exclude build of Maven Plugin extending Mojo
       exclude '**/*Mojo.java'
