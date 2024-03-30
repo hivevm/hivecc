@@ -172,6 +172,10 @@ public class JavaParserGenerator extends ParserGenerator {
     genHeaderMethod(p, t, writer, options);
 
     writer.print(" {");
+    
+    if(p.header != null) {
+      writer.print(p.header.substring(5));
+    }
 
     if (options.getDepthLimit() > 0) {
       writer.println("if(++jj_depth > " + options.getDepthLimit() + ") {");

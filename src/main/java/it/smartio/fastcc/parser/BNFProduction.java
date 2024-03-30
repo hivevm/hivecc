@@ -36,6 +36,7 @@ public class BNFProduction extends NormalProduction {
    * The declarations of this production.
    */
   private final List<Token> declaration_tokens = new ArrayList<>();
+  public String header;
 
   /**
    * This flag keeps track of whether or not return and throw statements have been patched within
