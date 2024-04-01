@@ -34,7 +34,6 @@ import it.smartio.fastcc.parser.NormalProduction;
 import it.smartio.fastcc.parser.OneOrMore;
 import it.smartio.fastcc.parser.RegularExpression;
 import it.smartio.fastcc.parser.Sequence;
-import it.smartio.fastcc.parser.TryBlock;
 import it.smartio.fastcc.parser.ZeroOrMore;
 import it.smartio.fastcc.parser.ZeroOrOne;
 
@@ -115,10 +114,9 @@ abstract class LookaheadWalk {
     } else if (exp instanceof ZeroOrOne) {
       List<MatchInfo> retval = new ArrayList<>();
       LookaheadWalk.listAppend(retval, partialMatches);
-      LookaheadWalk.listAppend(retval, LookaheadWalk.genFirstSet(data, partialMatches, ((ZeroOrOne) exp).getExpansion()));
+      LookaheadWalk.listAppend(retval,
+          LookaheadWalk.genFirstSet(data, partialMatches, ((ZeroOrOne) exp).getExpansion()));
       return retval;
-    } else if (exp instanceof TryBlock) {
-      return LookaheadWalk.genFirstSet(data, partialMatches, ((TryBlock) exp).getExpansion());
     } else if (data.considerSemanticLA() && (exp instanceof Lookahead)
         && (((Lookahead) exp).getActionTokens().size() != 0)) {
       return new ArrayList<>();

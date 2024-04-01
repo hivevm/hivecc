@@ -51,7 +51,7 @@ public class RZeroOrMore extends RegularExpression {
    * Gets the {@link #regexpr}.
    */
   public final RegularExpression getRegexpr() {
-    return regexpr;
+    return this.regexpr;
   }
 
   /**

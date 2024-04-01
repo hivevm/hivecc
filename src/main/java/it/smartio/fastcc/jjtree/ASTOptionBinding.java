@@ -1,3 +1,4 @@
+
 package it.smartio.fastcc.jjtree;
 
 class ASTOptionBinding extends JJTreeNode {

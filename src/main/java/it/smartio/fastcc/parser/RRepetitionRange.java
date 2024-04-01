@@ -47,7 +47,7 @@ public class RRepetitionRange extends RegularExpression {
    * Gets the {@link #min}.
    */
   public final int getMin() {
-    return min;
+    return this.min;
   }
 
 
@@ -55,7 +55,7 @@ public class RRepetitionRange extends RegularExpression {
    * Gets the {@link #max}.
    */
   public final int getMax() {
-    return max;
+    return this.max;
   }
 
 
@@ -63,14 +63,14 @@ public class RRepetitionRange extends RegularExpression {
    * Gets the {@link #hasMax}.
    */
   public final boolean hasMax() {
-    return hasMax;
+    return this.hasMax;
   }
 
   /**
    * Gets the {@link #regexpr}.
    */
   public final RegularExpression getRegexpr() {
-    return regexpr;
+    return this.regexpr;
   }
 
   /**

@@ -86,7 +86,7 @@ public class DigestWriter extends PrintWriter {
    */
   @Override
   public void close() {
-    if (isCpp) {
+    if (this.isCpp) {
       println();
       println("#pragma GCC diagnostic pop");
       println();

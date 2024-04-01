@@ -91,7 +91,7 @@ public class RStringLiteral extends RegularExpression {
    * Gets the {@link #image}.
    */
   public final String getImage() {
-    return image;
+    return this.image;
   }
 
 

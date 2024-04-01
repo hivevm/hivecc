@@ -47,6 +47,6 @@ public class ZeroOrMore extends Expansion {
    * Gets the {@link Expansionn}.
    */
   public final Expansion getExpansion() {
-    return expansion;
+    return this.expansion;
   }
 }

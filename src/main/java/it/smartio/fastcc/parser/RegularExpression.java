@@ -72,7 +72,7 @@ public abstract class RegularExpression extends Expansion {
    * Gets the {@link #label}.
    */
   public final String getLabel() {
-    return label;
+    return this.label;
   }
 
   public boolean CanMatchAnyChar() {
@@ -94,7 +94,7 @@ public abstract class RegularExpression extends Expansion {
    * Gets the {@link #rhsToken}.
    */
   public final Token getRhsToken() {
-    return rhsToken;
+    return this.rhsToken;
   }
 
   /**
@@ -108,7 +108,7 @@ public abstract class RegularExpression extends Expansion {
    * Gets the {@link #lhsTokens}.
    */
   public final List<Token> getLhsTokens() {
-    return lhsTokens;
+    return this.lhsTokens;
   }
 
 
@@ -124,7 +124,7 @@ public abstract class RegularExpression extends Expansion {
    * Gets the {@link #private_rexp}.
    */
   public final boolean isPrivateExp() {
-    return private_rexp;
+    return this.private_rexp;
   }
 
 
@@ -140,7 +140,7 @@ public abstract class RegularExpression extends Expansion {
    * Gets the {@link #ordinal}.
    */
   public final int getOrdinal() {
-    return ordinal;
+    return this.ordinal;
   }
 
 
@@ -156,7 +156,7 @@ public abstract class RegularExpression extends Expansion {
    * Gets the {@link #walkStatus}.
    */
   public final int getWalkStatus() {
-    return walkStatus;
+    return this.walkStatus;
   }
 
 
@@ -171,7 +171,7 @@ public abstract class RegularExpression extends Expansion {
    * Gets the {@link #tpContext}.
    */
   public final TokenProduction getTpContext() {
-    return tpContext;
+    return this.tpContext;
   }
 
   /**

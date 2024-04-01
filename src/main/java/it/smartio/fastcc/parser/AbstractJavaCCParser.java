@@ -270,21 +270,6 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
     }
   }
 
-  protected void makeTryBlock(Token tryLoc, Container result, Container nestedExp, List<List<Token>> types,
-      List<Token> ids, List<List<Token>> catchblks, List<Token> finallyblk) {
-    if ((catchblks.size() == 0) && (finallyblk == null)) {
-      JavaCCErrors.parse_error(tryLoc, "Try block must contain at least one catch or finally block.");
-      return;
-    }
-    TryBlock tblk = new TryBlock(ids, types, catchblks, finallyblk);
-    tblk.setLine(tryLoc.beginLine);
-    tblk.setColumn(tryLoc.beginColumn);
-    tblk.setExpansion((Expansion) nestedExp.member);
-    tblk.getExpansion().parent = tblk;
-    tblk.getExpansion().ordinal = 0;
-    result.member = tblk;
-  }
-
   protected final boolean isCpp() {
     getOptions();
     return Options.getOutputLanguage() == JJLanguage.Cpp;
@@ -342,40 +327,46 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
   protected abstract Token getNextToken();
 
   protected abstract Token getToken(int index);
-  
+
   protected void Arguments() throws ParseException {
     Arguments(new ArrayList<>());
   }
-  
+
   protected void Block() throws ParseException {
     Block(new ArrayList<>());
   }
-  
-    protected void Expression() throws ParseException {
+
+  protected void Expression() throws ParseException {
     Expression(new ArrayList<>());
   }
-  
+
   protected void FormalParameters() throws ParseException {
     FormalParameters(new ArrayList<>());
   }
-  
+
   protected void Name() throws ParseException {
     Name(new ArrayList<>());
   }
-  
+
   protected void ResultType() throws ParseException {
     ResultType(new ArrayList<>());
   }
-  
+
   protected void TypeArguments() throws ParseException {
     TypeArguments(new ArrayList<>());
   }
 
   protected abstract void Arguments(List<Token> tokens) throws ParseException;
+
   protected abstract void Block(List<Token> tokens) throws ParseException;
+
   protected abstract void Expression(List<Token> tokens) throws ParseException;
+
   protected abstract void FormalParameters(List<Token> tokens) throws ParseException;
+
   protected abstract void Name(List<Token> tokens) throws ParseException;
+
   protected abstract void ResultType(List<Token> tokens) throws ParseException;
+
   protected abstract void TypeArguments(List<Token> tokens) throws ParseException;
 }

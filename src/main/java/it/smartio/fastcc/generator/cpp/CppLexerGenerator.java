@@ -537,7 +537,7 @@ public class CppLexerGenerator extends LexerGenerator {
         }
 
         genTokenSetup(act.getActionTokens().get(0));
-        this.ccol = 1;
+        resetColumn();
 
         for (Token element : act.getActionTokens()) {
           genToken(writer, element);
@@ -607,7 +607,7 @@ public class CppLexerGenerator extends LexerGenerator {
 
         writer.println("         jjimageLen = 0;");
         genTokenSetup(act.getActionTokens().get(0));
-        this.ccol = 1;
+        resetColumn();
 
         for (Token element : act.getActionTokens()) {
           genToken(writer, element);
@@ -683,7 +683,7 @@ public class CppLexerGenerator extends LexerGenerator {
         }
 
         genTokenSetup(act.getActionTokens().get(0));
-        this.ccol = 1;
+        resetColumn();
 
         for (Token element : act.getActionTokens()) {
           genToken(writer, element);

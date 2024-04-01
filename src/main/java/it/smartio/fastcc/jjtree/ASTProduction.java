@@ -50,7 +50,7 @@ public class ASTProduction extends JJTreeNode {
       i = this.nextNodeScopeNumber++;
       this.scopes.put(s, i);
     }
-    return i.intValue();
+    return i;
   }
 
   @Override

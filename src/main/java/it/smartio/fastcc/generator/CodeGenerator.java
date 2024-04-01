@@ -13,7 +13,7 @@ import it.smartio.fastcc.utils.Encoding;
 
 class CodeGenerator {
 
-  protected int crow, ccol;
+  private int crow, ccol;
 
   protected final void saveOutput(SourceWriter writer, File path) {
     writer.saveOutput(path);
@@ -28,6 +28,31 @@ class CodeGenerator {
 
     this.crow = tt.beginLine;
     this.ccol = tt.beginColumn;
+  }
+
+  protected final void resetColumn() {
+    this.ccol = 1;
+  }
+
+  protected final String getLeadingComments(Token t) {
+    String retval = "";
+    if (t.specialToken == null) {
+      return retval;
+    }
+    Token tt = t.specialToken;
+    while (tt.specialToken != null) {
+      tt = tt.specialToken;
+    }
+    while (tt != null) {
+      retval += getStringForTokenOnly(tt);
+      tt = tt.next;
+    }
+    if ((this.ccol != 1) && (this.crow != t.beginLine)) {
+      retval += "\n";
+      this.crow++;
+      this.ccol = 1;
+    }
+    return retval;
   }
 
   protected final String getStringToPrint(Token t) {
@@ -57,8 +82,6 @@ class CodeGenerator {
     }
     if ((t.kind == JavaCCParserConstants.STRING_LITERAL) || (t.kind == JavaCCParserConstants.CHARACTER_LITERAL)) {
       retval += Encoding.escapeUnicode(t.image);
-    } else if (t.image.startsWith(JJLanguage.Code.CODE)) {
-      retval += JJLanguage.Java.strip(t.image);
     } else if (t.image.startsWith(JJLanguage.Java.CODE)) {
       retval += JJLanguage.Java.strip(t.image);
     } else if (t.image.startsWith(JJLanguage.Cpp.CODE)) {

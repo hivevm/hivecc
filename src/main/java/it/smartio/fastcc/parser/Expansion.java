@@ -33,8 +33,8 @@ public class Expansion {
   /**
    * The line and column number of the construct that corresponds most closely to this node.
    */
-  private int line;
-  private int column;
+  private int   line;
+  private int   column;
 
   /**
    * An internal name for this expansion. This is used to generate parser routines.

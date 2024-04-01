@@ -236,18 +236,18 @@ void option_binding() #OptionBinding :
   (
     IntegerLiteral()
   @java
-    setInputFileOption(o, this.token, Integer.valueOf(this.token.image));
+    setInputOption(o, this.token, Integer.valueOf(this.token.image));
     jjtThis.initialize(o.image, this.token.image);
   @end
   | BooleanLiteral()
   @java
-    setInputFileOption(o, this.token, Boolean.valueOf(this.token.image));
+    setInputOption(o, this.token, Boolean.valueOf(this.token.image));
     jjtThis.initialize(o.image, this.token.image);
   @end
   | StringLiteral()
   @java
     String vs = TokenUtils.remove_escapes_and_quotes(this.token, this.token.image);
-    setInputFileOption(o, this.token, vs);
+    setInputOption(o, this.token, vs);
     jjtThis.initialize(o.image, vs);
   @end
   )

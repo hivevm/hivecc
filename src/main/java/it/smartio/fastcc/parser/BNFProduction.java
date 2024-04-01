@@ -36,6 +36,7 @@ public class BNFProduction extends NormalProduction {
    * The declarations of this production.
    */
   private final List<Token> declaration_tokens = new ArrayList<>();
+  private final List<Token> end_tokens         = new ArrayList<>();
 
   /**
    * This flag keeps track of whether or not return and throw statements have been patched within
@@ -48,6 +49,10 @@ public class BNFProduction extends NormalProduction {
    */
   public List<Token> getDeclarationTokens() {
     return this.declaration_tokens;
+  }
+
+  public List<Token> getDeclarationEndTokens() {
+    return this.end_tokens;
   }
 
   /**

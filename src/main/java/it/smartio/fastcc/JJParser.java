@@ -37,7 +37,6 @@ import it.smartio.fastcc.parser.JavaCCData;
 import it.smartio.fastcc.parser.JavaCCErrors;
 import it.smartio.fastcc.parser.JavaCCParser;
 import it.smartio.fastcc.parser.JavaCCParserDefault;
-import it.smartio.fastcc.parser.MetaParseException;
 import it.smartio.fastcc.parser.Options;
 import it.smartio.fastcc.parser.StreamProvider;
 import it.smartio.fastcc.semantic.SemanticContext;
@@ -161,10 +160,6 @@ public abstract class JJParser {
             + JavaCCErrors.get_warning_count() + " warnings.");
         System.exit(JavaCCErrors.get_error_count() == 0 ? 0 : 1);
       }
-    } catch (MetaParseException e) {
-      System.out.println("Detected " + JavaCCErrors.get_error_count() + " errors and "
-          + JavaCCErrors.get_warning_count() + " warnings.");
-      System.exit(1);
     } catch (ParseException e) {
       System.out.println(e.toString());
       System.out.println("Detected " + (JavaCCErrors.get_error_count() + 1) + " errors and "

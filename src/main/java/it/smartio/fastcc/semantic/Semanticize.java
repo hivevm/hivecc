@@ -51,7 +51,6 @@ import it.smartio.fastcc.parser.RegExprSpec;
 import it.smartio.fastcc.parser.RegularExpression;
 import it.smartio.fastcc.parser.Sequence;
 import it.smartio.fastcc.parser.TokenProduction;
-import it.smartio.fastcc.parser.TryBlock;
 import it.smartio.fastcc.parser.ZeroOrMore;
 import it.smartio.fastcc.parser.ZeroOrOne;
 
@@ -380,7 +379,7 @@ public class Semanticize {
           request.setNamesOfToken(res.rexp);
         }
         if (!(res.rexp instanceof RJustName)) {
-          semanticize.rexps_of_tokens.put(Integer.valueOf(res.rexp.getOrdinal()), res.rexp);
+          semanticize.rexps_of_tokens.put(res.rexp.getOrdinal(), res.rexp);
         }
       }
     }
@@ -520,8 +519,6 @@ public class Semanticize {
         }
       }
       return true;
-    } else if (exp instanceof TryBlock) {
-      return Semanticize.emptyExpansionExists(((TryBlock) exp).getExpansion());
     } else {
       return false; // This should be dead code.
     }
@@ -577,8 +574,6 @@ public class Semanticize {
           break;
         }
       }
-    } else if (exp instanceof TryBlock) {
-      addLeftMost(prod, ((TryBlock) exp).getExpansion());
     }
   }
 

@@ -49,7 +49,6 @@ import it.smartio.fastcc.parser.Options;
 import it.smartio.fastcc.parser.RegularExpression;
 import it.smartio.fastcc.parser.Sequence;
 import it.smartio.fastcc.parser.Token;
-import it.smartio.fastcc.parser.TryBlock;
 import it.smartio.fastcc.parser.ZeroOrMore;
 import it.smartio.fastcc.parser.ZeroOrOne;
 import it.smartio.fastcc.semantic.Semanticize;
@@ -225,6 +224,15 @@ public class JavaParserGenerator extends ParserGenerator {
     }
     writer.println();
 
+    if (p.getDeclarationEndTokens().size() != 0) {
+      genTokenSetup((p.getDeclarationEndTokens().get(0)));
+      for (Iterator<Token> it = p.getDeclarationEndTokens().iterator(); it.hasNext();) {
+        t = it.next();
+        writer.print(getStringToPrint(t));
+      }
+      writer.println();
+    }
+
     if (p.isJumpPatched() && !voidReturn) {
       writer.println("    throw new " + "RuntimeException" + "(\"Missing return statement in function\");");
     }
@@ -361,55 +369,6 @@ public class JavaParserGenerator extends ParserGenerator {
       Lookahead[] conds = data.getLoakaheads(e);
       String[] actions = { generatePhase1Expansion(data, nested_e), "\n;" };
       retval += genLookaheadChecker(data, conds, actions);
-    } else if (e instanceof TryBlock) {
-      TryBlock e_nrw = (TryBlock) e;
-      Expansion nested_e = e_nrw.getExpansion();
-      List<Token> list;
-      retval += "\n";
-      retval += "try {\u0001";
-      retval += generatePhase1Expansion(data, nested_e);
-      retval += "\u0002\n" + "}";
-      for (int i = 0; i < e_nrw.getCatchBlocks().size(); i++) {
-        retval += " catch (";
-        list = e_nrw.getTypes().get(i);
-        if (list.size() != 0) {
-          genTokenSetup((list.get(0)));
-          for (Iterator<Token> it = list.iterator(); it.hasNext();) {
-            t = it.next();
-            retval += getStringToPrint(t);
-          }
-          retval += getTrailingComments(t);
-        }
-        retval += " ";
-        t = (e_nrw.getIds().get(i));
-        genTokenSetup(t);
-        retval += getStringToPrint(t);
-        retval += getTrailingComments(t);
-        retval += ") {\u0003\n";
-        list = e_nrw.getCatchBlocks().get(i);
-        if (list.size() != 0) {
-          genTokenSetup((list.get(0)));
-          for (Iterator<Token> it = list.iterator(); it.hasNext();) {
-            t = it.next();
-            retval += getStringToPrint(t);
-          }
-          retval += getTrailingComments(t);
-        }
-        retval += "\u0004\n" + "}";
-      }
-      if (!e_nrw.getFinallyBlock().isEmpty()) {
-        retval += " finally {\u0003\n";
-
-        if (e_nrw.getFinallyBlock().size() != 0) {
-          genTokenSetup((e_nrw.getFinallyBlock().get(0)));
-          for (Iterator<Token> it = e_nrw.getFinallyBlock().iterator(); it.hasNext();) {
-            t = it.next();
-            retval += getStringToPrint(t);
-          }
-          retval += getTrailingComments(t);
-        }
-        retval += "\u0004\n" + "}";
-      }
     }
     return retval;
   }
@@ -787,10 +746,6 @@ public class JavaParserGenerator extends ParserGenerator {
           break;
         }
       }
-    } else if (e instanceof TryBlock) {
-      TryBlock e_nrw = (TryBlock) e;
-      xsp_declared =
-          buildPhase3RoutineRecursive(data, jj3_expansion, xsp_declared, e_nrw.getExpansion(), count, writer);
     } else if (e instanceof OneOrMore) {
       if (!xsp_declared) {
         xsp_declared = true;

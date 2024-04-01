@@ -50,11 +50,11 @@ public class RSequence extends RegularExpression {
     return visitor.visit(this, data);
   }
 
-  
+
   /**
    * Gets the {@link #units}.
    */
   public final List<RegularExpression> getUnits() {
-    return units;
+    return this.units;
   }
 }

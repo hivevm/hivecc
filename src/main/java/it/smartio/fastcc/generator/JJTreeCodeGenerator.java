@@ -133,6 +133,7 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
 
       openJJTreeComment(io, node.node_scope.getNodeDescriptorText(), getLanguage());
       insertOpenNodeCode(node.node_scope, io, indent, node.jjtOptions());
+      io.print(indent + "try {");
       closeJJTreeComment(io);
     }
 
@@ -147,9 +148,12 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
     }
 
     String indent = getIndentation(node.expansion_unit);
-    openJJTreeComment0(io, node.node_scope.getNodeDescriptor().getDescriptor());
-    tryExpansionUnit0(node.node_scope, io, indent, node.expansion_unit);
-    return null;
+    // tryExpansionUnit0(node.node_scope, io, indent, node.expansion_unit);
+    node.expansion_unit.jjtAccept(this, io);
+    io.println();
+    io.print("}");
+    catchExpansionUnit(node.node_scope, io, indent, node.expansion_unit, getLanguage());
+    return true;
   }
 
   @Override
@@ -186,6 +190,7 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
     Token t = new Token();
     t.next = t1;
     JJTreeNode n;
+    Object end = null;
     for (int ord = 0; ord < node.jjtGetNumChildren(); ord++) {
       n = (JJTreeNode) node.jjtGetChild(ord);
       while (true) {
@@ -195,14 +200,15 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
         }
         print(t, io, node);
       }
-      n.jjtAccept(this, io);
+      end = n.jjtAccept(this, io);
       t = n.getLastToken();
     }
-    while (t != node.getLastToken()) {
-      t = t.next;
-      print(t, io, node);
+    if (end == null) {
+      while (t != node.getLastToken()) {
+        t = t.next;
+        print(t, io, node);
+      }
     }
-
     return null;
   }
 
@@ -346,41 +352,6 @@ public abstract class JJTreeCodeGenerator extends JJTreeParserDefaultVisitor {
     }
     io.print(indent + "}");
     closeJJTreeComment(io);
-  }
-
-  private void tryExpansionUnit0(NodeScope ns, PrintWriter io, String indent, JJTreeNode expansion_unit) {
-    io.println(indent + "try {");
-    closeJJTreeComment0(io);
-
-    expansion_unit.jjtAccept(this, io);
-
-    openJJTreeComment0(io, null);
-
-    Hashtable<String, String> thrown_set = new Hashtable<>();
-    JJTreeCodeGenerator.findThrown(ns, thrown_set, expansion_unit);
-    Enumeration<String> thrown_names = thrown_set.elements();
-    insertCatchBlocks(ns, io, thrown_names, indent);
-
-    io.println(indent + "} " + getTryFinally() + "{");
-    if (ns.usesCloseNodeVar()) {
-      io.println(indent + "  if (" + ns.closedVar + ") {");
-      insertCloseNodeCode(ns, io, indent + "    ", true, expansion_unit.jjtOptions());
-      io.println(indent + "  }");
-    }
-    io.println(indent + "}");
-    closeJJTreeComment0(io);
-  }
-
-  private void openJJTreeComment0(PrintWriter io, String arg) {
-    io.print("\n/*@begin(jjtree)");
-    if (arg != null) {
-      io.print(" " + arg + " ");
-    }
-    io.println("*/");
-  }
-
-  private void closeJJTreeComment0(PrintWriter io) {
-    io.print("/*@end*/");
   }
 
   public abstract void generateJJTree(JJTreeOptions options);

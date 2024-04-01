@@ -40,7 +40,7 @@ public class TokenProduction {
     SKIP,
     MORE,
     SPECIAL
-  };
+  }
 
   /**
    * The starting line and column of this token production.
@@ -60,7 +60,7 @@ public class TokenProduction {
   /**
    * The kind of this token production - TOKEN, SKIP, MORE, or SPECIAL.
    */
-  private Kind                     kind;
+  private Kind                    kind;
 
   /**
    * The list of regular expression specifications that comprise this production. Each entry is a
@@ -118,7 +118,7 @@ public class TokenProduction {
    * Gets the {@link #kind}.
    */
   public final Kind getKind() {
-    return kind;
+    return this.kind;
   }
 
 
@@ -134,14 +134,14 @@ public class TokenProduction {
    * Gets the {@link #respecs}.
    */
   public final List<RegExprSpec> getRespecs() {
-    return respecs;
+    return this.respecs;
   }
 
   /**
    * Gets the {@link #isExplicit}.
    */
   public final boolean isExplicit() {
-    return isExplicit;
+    return this.isExplicit;
   }
 
 
@@ -157,7 +157,7 @@ public class TokenProduction {
    * Gets the {@link #ignoreCase}.
    */
   public final boolean isIgnoreCase() {
-    return ignoreCase;
+    return this.ignoreCase;
   }
 
 
@@ -173,7 +173,7 @@ public class TokenProduction {
    * Gets the {@link #firstToken}.
    */
   public final Token getFirstToken() {
-    return firstToken;
+    return this.firstToken;
   }
 
 
@@ -189,7 +189,7 @@ public class TokenProduction {
    * Gets the {@link #lexStates}.
    */
   public final String[] getLexStates() {
-    return lexStates;
+    return this.lexStates;
   }
 
 

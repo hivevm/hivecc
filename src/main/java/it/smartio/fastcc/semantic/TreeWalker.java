@@ -34,7 +34,6 @@ import it.smartio.fastcc.parser.RSequence;
 import it.smartio.fastcc.parser.RZeroOrMore;
 import it.smartio.fastcc.parser.RZeroOrOne;
 import it.smartio.fastcc.parser.Sequence;
-import it.smartio.fastcc.parser.TryBlock;
 import it.smartio.fastcc.parser.ZeroOrMore;
 import it.smartio.fastcc.parser.ZeroOrOne;
 
@@ -59,8 +58,9 @@ interface TreeWalker {
    * first and then visits the children.
    */
   static void walk(Expansion node, TreeWalker opObj, boolean post) {
-    if (!post)
+    if (!post) {
       opObj.action(node);
+    }
 
     if (opObj.goDeeper(node)) {
       if (node instanceof Choice) {
@@ -82,8 +82,6 @@ interface TreeWalker {
         if (!((nested_e instanceof Sequence) && ((Expansion) (((Sequence) nested_e).getUnits().get(0)) == node))) {
           TreeWalker.walk(nested_e, opObj, post);
         }
-      } else if (node instanceof TryBlock) {
-        TreeWalker.walk(((TryBlock) node).getExpansion(), opObj, post);
       } else if (node instanceof RChoice) {
         for (Object object : ((RChoice) node).getChoices()) {
           TreeWalker.walk((Expansion) object, opObj, post);
@@ -103,7 +101,8 @@ interface TreeWalker {
       }
     }
 
-    if (post)
+    if (post) {
       opObj.action(node);
+    }
   }
 }

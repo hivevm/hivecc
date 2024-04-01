@@ -43,7 +43,6 @@ import it.smartio.fastcc.parser.ParseException;
 import it.smartio.fastcc.parser.RegularExpression;
 import it.smartio.fastcc.parser.Sequence;
 import it.smartio.fastcc.parser.Token;
-import it.smartio.fastcc.parser.TryBlock;
 import it.smartio.fastcc.parser.ZeroOrMore;
 import it.smartio.fastcc.parser.ZeroOrOne;
 import it.smartio.fastcc.semantic.Semanticize;
@@ -184,9 +183,6 @@ public abstract class ParserGenerator extends CodeGenerator {
 
       buildPhase1(data, nested_e);
       buildLookahead(data, conds);
-    } else if (e instanceof TryBlock) {
-      TryBlock e_nrw = (TryBlock) e;
-      buildPhase1(data, e_nrw.getExpansion());
     }
   }
 
@@ -347,9 +343,6 @@ public abstract class ParserGenerator extends CodeGenerator {
     } else if (exp instanceof ZeroOrOne) {
       ZeroOrOne zo = (ZeroOrOne) exp;
       jj2la = genFirstSet(data, zo.getExpansion(), firstSet, jj2la);
-    } else if (exp instanceof TryBlock) {
-      TryBlock tb = (TryBlock) exp;
-      jj2la = genFirstSet(data, tb.getExpansion(), firstSet, jj2la);
     }
     return jj2la;
   }
@@ -384,9 +377,6 @@ public abstract class ParserGenerator extends CodeGenerator {
           break;
         }
       }
-    } else if (e instanceof TryBlock) {
-      TryBlock e_nrw = (TryBlock) e;
-      setupPhase3Builds(data, data.new Phase3Data(e_nrw.getExpansion(), p3d.count));
     } else if (e instanceof OneOrMore) {
       OneOrMore e_nrw = (OneOrMore) e;
       generate3R(data, e_nrw.getExpansion(), p3d);
@@ -462,9 +452,6 @@ public abstract class ParserGenerator extends CodeGenerator {
           break;
         }
       }
-    } else if (e instanceof TryBlock) {
-      TryBlock e_nrw = (TryBlock) e;
-      buildPhase3Routine(data, e_nrw.getExpansion(), count);
     }
   }
 
@@ -519,9 +506,6 @@ public abstract class ParserGenerator extends CodeGenerator {
         }
       }
       retval = min;
-    } else if (e instanceof TryBlock) {
-      TryBlock e_nrw = (TryBlock) e;
-      retval = ParserGenerator.minimumSize(data, e_nrw.getExpansion());
     } else if (e instanceof OneOrMore) {
       OneOrMore e_nrw = (OneOrMore) e;
       retval = ParserGenerator.minimumSize(data, e_nrw.getExpansion());
@@ -540,26 +524,5 @@ public abstract class ParserGenerator extends CodeGenerator {
 
   protected final String getTrailingComments(Token t) {
     return (t.next == null) ? "" : getLeadingComments(t.next);
-  }
-
-  protected final String getLeadingComments(Token t) {
-    String retval = "";
-    if (t.specialToken == null) {
-      return retval;
-    }
-    Token tt = t.specialToken;
-    while (tt.specialToken != null) {
-      tt = tt.specialToken;
-    }
-    while (tt != null) {
-      retval += getStringForTokenOnly(tt);
-      tt = tt.next;
-    }
-    if ((this.ccol != 1) && (this.crow != t.beginLine)) {
-      retval += "\n";
-      this.crow++;
-      this.ccol = 1;
-    }
-    return retval;
   }
 }

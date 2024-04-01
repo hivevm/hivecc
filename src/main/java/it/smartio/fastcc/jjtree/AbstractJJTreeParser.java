@@ -32,8 +32,8 @@ abstract class AbstractJJTreeParser {
     getOptions().normalize();
   }
 
-  protected final void setInputFileOption(Token o, Token v, Object value) {
-    getOptions().setInputFileOption(o, v, o.image, value);
+  protected final void setInputOption(Token o, Token v, Object value) {
+    getOptions().setInputOption(o, v, o.image, value);
   }
 
   protected abstract Token getNextToken();

@@ -3,7 +3,6 @@ PARSER_BEGIN(JavaCCParser)
   PACKAGE: "it.smartio.fastcc.parser";
   IMPORTS: "java.util.List,java.util.ArrayList";
   EXTENDS: "AbstractJavaCCParser";
-  LEXER: "AbstractTokenManager";
 PARSER_END
 
 
@@ -41,12 +40,6 @@ SKIP :
 | "\n"
 | "\r"
 | "\f"
-| "/*@end*/" : AFTER_EGEN
-}
-
-<AFTER_EGEN> SKIP :
-{
-  <~[]> @java savepointRelease(); @end : DEFAULT
 }
 
 /* COMMENTS */
@@ -56,7 +49,6 @@ MORE :
   "//" : IN_SINGLE_LINE_COMMENT
 | <"/**" ~["/"]> @java streamBackup(1); @end : IN_FORMAL_COMMENT
 | "/*" : IN_MULTI_LINE_COMMENT
-| "/*@begin(jjtree" @java savepoint(); @end : IN_MULTI_LINE_COMMENT
 | "@cpp" : PARSER_CODE
 | "@java" : PARSER_CODE
 }
@@ -103,18 +95,8 @@ TOKEN :
 | < NULL: "null" >
 | < TRUE: "true" >
 | < FALSE: "false" >
-| < IF: "if" >
-| < ELSE: "else" >
-| < BREAK: "break" >
-| < NEW: "new" >
-| < RETURN: "return" >
 | < THIS: "this" >
 | < VOID: "void" >
-| < TRY: "try" >
-| < CATCH: "catch" >
-| < FINALLY: "finally" >
-| < THROW: "throw" >
-| < INSTANCEOF: "instanceof" >
 }
 
 /* JAVA LITERALS */
@@ -251,19 +233,19 @@ void option_binding() :
   (
     option_value = IntegerLiteral()
     @java
-      getOptions().setInputFileOption(t, getToken(0), t.image, option_value);
+      getOptions().setInputOption(t, getToken(0), t.image, option_value);
     @end
   | option_value = BooleanLiteral()
     @java
-      getOptions().setInputFileOption(t, getToken(0), t.image, option_value);
+      getOptions().setInputOption(t, getToken(0), t.image, option_value);
     @end
   | option_value = StringLiteral()
     @java
-      getOptions().setInputFileOption(t, getToken(0), t.image, option_value);
+      getOptions().setInputOption(t, getToken(0), t.image, option_value);
     @end
   | option_value = StringList()
     @java
-      getOptions().setInputFileOption(t, getToken(0), t.image, option_value);
+      getOptions().setInputOption(t, getToken(0), t.image, option_value);
     @end
   )
   < SEMICOLON >
@@ -332,7 +314,7 @@ void bnf_production() :
   t=< RBRACE >
   ( < ECODE >
   @java
-    p.getDeclarationTokens().add(getToken(0));
+    p.getDeclarationEndTokens().add(getToken(0));
   @end
   < ECODE_END > )*
   @java
@@ -650,53 +632,6 @@ void expansion_unit(Container c) :
   @java
 	c.member = new ZeroOrOne(t, (Expansion)c.member);
   @end
-| @java
-	Container expch = new Container();
-	List<List<Token>> types = new ArrayList<>();
-	List<Token> ids = new ArrayList<>();
-	List<List<Token>> catchblks = new ArrayList<>();
-	List<Token> finallyblk = null;
-	List<Token> vec = new ArrayList<>();
-	Token t0;
-  @end
-  t0=< TRY > < LBRACE > expansion_choices(expch) < RBRACE >
-  ( < CATCH > < LPAREN >
-    @java
-      if (isCpp()) {
-        while (getToken(1).kind != RPAREN) getNextToken();
-      }
-      t = getToken(0);
-      t.kind = IDENTIFIER;
-      t.image = "...";
-    @end
-    [ LOOKAHEAD({!isCpp()}) Name(vec) t=<IDENTIFIER> ]
-   < RPAREN >
-	@java
-	  types.add(vec);
-	  ids.add(t);
-	  vec = new ArrayList<>();
-	  inAction = true;
-	@end
-    Block(vec)
-	@java
-	  inAction = false;
-	  catchblks.add(vec);
-	  vec = new ArrayList<>();
-	@end
-  )*
-  [
-	@java
-	  inAction = true;
-	@end
-    < FINALLY > Block(vec)
-	@java
-	  inAction = false;
-	  finallyblk = vec;
-	@end
-  ]
-	@java
-	  makeTryBlock(t0, c, expch, types, ids, catchblks, finallyblk);
-	@end
 |
   LOOKAHEAD(
     identifier()
@@ -1031,39 +966,17 @@ Token JavaIdentifier() :
 
 void TypeParameters():
 {
-  < LT > TypeParameter() ( < COMMA > TypeParameter() )* < GT >
-}
-
-void TypeParameter():
-{
-  JavaIdentifier()
-}
-
-void FieldDeclaration():
-{
-  // Modifiers are already matched in the caller
-  Type() VariableDeclarator() ( < COMMA > VariableDeclarator() )* < SEMICOLON >
+  < LT > JavaIdentifier() ( < COMMA > JavaIdentifier() )* < GT >
 }
 
 void VariableDeclarator():
 {
-  VariableDeclaratorId() [ < ASSIGN > VariableInitializer() ]
+  VariableDeclaratorId() [ < ASSIGN > Expression() ]
 }
 
 void VariableDeclaratorId():
 {
   JavaIdentifier() ( < LBRACKET > < RBRACKET > )*
-}
-
-void VariableInitializer():
-{
-  ArrayInitializer()
-| Expression()
-}
-
-void ArrayInitializer():
-{
-  < LBRACE > [ VariableInitializer() ( LOOKAHEAD(2) < COMMA > VariableInitializer() )* ] [ < COMMA > ] < RBRACE >
 }
 
 void MethodDeclaration():
@@ -1116,28 +1029,6 @@ void FormalParameter():
 @end
 {
   Type() [ ( t = < BIT_AND > | t = < STAR >) ] VariableDeclaratorId()
-}
-
-void ConstructorDeclaration():
-{
-  [ TypeParameters() ]
-  // Modifiers matched in the caller
-  JavaIdentifier() FormalParameters()
-  < LBRACE >
-    [ LOOKAHEAD(ExplicitConstructorInvocation()) ExplicitConstructorInvocation() ]
-    ( BlockStatement() )*
-  < RBRACE >
-}
-
-void ExplicitConstructorInvocation():
-{
-  LOOKAHEAD(< THIS > Arguments() < SEMICOLON >)
-  < THIS > Arguments() < SEMICOLON >
-}
-
-void Initializer():
-{
-  Block()
 }
 
 
@@ -1318,12 +1209,7 @@ void AndExpression():
 
 void EqualityExpression():
 {
-  InstanceOfExpression() ( ( < EQ > | < NE > ) InstanceOfExpression() )*
-}
-
-void InstanceOfExpression():
-{
-  RelationalExpression() [ < INSTANCEOF > Type() ]
+  RelationalExpression() ( ( < EQ > | < NE > ) RelationalExpression() )*
 }
 
 void RelationalExpression():
@@ -1373,7 +1259,7 @@ void CastLookahead():
 {
   LOOKAHEAD(2) < LPAREN > PrimitiveType()
 | LOOKAHEAD(< LPAREN > Type() < LBRACKET >) < LPAREN > Type() < LBRACKET > < RBRACKET >
-| < LPAREN > Type() < RPAREN > ( < TILDE > | < BANG > | < LPAREN > | JavaIdentifier() | < THIS > | < NEW > | Literal() )
+| < LPAREN > Type() < RPAREN > ( < TILDE > | < BANG > | < LPAREN > | JavaIdentifier() | < THIS > | Literal() )
 }
 
 void PostfixExpression():
@@ -1402,14 +1288,12 @@ void PrimaryPrefix():
   Literal()
 | < THIS >
 | < LPAREN > Expression() < RPAREN >
-| AllocationExpression()
 | Name()
 }
 
 void PrimarySuffix():
 {
   LOOKAHEAD(2) < DOT > < THIS >
-| LOOKAHEAD(2) < DOT > AllocationExpression()
 | LOOKAHEAD(3) MemberSelector()
 | < LBRACKET > Expression() < RBRACKET >
 | < DOT > JavaIdentifier()
@@ -1492,27 +1376,6 @@ void ArgumentList():
   Expression() ( < COMMA > Expression() )*
 }
 
-void AllocationExpression():
-{
-  LOOKAHEAD(2)
-  < NEW > PrimitiveType() ArrayDimsAndInits()
-| < NEW > ClassOrInterfaceType() [ TypeArguments() ]
-  (
-    ArrayDimsAndInits()
-  | Arguments()
-  )
-}
-
-/*
- * The third LOOKAHEAD specification below is to parse to PrimarySuffix
- * if there is an expression between the "[...]".
- */
-void ArrayDimsAndInits():
-{
-  LOOKAHEAD(2) ( LOOKAHEAD(2) < LBRACKET > Expression() < RBRACKET > )+ ( LOOKAHEAD(2) < LBRACKET > < RBRACKET > )*
-| ( < LBRACKET > < RBRACKET > )+ ArrayInitializer()
-}
-
 
 /*
  * Statement syntax follows.
@@ -1522,10 +1385,6 @@ void Statement():
   Block()
 | EmptyStatement()
 | StatementExpression() < SEMICOLON >
-| IfStatement()
-| BreakStatement()
-| ReturnStatement()
-| ThrowStatement()
 }
 
 void Block(List<Token> tokens) :
@@ -1568,13 +1427,7 @@ void Block(List<Token> tokens) :
 
 void BlockStatement():
 {
-  LOOKAHEAD( Type() JavaIdentifier() ) LocalVariableDeclaration() < SEMICOLON >
-| Statement()
-}
-
-void LocalVariableDeclaration():
-{
-  Type() VariableDeclarator() ( < COMMA > VariableDeclarator() )*
+  Statement()
 }
 
 void EmptyStatement():
@@ -1597,94 +1450,6 @@ void StatementExpression():
   | < DECR >
   | AssignmentOperator() Expression()
   ]
-}
-
-void IfStatement():
-/*
- * The disambiguating algorithm of JavaCC automatically binds dangling
- * else's to the innermost if statement.  The LOOKAHEAD specification
- * is to tell JavaCC that we know what we are doing.
- */
-{
-  < IF > < LPAREN > Expression() < RPAREN > Statement() [ LOOKAHEAD(1) < ELSE > Statement() ]
-}
-
-void BreakStatement():
-{
-  < BREAK > [ JavaIdentifier() ] < SEMICOLON >
-}
-
-void ReturnStatement() :
-@java
-    Token t;
-@end
-{
-  t= < RETURN >
-  @java
-    // Add if statement to prevent subsequent code generated
-    // from being dead code.
-    // NB: eclipse now detects 'if (true)' as dead code, so use the more complicated
-	// 'if ("" != null)'
-	if (inAction  && (getOptions().isLegacy()) ) {
-      t.image = "{if (\"\" != null) return";
-      jumpPatched = true;
-    }
-  @end
-  [
-    Expression()
-  ]
-  t=< SEMICOLON >
-  @java
-	// Add closing brace for above if statement.
-	if (inAction && (getOptions().isLegacy())) {
-	  t.image = ";}";
-	}
-  @end
-}
-
-void ThrowStatement() :
-@java
-    Token t;
-@end
-{
-  t=< THROW >
-  @java
-    // Add if statement to prevent subsequent code generated
-    // from being dead code.
-    if (inAction) {
-      t.image = "{ if (true) throw";
-      jumpPatched = true;
-    }
-  @end
-  Expression()
-  t=< SEMICOLON >
-  @java
-    // Add closing brace for above if statement.
-    if (inAction) {
-      t.image = ";}";
-    }
-  @end
-}
-
-void MemberValuePairs():
-{
-  MemberValuePair() ( < COMMA > MemberValuePair() )*
-}
-
-void MemberValuePair():
-{
-   JavaIdentifier() < ASSIGN > MemberValue()
-}
-
-void MemberValue():
-{
-   MemberValueArrayInitializer()
- | ConditionalExpression()
-}
-
-void  MemberValueArrayInitializer():
-{
-  < LBRACE > MemberValue() ( LOOKAHEAD(2) < COMMA > MemberValue() )* [ < COMMA > ] < RBRACE >
 }
 
 /* IDENTIFIERS */

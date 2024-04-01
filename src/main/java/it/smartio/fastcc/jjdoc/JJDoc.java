@@ -51,7 +51,6 @@ import it.smartio.fastcc.parser.Sequence;
 import it.smartio.fastcc.parser.SingleCharacter;
 import it.smartio.fastcc.parser.Token;
 import it.smartio.fastcc.parser.TokenProduction;
-import it.smartio.fastcc.parser.TryBlock;
 import it.smartio.fastcc.parser.ZeroOrMore;
 import it.smartio.fastcc.parser.ZeroOrOne;
 import it.smartio.fastcc.utils.Encoding;
@@ -191,8 +190,6 @@ class JJDoc extends JJDocGlobals {
       JJDoc.emitExpansionRegularExpression((RegularExpression) exp, gen);
     } else if (exp instanceof Sequence) {
       JJDoc.emitExpansionSequence((Sequence) exp, gen);
-    } else if (exp instanceof TryBlock) {
-      JJDoc.emitExpansionTryBlock((TryBlock) exp, gen);
     } else if (exp instanceof ZeroOrMore) {
       JJDoc.emitExpansionZeroOrMore((ZeroOrMore) exp, gen);
     } else if (exp instanceof ZeroOrOne) {
@@ -257,17 +254,6 @@ class JJDoc extends JJDocGlobals {
         gen.text(" )");
       }
       firstUnit = false;
-    }
-  }
-
-  private static void emitExpansionTryBlock(TryBlock t, Generator gen) {
-    boolean needParens = t.getExpansion() instanceof Choice;
-    if (needParens) {
-      gen.text("( ");
-    }
-    JJDoc.emitExpansionTree(t.getExpansion(), gen);
-    if (needParens) {
-      gen.text(" )");
     }
   }
 

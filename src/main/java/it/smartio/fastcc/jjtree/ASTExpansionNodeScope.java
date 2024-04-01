@@ -1,3 +1,4 @@
+
 package it.smartio.fastcc.jjtree;
 
 public class ASTExpansionNodeScope extends JJTreeNode {

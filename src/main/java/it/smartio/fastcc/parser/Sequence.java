@@ -50,6 +50,6 @@ public class Sequence extends Expansion {
    * Gets the {@link #units}.
    */
   public final List<? super Object> getUnits() {
-    return units;
+    return this.units;
   }
 }

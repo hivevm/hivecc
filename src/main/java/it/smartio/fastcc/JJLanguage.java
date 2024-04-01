@@ -21,14 +21,14 @@ package it.smartio.fastcc;
  */
 public enum JJLanguage {
 
-  Code,
+  None,
   Java,
   Cpp;
 
   public final String CODE;
 
   private JJLanguage() {
-    CODE = "@" + this.name().toLowerCase();
+    this.CODE = "@" + name().toLowerCase();
   }
 
   public final String strip(String text) {

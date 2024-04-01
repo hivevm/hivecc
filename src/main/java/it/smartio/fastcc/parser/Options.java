@@ -112,14 +112,14 @@ public class Options {
    * Convenience method to retrieve integer options.
    */
   private int intValue(final String option) {
-    return ((Integer) Options.optionValues.get(option)).intValue();
+    return ((Integer) Options.optionValues.get(option));
   }
 
   /**
    * Convenience method to retrieve boolean options.
    */
   public final boolean booleanValue(final String option) {
-    return ((Boolean) Options.optionValues.get(option)).booleanValue();
+    return ((Boolean) Options.optionValues.get(option));
   }
 
   /**
@@ -168,7 +168,7 @@ public class Options {
    */
   private Object upgradeValue(final String name, Object value) {
     if (name.equalsIgnoreCase(FastCC.JJTREE_NODE_FACTORY) && (value.getClass() == Boolean.class)) {
-      if (((Boolean) value).booleanValue()) {
+      if (((Boolean) value)) {
         value = "*";
       } else {
         value = "";
@@ -178,7 +178,7 @@ public class Options {
     return value;
   }
 
-  public final void setInputFileOption(Object nameloc, Object valueloc, String name, Object value) {
+  public final void setInputOption(Object nameloc, Object valueloc, String name, Object value) {
     String nameUpperCase = name.toUpperCase();
     if (!Options.optionValues.containsKey(nameUpperCase)) {
       JavaCCErrors.warning(nameloc, "Bad option name \"" + name + "\".  Option setting will be ignored.");
@@ -487,7 +487,7 @@ public class Options {
     } else if (language.equalsIgnoreCase(Options.OUTPUT_LANGUAGE__CPP) || language.equalsIgnoreCase("cpp")) {
       return JJLanguage.Cpp;
     }
-    return JJLanguage.Code;
+    return JJLanguage.None;
   }
 
   public final String getJavaPackage() {
