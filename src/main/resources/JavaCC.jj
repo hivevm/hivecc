@@ -41,13 +41,12 @@ SKIP :
 | "\n"
 | "\r"
 | "\f"
-| "@@"
 | "/*@end*/" : AFTER_EGEN
 }
 
 <AFTER_EGEN> SKIP :
 {
-  <~[]> { savepointRelease(); } : DEFAULT
+  <~[]> @java savepointRelease(); @end : DEFAULT
 }
 
 /* COMMENTS */
@@ -55,10 +54,11 @@ SKIP :
 MORE :
 {
   "//" : IN_SINGLE_LINE_COMMENT
-| <"/**" ~["/"]> { input_stream.backup(1); } : IN_FORMAL_COMMENT
+| <"/**" ~["/"]> @java streamBackup(1); @end : IN_FORMAL_COMMENT
 | "/*" : IN_MULTI_LINE_COMMENT
-| "/*@begin(jjtree" { savepoint(); } : IN_MULTI_LINE_COMMENT
-| "@java" : JAVA_CODE
+| "/*@begin(jjtree" @java savepoint(); @end : IN_MULTI_LINE_COMMENT
+| "@cpp" : PARSER_CODE
+| "@java" : PARSER_CODE
 }
 
 
@@ -80,10 +80,10 @@ SPECIAL_TOKEN :
   <MULTI_LINE_COMMENT: "*/" > : DEFAULT
 }
 
-<JAVA_CODE>
+<PARSER_CODE>
 TOKEN :
 {
-  < ECODE_END: "@" > : DEFAULT
+  < ECODE_END: "@end" > : DEFAULT
 | < ECODE: (~["@"])+ >
 }
 
@@ -110,8 +110,6 @@ TOKEN :
 | < RETURN: "return" >
 | < THIS: "this" >
 | < VOID: "void" >
-| < WHILE: "while" >
-| < FOR: "for" >
 | < TRY: "try" >
 | < CATCH: "catch" >
 | < FINALLY: "finally" >
@@ -228,19 +226,17 @@ TOKEN :
  * THE JAVACC GRAMMAR SPECIFICATION STARTS HERE *
  ************************************************/
 void javacc_input() :
-@@
-{}
 {
   < _PARSER_BEGIN > < LPAREN >
   identifier()
-  {
+  @java
     setParserName();
-  }
+  @end
   < RPAREN >
   ( option_binding() )*
-  {
+  @java
     getOptions().normalize();
-  }
+  @end
   < _PARSER_END > ( production() )+
   <EOF>
 }
@@ -249,27 +245,26 @@ void option_binding() :
 @java
     Object option_value;
     Token t = getToken(1);
-@
-{}
+@end
 {
   <IDENTIFIER> < COLON >
   (
     option_value = IntegerLiteral()
-    {
+    @java
       getOptions().setInputFileOption(t, getToken(0), t.image, option_value);
-    }
+    @end
   | option_value = BooleanLiteral()
-    {
+    @java
       getOptions().setInputFileOption(t, getToken(0), t.image, option_value);
-    }
+    @end
   | option_value = StringLiteral()
-    {
+    @java
       getOptions().setInputFileOption(t, getToken(0), t.image, option_value);
-    }
+    @end
   | option_value = StringList()
-    {
+    @java
       getOptions().setInputFileOption(t, getToken(0), t.image, option_value);
-    }
+    @end
   )
   < SEMICOLON >
 }
@@ -278,25 +273,23 @@ List<String> StringList() :
 @java
     List<String> strings = new ArrayList<String>();
     String string;
-@
-{}
+@end
 {
   < LPAREN > string = StringLiteral()
-  {
+  @java
     strings.add(string);
-  }
+  @end
   (< COMMA > string = StringLiteral()
-  {
+  @java
     strings.add(string);
-  }
+  @end
   )* < RPAREN >
-  {
+  @java
     return strings;
-  }
+  @end
 }
 
 void production() :
-{}
 {
   LOOKAHEAD(1)
   /*
@@ -320,27 +313,34 @@ void bnf_production() :
     p.setLine(t.beginLine);
     p.setColumn(t.beginColumn);
     jumpPatched = false;
-@
-{}
+@end
 {
   ResultType(p.getReturnTypeTokens())
   lhs=identifier()
-  {
+  @java
     p.setLhs(lhs);
-  }
+  @end
   FormalParameters(p.getParameterListTokens())
   < COLON >
   ( < ECODE >
-  {
-    p.header = getToken(0).image;
-  } < ECODE_END > )?
-  Block(p.getDeclarationTokens()) < LBRACE > expansion_choices(c) t=< RBRACE >
-  {
+  @java
+    p.getDeclarationTokens().add(getToken(0));
+  @end
+  < ECODE_END > )*
+  < LBRACE >
+  expansion_choices(c)
+  t=< RBRACE >
+  ( < ECODE >
+  @java
+    p.getDeclarationTokens().add(getToken(0));
+  @end
+  < ECODE_END > )*
+  @java
     p.setLastToken(t);
     p.setJumpPatched(jumpPatched);
     production_addexpansion(p, (Expansion)(c.member));
     addproduction(p);
-  }
+  @end
 }
 
 void regular_expr_production() :
@@ -351,62 +351,59 @@ void regular_expr_production() :
     p.setFirstToken(t);
     p.setLine(t.beginLine);
     p.setColumn(t.beginColumn);
-@
-{}
+@end
 {
-  {
+  @java
     // set p.lexStates assuming there is no state spec.
     // and then override if necessary.
     p.setLexStates(new String[] {"DEFAULT"});
-  }
+  @end
   [
     LOOKAHEAD(2) < LT > < STAR > < GT >
-	{
+	@java
 	  p.setLexStates(null);
-	}
+	@end
   | < LT >
-	{
+	@java
 	  states = new ArrayList<>();
-	}
+	@end
       t=<IDENTIFIER>
-	{
+	@java
 	  states.add(t.image);
-	}
+	@end
       ( < COMMA > t=<IDENTIFIER>
-	{
+	@java
 	  states.add(t.image);
-	}
+	@end
       )*
     < GT >
-	{
+	@java
 	  p.setLexStates(new String[states.size()]);
 	  for (int i = 0; i < states.size(); i++) {
 	    p.setLexState((String)states.get(i), i);
 	  }
-	}
+	@end
   ]
   regexpr_kind(p)
-  {}
   [
     < LBRACKET > t=< _IGNORE_CASE > < RBRACKET >
-	{
+	@java
 	  p.setIgnoreCase(true);
-	}
+	@end
   ]
   < COLON >
   < LBRACE > regexpr_spec(p) ( < BIT_OR > regexpr_spec(p) )* t=< RBRACE >
-  {
+  @java
 	addregexpr(p);
-  }
+  @end
 }
 
 void regexpr_kind(TokenProduction p) :
-{}
 {
-  < _TOKEN > { p.setKind(TokenProduction.Kind.TOKEN); }
-| < _SPECIAL_TOKEN > { p.setKind(TokenProduction.Kind.SPECIAL); }
-| < _SKIP > { p.setKind(TokenProduction.Kind.SKIP); }
-| < _MORE > { p.setKind(TokenProduction.Kind.MORE); }
+  < _TOKEN > @java p.setKind(TokenProduction.Kind.TOKEN); @end
+| < _SPECIAL_TOKEN > @java p.setKind(TokenProduction.Kind.SPECIAL); @end
+| < _SKIP > @java p.setKind(TokenProduction.Kind.SKIP); @end
+| < _MORE > @java p.setKind(TokenProduction.Kind.MORE); @end
 }
 
 void regexpr_spec(TokenProduction p) :
@@ -415,38 +412,37 @@ void regexpr_spec(TokenProduction p) :
     Action act = new Action();
     Token t = null;
     RegExprSpec res = new RegExprSpec();
-@
-{}
+@end
 {
   regular_expression(c)
-  {
+  @java
     res.rexp = (RegularExpression)c.member;
     res.rexp.setTpContext(p);
-  }
+  @end
   [
-	{
+	@java
 	  t = getToken(1);
-	}
+	@end
     Block(act.getActionTokens())
-	{
+	@java
 	  if (res.rexp.isPrivateExp()) {
 	    JavaCCErrors.parse_error(t, "Actions are not permitted on private (#) regular expressions.");
 	  }
-	}
+	@end
   ]
   [ < COLON > t=<IDENTIFIER>
-	{
+	@java
 	  res.nextState = t.image;
 	  if (res.rexp.isPrivateExp()) {
 	    JavaCCErrors.parse_error(t, "Lexical state changes are not permitted after private (#) regular expressions.");
 	  }
-	}
+	@end
   ]
-	{
+	@java
 	  res.act = act;
 	  res.nsTok = t;
 	  p.getRespecs().add(res);
-	}
+	@end
 }
 
 void expansion_choices(Container c1) :
@@ -454,12 +450,11 @@ void expansion_choices(Container c1) :
     boolean morethanone = false;
     Choice ch = null; // unnecessary initialization to make Java compiler happy!
     Container c2 = new Container();
-@
-{}
+@end
 {
   expansion(c1)
   ( < BIT_OR > expansion(c2)
-	{
+	@java
 	  if (morethanone) {
 	    ch.getChoices().add((Expansion)c2.member);
 	    ((Expansion)c2.member).parent = ch;
@@ -470,13 +465,13 @@ void expansion_choices(Container c1) :
 	    ch.getChoices().add((Expansion)c2.member);
 	    ((Expansion)c2.member).parent = ch;
 	  }
-	}
+	@end
   )*
-	{
+	@java
 	  if (morethanone) {
 	    c1.member = ch;
 	  }
-	}
+	@end
 }
 
 void expansion(Container c1) :
@@ -489,39 +484,38 @@ void expansion(Container c1) :
     seq.setColumn(t.beginColumn);
     la.setLine(t.beginLine);
     la.setColumn(t.beginColumn);
-@
-{}
+@end
 {
-  {
+  @java
     la.setAmount(getOptions().getLookahead());
     la.setLaExpansion(null);
     la.setExplicit(false);
-  }
+  @end
   ( LOOKAHEAD(1)
     t=< _LOOKAHEAD > < LPAREN > la=local_lookahead() < RPAREN >
-	{
+	@java
 	  if (inLocalLA != 0 && la.getAmount() != 0) {
 	    JavaCCErrors.warning(t, "Only semantic lookahead specifications within other lookahead specifications is considered.  Syntactic lookahead is ignored.");
 	  }
-	}
+	@end
   )?
-  {
+  @java
     seq.getUnits().add(la);
-  }
+  @end
   ( LOOKAHEAD(0, { notTailOfExpansionUnit() } )
     expansion_unit(c2)
-	{
+	@java
 	  seq.getUnits().add(c2.member);
 	  ((Expansion)c2.member).parent = seq;
 	  ((Expansion)c2.member).ordinal = seq.getUnits().size()-1;
-	}
+	@end
   )+
-  {
+  @java
     if (la.getLaExpansion() == null) {
       la.setLaExpansion(seq);
     }
     c1.member = seq;
-  }
+  @end
 }
 
 Lookahead local_lookahead() :
@@ -536,8 +530,7 @@ Lookahead local_lookahead() :
     boolean commaAtEnd = false, emptyLA = true;
     int laAmount;
     inLocalLA++;
-@
-{}
+@end
 {
   [
     /*
@@ -548,33 +541,33 @@ Lookahead local_lookahead() :
      */
     LOOKAHEAD(1)
     laAmount = IntegerLiteral()
-	{
+	@java
 	  emptyLA = false;
 	  la.setAmount(laAmount);
-	}
+	@end
   ]
   [ LOOKAHEAD(0, { !emptyLA && (getToken(1).kind != RPAREN) } )
     < COMMA >
-	{
+	@java
 	  commaAtEnd = true;
-	}
+	@end
   ]
   [ LOOKAHEAD(0, { getToken(1).kind != RPAREN && getToken(1).kind != LBRACE } )
     expansion_choices(c)
-	{
+	@java
 	  emptyLA = false; commaAtEnd = false;
 	  la.setLaExpansion((Expansion)c.member);
-	}
+	@end
   ]
   [ LOOKAHEAD(0, { !emptyLA && !commaAtEnd && (getToken(1).kind != RPAREN) } )
     < COMMA >
-	{
+	@java
 	  commaAtEnd = true;
-	}
+	@end
   ]
   [ LOOKAHEAD(0, { emptyLA || commaAtEnd } )
     < LBRACE >
-    {
+    @java
       if (isCpp()) {
         int b = 0;
         while(getToken(1).kind != RBRACE || --b > 0) {
@@ -583,19 +576,19 @@ Lookahead local_lookahead() :
           if (t.kind == LBRACE) b++;
         }
       }
-    }
+    @end
     [ Expression(la.getActionTokens()) ]
     < RBRACE >
-	{
+	@java
 	  if (emptyLA) {
 	    la.setAmount(0);
 	  }
-	}
+	@end
   ]
-	{
+	@java
 	  inLocalLA--;
 	  return la;
-	}
+	@end
 }
 
 void expansion_unit(Container c) :
@@ -606,8 +599,7 @@ void expansion_unit(Container c) :
     Action act;
     Token t;
     Lookahead la;
-@
-{}
+@end
 {
   LOOKAHEAD(1)
   /*
@@ -615,7 +607,7 @@ void expansion_unit(Container c) :
    * name of its identifier.
    */
   t=< _LOOKAHEAD > < LPAREN > la=local_lookahead() < RPAREN >
-  {
+  @java
 	// Now set the la_expansion field of la with a dummy
 	// expansion (we use EOF).
 	la.setLaExpansion(new REndOfFile());
@@ -638,27 +630,27 @@ void expansion_unit(Container c) :
 	  }
 	}
 	c.member = ch;
-  }
-| {
+  @end
+| @java
 	act = new Action();
 	t = getToken(1);
 	act.setLine(t.beginLine);
 	act.setColumn(t.beginColumn);
 	inAction = true;
-  }
+  @end
   Block(act.getActionTokens())
-  {
+  @java
 	inAction = false;
 	if (inLocalLA != 0) {
 	  JavaCCErrors.warning(t, "Action within lookahead specification will be ignored.");
 	}
 	c.member = act;
-  }
+  @end
 | t=< LBRACKET > expansion_choices(c) < RBRACKET >
-  {
+  @java
 	c.member = new ZeroOrOne(t, (Expansion)c.member);
-  }
-| {
+  @end
+| @java
 	Container expch = new Container();
 	List<List<Token>> types = new ArrayList<>();
 	List<Token> ids = new ArrayList<>();
@@ -666,45 +658,45 @@ void expansion_unit(Container c) :
 	List<Token> finallyblk = null;
 	List<Token> vec = new ArrayList<>();
 	Token t0;
-  }
+  @end
   t0=< TRY > < LBRACE > expansion_choices(expch) < RBRACE >
   ( < CATCH > < LPAREN >
-    {
+    @java
       if (isCpp()) {
         while (getToken(1).kind != RPAREN) getNextToken();
       }
       t = getToken(0);
       t.kind = IDENTIFIER;
       t.image = "...";
-    }
+    @end
     [ LOOKAHEAD({!isCpp()}) Name(vec) t=<IDENTIFIER> ]
    < RPAREN >
-	{
+	@java
 	  types.add(vec);
 	  ids.add(t);
 	  vec = new ArrayList<>();
 	  inAction = true;
-	}
+	@end
     Block(vec)
-	{
+	@java
 	  inAction = false;
 	  catchblks.add(vec);
 	  vec = new ArrayList<>();
-	}
+	@end
   )*
   [
-	{
+	@java
 	  inAction = true;
-	}
+	@end
     < FINALLY > Block(vec)
-	{
+	@java
 	  inAction = false;
 	  finallyblk = vec;
-	}
+	@end
   ]
-	{
+	@java
 	  makeTryBlock(t0, c, expch, types, ids, catchblks, finallyblk);
-	}
+	@end
 |
   LOOKAHEAD(
     identifier()
@@ -714,48 +706,48 @@ void expansion_unit(Container c) :
   )
   [
     LOOKAHEAD(PrimaryExpression() < ASSIGN >)
-	{
+	@java
 	  Token first = getToken(1);
-	}
+	@end
     PrimaryExpression()
-	{
+	@java
 	  Token last = getToken(0);
-	}
+	@end
     < ASSIGN >
-	{
+	@java
 	  t = first;
 	  while (true) {
 	    lhsTokens.add(t);
 	    if (t == last) break;
 	    t = t.next;
 	  }
-	}
+	@end
   ]
   (
 	LOOKAHEAD( identifier() [ TypeArguments() ] < LPAREN >)
-	{
+	@java
 	  t = getToken(1);
 	  nt = new NonTerminal();
 	  nt.setLine(t.beginLine);
 	  nt.setColumn(t.beginColumn);
 	  nt.setLhsTokens(lhsTokens);
-	}
+	@end
     name=identifier() [ TypeArguments(nt.getParametrizedTypeTokens()) ] Arguments(nt.getArgumentTokens())
-	{
+	@java
 	  nt.setName(name);
 	  c.member = nt;
-	}
+	@end
   | regular_expression(c)
-	{
+	@java
 	  ((RegularExpression)(c.member)).setLhsTokens(lhsTokens);
 	  add_inline_regexpr((RegularExpression)(c.member));
-	}
-	[ < DOT > t=<IDENTIFIER> { ((RegularExpression)(c.member)).setRhsToken(t); } ]
+	@end
+	[ < DOT > t=<IDENTIFIER> @java ((RegularExpression)(c.member)).setRhsToken(t); @end ]
   )
 | t=< LPAREN > expansion_choices(c) < RPAREN >
-  (  < PLUS > { c.member = new OneOrMore(t, (Expansion)c.member); }
-   | < STAR > { c.member = new ZeroOrMore(t, (Expansion)c.member); }
-   | < HOOK > { c.member = new ZeroOrOne(t, (Expansion)c.member); }
+  (  < PLUS > @java c.member = new OneOrMore(t, (Expansion)c.member); @end
+   | < STAR > @java c.member = new ZeroOrMore(t, (Expansion)c.member); @end
+   | < HOOK > @java c.member = new ZeroOrOne(t, (Expansion)c.member); @end
   )?
 }
 
@@ -765,28 +757,27 @@ void regular_expression(Container c) :
     String image;
     boolean private_rexp = false;
     Token t = getToken(1);
-@
-{}
+@end
 {
   image=StringLiteral()
-  {
+  @java
 	c.member = new RStringLiteral(t, image);
-  }
+  @end
 | LOOKAHEAD(3)
-  {
+  @java
 	image = "";
-  }
+  @end
   < LANGLE: "<" >
   [
     [ < HASH >
-	{
+	@java
 	  private_rexp = true;
-	}
+	@end
     ]
     image=identifier() < COLON >
   ]
   complex_regular_expression_choices(c) < RANGLE: ">" >
-  {
+  @java
 	RegularExpression re;
 	if (c.member instanceof RJustName) {
 	  RSequence seq = new RSequence();
@@ -800,20 +791,20 @@ void regular_expression(Container c) :
 	re.setLine(t.beginLine);
 	re.setColumn(t.beginColumn);
 	c.member = re;
-  }
+  @end
 | LOOKAHEAD(2)
   < LT > image=identifier() < GT >
-  {
+  @java
 	c.member = new RJustName(t, image);
-  }
+  @end
 | < LT > < _EOF > < GT >
-  {
+  @java
 	ef = new REndOfFile();
 	ef.setLine(t.beginLine);
 	ef.setColumn(t.beginColumn);
 	ef.ordinal = 0;
 	c.member = ef;
-  }
+  @end
 }
 
 void complex_regular_expression_choices(Container c1) :
@@ -821,12 +812,11 @@ void complex_regular_expression_choices(Container c1) :
     boolean morethanone = false;
     RChoice ch = null; // unnecessary initialization to make Java compiler happy!
     Container c2 = new Container();
-@
-{}
+@end
 {
   complex_regular_expression(c1)
   ( < BIT_OR > complex_regular_expression(c2)
-	{
+	@java
 	  if (morethanone) {
 	    ch.getChoices().add((RegularExpression)c2.member);
 	  } else {
@@ -837,13 +827,13 @@ void complex_regular_expression_choices(Container c1) :
 	    ch.getChoices().add((RegularExpression)c1.member);
 	    ch.getChoices().add((RegularExpression)c2.member);
 	  }
-	}
+	@end
   )*
-  {
+  @java
 	if (morethanone) {
 	  c1.member = ch;
 	}
-  }
+  @end
 }
 
 void complex_regular_expression(Container c1) :
@@ -851,11 +841,10 @@ void complex_regular_expression(Container c1) :
     int count = 0;
     RSequence seq = null; // unnecessary initialization to make Java compiler happy!
     Container c2 = new Container();
-@
-{}
+@end
 {
   ( complex_regular_expression_unit(c2)
-	{
+	@java
 	  count++;
 	  if (count == 1) {
 	    c1.member = c2.member; // if count does not go beyond 1, we are done.
@@ -868,13 +857,13 @@ void complex_regular_expression(Container c1) :
 	  } else {
 	    seq.getUnits().add((RegularExpression)c2.member);
 	  }
-	}
+	@end
   )+
-  {
+  @java
 	if (count > 1) {
 	  c1.member = seq;
 	}
-  }
+  @end
 }
 
 void complex_regular_expression_unit(Container c) :
@@ -883,45 +872,44 @@ void complex_regular_expression_unit(Container c) :
     Token t = getToken(1);
     int r1 = 0, r2 = -1;
     boolean hasMax = false;
-@
-{}
+@end
 {
   image=StringLiteral()
-  {
+  @java
 	c.member = new RStringLiteral(t, image);
-  }
+  @end
 | < LT > image=identifier() < GT >
-  {
+  @java
 	c.member = new RJustName(t, image);
-  }
+  @end
 | character_list(c)
 | < LPAREN > complex_regular_expression_choices(c) < RPAREN >
   (  < PLUS >
-	{
+	@java
 	  c.member = new ROneOrMore(t, (RegularExpression)c.member);
-	}
+	@end
    | < STAR >
-	{
+	@java
 	  c.member = new RZeroOrMore(t, (RegularExpression)c.member);
-	}
+	@end
    | < HOOK >
-	{
+	@java
 	  RZeroOrOne zorexp = new RZeroOrOne();
 	  zorexp.setLine(t.beginLine);
 	  zorexp.setColumn(t.beginColumn);
 	  zorexp.setRegexpr((RegularExpression)c.member);
 	  c.member = zorexp;
-	}
+	@end
    | < LBRACE > r1 = IntegerLiteral()
-      [ < COMMA > { hasMax = true; } [ r2 = IntegerLiteral() ] ]
+      [ < COMMA > @java hasMax = true; @end [ r2 = IntegerLiteral() ] ]
      < RBRACE >
-	{
+	@java
 	  RRepetitionRange rrrexp = new RRepetitionRange();
 	  rrrexp.setLine(t.beginLine);
 	  rrrexp.setColumn(t.beginColumn);
 	  rrrexp.setRegexpr((RegularExpression)c.member, r1, r2, hasMax);
 	  c.member = rrrexp;
-	}
+	@end
   )?
 }
 
@@ -932,28 +920,27 @@ void character_list(Container c1) :
     chlist.setLine(t.beginLine);
     chlist.setColumn(t.beginColumn);
     Container c2 = new Container();
-@
-{}
+@end
 {
   [< TILDE >
-  {
+  @java
 	chlist.setNegatedList();
-  }
+  @end
   ]
   < LBRACKET > [ character_descriptor(c2)
-  {
+  @java
 	chlist.getDescriptors().add(c2.member);
-  }
+  @end
   ( < COMMA > character_descriptor(c2)
-  {
+  @java
 	chlist.getDescriptors().add(c2.member);
-  }
+  @end
   )*
   ]
   < RBRACKET >
-  {
+  @java
 	c1.member = chlist;
-  }
+  @end
 }
 
 void character_descriptor(Container c) :
@@ -962,20 +949,19 @@ void character_descriptor(Container c) :
     boolean isrange = false;
     String imageL, imageR;
     Token t = getToken(1);
-@
-{}
+@end
 {
   imageL=StringLiteral()
-  {
+  @java
 	c1 = character_descriptor_assign(getToken(0), imageL);
-  }
+  @end
   [ < MINUS > imageR=StringLiteral()
-  {
+  @java
 	isrange = true;
 	c2 = character_descriptor_assign(getToken(0), imageR, imageL);
-  }
+  @end
   ]
-  {
+  @java
 	if (isrange) {
 	  CharacterRange cr = new CharacterRange();
 	  cr.setLine(t.beginLine);
@@ -990,19 +976,18 @@ void character_descriptor(Container c) :
 	  sc.ch = c1;
 	  c.member = sc;
 	}
-  }
+  @end
 }
 
 String identifier() :
 @java
     Token t;
-@
-{}
+@end
 {
   t=<IDENTIFIER>
-  {
+  @java
 	return t.image;
-  }
+  @end
 }
 
 /**********************************************
@@ -1015,7 +1000,6 @@ String identifier() :
  */
 
 Token JavaIdentifier() :
-{}
 {
 ( <IDENTIFIER>
 | < _LOOKAHEAD >
@@ -1028,11 +1012,11 @@ Token JavaIdentifier() :
 | < _SKIP >
 | < _EOF >
 )
-{
+@java
   Token retval = getToken(0);
   retval.kind = IDENTIFIER;
   return retval;
-}
+@end
 }
 
 /*
@@ -1046,51 +1030,43 @@ Token JavaIdentifier() :
  */
 
 void TypeParameters():
-{}
 {
   < LT > TypeParameter() ( < COMMA > TypeParameter() )* < GT >
 }
 
 void TypeParameter():
-{}
 {
   JavaIdentifier()
 }
 
 void FieldDeclaration():
-{}
 {
   // Modifiers are already matched in the caller
   Type() VariableDeclarator() ( < COMMA > VariableDeclarator() )* < SEMICOLON >
 }
 
 void VariableDeclarator():
-{}
 {
   VariableDeclaratorId() [ < ASSIGN > VariableInitializer() ]
 }
 
 void VariableDeclaratorId():
-{}
 {
   JavaIdentifier() ( < LBRACKET > < RBRACKET > )*
 }
 
 void VariableInitializer():
-{}
 {
   ArrayInitializer()
 | Expression()
 }
 
 void ArrayInitializer():
-{}
 {
   < LBRACE > [ VariableInitializer() ( LOOKAHEAD(2) < COMMA > VariableInitializer() )* ] [ < COMMA > ] < RBRACE >
 }
 
 void MethodDeclaration():
-{}
 {
   // Modifiers already matched in the caller!
   [ TypeParameters() ]
@@ -1100,7 +1076,6 @@ void MethodDeclaration():
 }
 
 void MethodDeclarator():
-{}
 {
   JavaIdentifier() FormalParameters() ( < LBRACKET > < RBRACKET > )*
 }
@@ -1112,19 +1087,18 @@ void FormalParameters(List<Token> tokens) :
  */
 @java
     Token first, last;
-@
-{}
+@end
 {
   < LPAREN >
-  {
+  @java
 	first = getToken(1);
-  }
+  @end
   [ FormalParameter() ( < COMMA > FormalParameter() )* ]
-  {
+  @java
 	last = getToken(0);
-  }
+  @end
   < RPAREN >
-  {
+  @java
 	if (last.next != first) { // i.e., this is not an empty sequence
 	  Token t = first;
 	  while (true) {
@@ -1133,20 +1107,18 @@ void FormalParameters(List<Token> tokens) :
 	    t = t.next;
 	  }
 	}
-  }
+  @end
 }
 
 void FormalParameter():
 @java
     Token t;
-@
-{}
+@end
 {
   Type() [ ( t = < BIT_AND > | t = < STAR >) ] VariableDeclaratorId()
 }
 
 void ConstructorDeclaration():
-{}
 {
   [ TypeParameters() ]
   // Modifiers matched in the caller
@@ -1158,14 +1130,12 @@ void ConstructorDeclaration():
 }
 
 void ExplicitConstructorInvocation():
-{}
 {
   LOOKAHEAD(< THIS > Arguments() < SEMICOLON >)
   < THIS > Arguments() < SEMICOLON >
 }
 
 void Initializer():
-{}
 {
   Block()
 }
@@ -1176,21 +1146,18 @@ void Initializer():
  */
 
 void Type():
-{}
 {
    LOOKAHEAD(2) ReferenceType()
  | PrimitiveType()
 }
 
 void ReferenceType():
-{}
 {
   PrimitiveType() ( LOOKAHEAD(2) < LBRACKET > < RBRACKET > )+
 | ( ClassOrInterfaceType() ) ( LOOKAHEAD(2) < LBRACKET > < RBRACKET > )*
 }
 
 void ClassOrInterfaceType():
-{}
 {
   <IDENTIFIER> [ LOOKAHEAD(2) TypeArguments() ]
   ( LOOKAHEAD(1) < DOT > <IDENTIFIER> [ LOOKAHEAD(2) TypeArguments() ] )*
@@ -1203,13 +1170,12 @@ void TypeArguments(List<Token> tokens):
  */
 @java
     Token first, last;
-@
-{}
+@end
 {
-  < LT >   { first = getToken(0); }
+  < LT >   @java first = getToken(0); @end
   [ TypeArgument() ( < COMMA > TypeArgument() )* ]
   < GT >
-  {
+  @java
     last = getToken(0);
 	if (last.next != first) { // i.e., this is not an empty sequence
 	  Token t = first;
@@ -1219,18 +1185,16 @@ void TypeArguments(List<Token> tokens):
 	    t = t.next;
 	  }
 	}
-  }
+  @end
 }
 
 void TypeArgument():
-{}
 {
   ReferenceType()
 }
 
 
 void PrimitiveType():
-{}
 {
   < BOOLEAN >
 | < CHAR >
@@ -1241,14 +1205,13 @@ void PrimitiveType():
 void ResultType(List<Token> tokens) :
 @java
     Token first = getToken(1);
-@
-{}
+@end
 {
 (
   < VOID > [ < STAR > ]
 | Type() [ < STAR > | < BIT_AND > ]
 )
-  {
+  @java
 	Token last = getToken(0);
 	Token t = first;
 	while (true) {
@@ -1256,7 +1219,7 @@ void ResultType(List<Token> tokens) :
       if (t == last) break;
       t = t.next;
 	}
-  }
+  @end
 }
 
 void Name(List<Token> tokens) :
@@ -1266,12 +1229,11 @@ void Name(List<Token> tokens) :
  */
 @java
     Token first = getToken(1);
-@
-{}
+@end
 {
   JavaIdentifier()
   ( LOOKAHEAD(2) < DOT > JavaIdentifier() )*
-  {
+  @java
 	Token last = getToken(0);
 	Token t = first;
 	while (true) {
@@ -1279,12 +1241,11 @@ void Name(List<Token> tokens) :
 	  if (t == last) break;
 	  t = t.next;
 	}
-  }
+  @end
 }
 
 
 void NameList():
-{}
 {
   Name() ( < COMMA > Name() )*
 }
@@ -1306,15 +1267,14 @@ void Expression(List<Token> tokens) :
  */
 @java
     Token first = getToken(1);
-@
-{}
+@end
 {
   ConditionalExpression()
   [
 	LOOKAHEAD(2)
     AssignmentOperator() Expression()
   ]
-  {
+  @java
 	Token last = getToken(0);
 	Token t = first;
 	while (true) {
@@ -1322,78 +1282,66 @@ void Expression(List<Token> tokens) :
 	  if (t == last) break;
 	  t = t.next;
 	}
-  }
+  @end
 }
 
 
 void AssignmentOperator():
-{}
 {
   < ASSIGN > | < PLUSASSIGN > | < MINUSASSIGN >
 }
 
 void ConditionalExpression():
-{}
 {
   ConditionalOrExpression() [ < HOOK > Expression() < COLON > Expression() ]
 }
 
 void ConditionalOrExpression():
-{}
 {
   ConditionalAndExpression() ( < SC_OR > ConditionalAndExpression() )*
 }
 
 void ConditionalAndExpression():
-{}
 {
   InclusiveOrExpression() ( < SC_AND > InclusiveOrExpression() )*
 }
 
 void InclusiveOrExpression():
-{}
 {
   AndExpression() ( < BIT_OR > AndExpression() )*
 }
 
 void AndExpression():
-{}
 {
   EqualityExpression() ( < BIT_AND > EqualityExpression() )*
 }
 
 void EqualityExpression():
-{}
 {
   InstanceOfExpression() ( ( < EQ > | < NE > ) InstanceOfExpression() )*
 }
 
 void InstanceOfExpression():
-{}
 {
   RelationalExpression() [ < INSTANCEOF > Type() ]
 }
 
 void RelationalExpression():
-{}
 {
   AdditiveExpression() ( ( < LT > | < GT > ) AdditiveExpression() )*
 }
 
 void AdditiveExpression():
-{}
 {
   MultiplicativeExpression() ( ( < PLUS > | < MINUS > ) MultiplicativeExpression() )*
 }
 
 void MultiplicativeExpression():
-{}
 {
   UnaryExpression() ( ( < STAR > | < SLASH > ) UnaryExpression() )*
 }
 
 void UnaryExpression():
-{}
 {
   ( < PLUS > | < MINUS > ) UnaryExpression()
 | PreIncrementExpression()
@@ -1402,19 +1350,16 @@ void UnaryExpression():
 }
 
 void PreIncrementExpression():
-{}
 {
   < INCR > PrimaryExpression()
 }
 
 void PreDecrementExpression():
-{}
 {
   < DECR > PrimaryExpression()
 }
 
 void UnaryExpressionNotPlusMinus():
-{}
 {
   ( < TILDE > | < BANG > ) UnaryExpression()
 | LOOKAHEAD( CastLookahead() ) CastExpression()
@@ -1425,7 +1370,6 @@ void UnaryExpressionNotPlusMinus():
 // below are not used, but they are there just to indicate that we know about
 // this.
 void CastLookahead():
-{}
 {
   LOOKAHEAD(2) < LPAREN > PrimitiveType()
 | LOOKAHEAD(< LPAREN > Type() < LBRACKET >) < LPAREN > Type() < LBRACKET > < RBRACKET >
@@ -1433,32 +1377,27 @@ void CastLookahead():
 }
 
 void PostfixExpression():
-{}
 {
   PrimaryExpression() [ < INCR > | < DECR > ]
 }
 
 void CastExpression():
-{}
 {
   LOOKAHEAD(< LPAREN > PrimitiveType()) < LPAREN > Type() < RPAREN > UnaryExpression()
 | < LPAREN > Type() < RPAREN > UnaryExpressionNotPlusMinus()
 }
 
 void PrimaryExpression():
-{}
 {
   PrimaryPrefix() ( LOOKAHEAD(2) PrimarySuffix() )*
 }
 
 void MemberSelector():
-{}
 {
   < DOT > TypeArguments() JavaIdentifier()
 }
 
 void PrimaryPrefix():
-{}
 {
   Literal()
 | < THIS >
@@ -1468,7 +1407,6 @@ void PrimaryPrefix():
 }
 
 void PrimarySuffix():
-{}
 {
   LOOKAHEAD(2) < DOT > < THIS >
 | LOOKAHEAD(2) < DOT > AllocationExpression()
@@ -1479,7 +1417,6 @@ void PrimarySuffix():
 }
 
 void Literal():
-{}
 {
   <INTEGER_LITERAL>
 | <FLOATING_POINT_LITERAL>
@@ -1490,29 +1427,29 @@ void Literal():
 }
 
 int IntegerLiteral() :
-{}
 {
   <INTEGER_LITERAL>
-  {
+  @java
     return Integer.parseInt(token.image);
-  }
+  @end
 }
 
 boolean BooleanLiteral() :
-{}
 {
-  < TRUE > { return true; }
-| < FALSE > { return false; }
+(  < TRUE > @java if(""!=null)return true; @end
+| < FALSE > @java if(""!=null)return false; @end
+)
+@java
+  throw new RuntimeException("Missing return statement in function");
+@end
 }
 
 String StringLiteral() :
-{}
 {
-  <STRING_LITERAL> { return remove_escapes_and_quotes(this.token, this.token.image); }
+  <STRING_LITERAL> @java return remove_escapes_and_quotes(this.token, this.token.image); @end
 }
 
 void NullLiteral() :
-{}
 {
   < NULL >
 }
@@ -1524,22 +1461,21 @@ void Arguments(List<Token> tokens) :
  */
 @java
     Token first, last;
-@
-{}
+@end
 {
   < LPAREN >
-  {
+  @java
     first = getToken(1);
     if (isCpp()) {
       eatUptoRParen(null);
     }
-  }
+  @end
   [ ArgumentList() ]
-  {
+  @java
     last = getToken(0);
-  }
+  @end
   < RPAREN >
-  {
+  @java
     if (last.next != first) { // i.e., this is not an empty sequence
       Token t = first;
       while (true) {
@@ -1548,17 +1484,15 @@ void Arguments(List<Token> tokens) :
 	    t = t.next;
       }
     }
-  }
+  @end
 }
 
 void ArgumentList():
-{}
 {
   Expression() ( < COMMA > Expression() )*
 }
 
 void AllocationExpression():
-{}
 {
   LOOKAHEAD(2)
   < NEW > PrimitiveType() ArrayDimsAndInits()
@@ -1574,7 +1508,6 @@ void AllocationExpression():
  * if there is an expression between the "[...]".
  */
 void ArrayDimsAndInits():
-{}
 {
   LOOKAHEAD(2) ( LOOKAHEAD(2) < LBRACKET > Expression() < RBRACKET > )+ ( LOOKAHEAD(2) < LBRACKET > < RBRACKET > )*
 | ( < LBRACKET > < RBRACKET > )+ ArrayInitializer()
@@ -1585,14 +1518,11 @@ void ArrayDimsAndInits():
  * Statement syntax follows.
  */
 void Statement():
-{}
 {
   Block()
 | EmptyStatement()
 | StatementExpression() < SEMICOLON >
 | IfStatement()
-| WhileStatement()
-| ForStatement()
 | BreakStatement()
 | ReturnStatement()
 | ThrowStatement()
@@ -1605,22 +1535,26 @@ void Block(List<Token> tokens) :
  */
 @java
     Token first, last;
-@
-{}
+@end
 {
-  < LBRACE >
-  {
+  < ECODE >
+  @java
+    tokens.add(getToken(0));
+  @end
+  < ECODE_END >
+| < LBRACE >
+  @java
     first = getToken(1);
     if (isCpp()) {
       eatUptoCloseBrace(null);
     }
-  }
+  @end
   ( BlockStatement() )*
-  {
+  @java
     last = getToken(0);
-  }
+  @end
   < RBRACE >
-  {
+  @java
     if (last.next != first) { // i.e., this is not an empty sequence
       Token t = first;
       while (true) {
@@ -1629,24 +1563,21 @@ void Block(List<Token> tokens) :
 	    t = t.next;
 	  }
 	}
-  }
+  @end
 }
 
 void BlockStatement():
-{}
 {
   LOOKAHEAD( Type() JavaIdentifier() ) LocalVariableDeclaration() < SEMICOLON >
 | Statement()
 }
 
 void LocalVariableDeclaration():
-{}
 {
   Type() VariableDeclarator() ( < COMMA > VariableDeclarator() )*
 }
 
 void EmptyStatement():
-{}
 {
   < SEMICOLON >
 }
@@ -1657,7 +1588,6 @@ void StatementExpression():
  * Java expansions for StatementExpression.  This expansion does not
  * use PostfixExpression for performance reasons.
  */
-{}
 {
   PreIncrementExpression()
 | PreDecrementExpression()
@@ -1675,50 +1605,11 @@ void IfStatement():
  * else's to the innermost if statement.  The LOOKAHEAD specification
  * is to tell JavaCC that we know what we are doing.
  */
-{}
 {
   < IF > < LPAREN > Expression() < RPAREN > Statement() [ LOOKAHEAD(1) < ELSE > Statement() ]
 }
 
-void WhileStatement():
-{}
-{
-  < WHILE > < LPAREN > Expression() < RPAREN > Statement()
-}
-
-void ForStatement():
-{}
-{
-  < FOR > < LPAREN >
-  (
-      LOOKAHEAD(Type() JavaIdentifier() < COLON >)
-      Type() JavaIdentifier() < COLON > Expression()
-    | [ ForInit() ] < SEMICOLON > [ Expression() ] < SEMICOLON > [ ForUpdate() ]
-  )
-  < RPAREN > Statement()
-}
-
-void ForInit():
-{}
-{
-  LOOKAHEAD( Type() JavaIdentifier() ) LocalVariableDeclaration()
-| StatementExpressionList()
-}
-
-void StatementExpressionList():
-{}
-{
-  StatementExpression() ( < COMMA > StatementExpression() )*
-}
-
-void ForUpdate():
-{}
-{
-  StatementExpressionList()
-}
-
 void BreakStatement():
-{}
 {
   < BREAK > [ JavaIdentifier() ] < SEMICOLON >
 }
@@ -1726,11 +1617,10 @@ void BreakStatement():
 void ReturnStatement() :
 @java
     Token t;
-@
-{}
+@end
 {
   t= < RETURN >
-  {
+  @java
     // Add if statement to prevent subsequent code generated
     // from being dead code.
     // NB: eclipse now detects 'if (true)' as dead code, so use the more complicated
@@ -1739,65 +1629,60 @@ void ReturnStatement() :
       t.image = "{if (\"\" != null) return";
       jumpPatched = true;
     }
-  }
+  @end
   [
     Expression()
   ]
   t=< SEMICOLON >
-  {
+  @java
 	// Add closing brace for above if statement.
 	if (inAction && (getOptions().isLegacy())) {
 	  t.image = ";}";
 	}
-  }
+  @end
 }
 
 void ThrowStatement() :
 @java
     Token t;
-@
-{}
+@end
 {
   t=< THROW >
-  {
+  @java
     // Add if statement to prevent subsequent code generated
     // from being dead code.
     if (inAction) {
       t.image = "{ if (true) throw";
       jumpPatched = true;
     }
-  }
+  @end
   Expression()
   t=< SEMICOLON >
-  {
+  @java
     // Add closing brace for above if statement.
     if (inAction) {
       t.image = ";}";
     }
-  }
+  @end
 }
 
 void MemberValuePairs():
-{}
 {
   MemberValuePair() ( < COMMA > MemberValuePair() )*
 }
 
 void MemberValuePair():
-{}
 {
    JavaIdentifier() < ASSIGN > MemberValue()
 }
 
 void MemberValue():
-{}
 {
    MemberValueArrayInitializer()
  | ConditionalExpression()
 }
 
 void  MemberValueArrayInitializer():
-{}
 {
   < LBRACE > MemberValue() ( LOOKAHEAD(2) < COMMA > MemberValue() )* [ < COMMA > ] < RBRACE >
 }

@@ -30,7 +30,7 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
 
   @Override
   protected final void insertOpenNodeCode(NodeScope ns, PrintWriter io, String indent, JJTreeOptions options) {
-    String type = ns.node_descriptor.getNodeType();
+    String type = ns.getNodeDescriptor().getNodeType();
     final String nodeClass;
     if ((options.getNodeClass().length() > 0) && !options.getMulti()) {
       nodeClass = options.getNodeClass();
@@ -44,18 +44,18 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
     io.print(indent + nodeClass + " " + ns.nodeVar + " = ");
     if (options.getNodeFactory().equals("*")) {
       // Old-style multiple-implementations.
-      io.println("(" + nodeClass + ")" + nodeClass + ".jjtCreate(" + ns.node_descriptor.getNodeId() + ");");
+      io.println("(" + nodeClass + ")" + nodeClass + ".jjtCreate(" + ns.getNodeDescriptor().getNodeId() + ");");
     } else if (options.getNodeFactory().length() > 0) {
       io.println(
-          "(" + nodeClass + ")" + options.getNodeFactory() + ".jjtCreate(" + ns.node_descriptor.getNodeId() + ");");
+          "(" + nodeClass + ")" + options.getNodeFactory() + ".jjtCreate(" + ns.getNodeDescriptor().getNodeId() + ");");
     } else {
-      io.println("new " + nodeClass + "(this, " + ns.node_descriptor.getNodeId() + ");");
+      io.println("new " + nodeClass + "(this, " + ns.getNodeDescriptor().getNodeId() + ");");
     }
 
     if (ns.usesCloseNodeVar()) {
       io.println(indent + getBoolean() + " " + ns.closedVar + " = true;");
     }
-    io.println(indent + ns.node_descriptor.openNode(ns.nodeVar));
+    io.println(indent + ns.getNodeDescriptor().openNode(ns.nodeVar));
     if (options.getNodeScopeHook()) {
       io.println(indent + "jjtreeOpenNodeScope(" + ns.nodeVar + ");");
     }

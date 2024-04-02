@@ -20,7 +20,18 @@ package it.smartio.fastcc;
  * The {@link JJLanguage} class.
  */
 public enum JJLanguage {
-  None,
+
+  Code,
   Java,
   Cpp;
+
+  public final String CODE;
+
+  private JJLanguage() {
+    CODE = "@" + this.name().toLowerCase();
+  }
+
+  public final String strip(String text) {
+    return text.substring(name().length() + 1);
+  }
 }

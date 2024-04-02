@@ -39,7 +39,6 @@ import it.smartio.fastcc.generator.ParserGenerator;
 import it.smartio.fastcc.parser.Action;
 import it.smartio.fastcc.parser.BNFProduction;
 import it.smartio.fastcc.parser.Choice;
-import it.smartio.fastcc.parser.CodeProduction;
 import it.smartio.fastcc.parser.Expansion;
 import it.smartio.fastcc.parser.JavaCCParserConstants;
 import it.smartio.fastcc.parser.Lookahead;
@@ -79,12 +78,8 @@ public class JavaParserGenerator extends ParserGenerator {
       StringWriter writer = new StringWriter();
       PrintWriter pp = new PrintWriter(writer);
       for (NormalProduction p : data.getProductions()) {
-        if (p instanceof CodeProduction) {
-          genCodeProduction((CodeProduction) p, pp, data.options());
-        } else {
-          String code = generatePhase1Expansion(data, p.getExpansion());
-          generatePhase1((BNFProduction) p, code, pp, data.options());
-        }
+        String code = generatePhase1Expansion(data, p.getExpansion());
+        generatePhase1((BNFProduction) p, code, pp, data.options());
       }
       return writer.toString();
     };
@@ -172,10 +167,6 @@ public class JavaParserGenerator extends ParserGenerator {
     genHeaderMethod(p, t, writer, options);
 
     writer.print(" {");
-    
-    if(p.header != null) {
-      writer.print(p.header.substring(5));
-    }
 
     if (options.getDepthLimit() > 0) {
       writer.println("if(++jj_depth > " + options.getDepthLimit() + ") {");
@@ -655,63 +646,6 @@ public class JavaParserGenerator extends ParserGenerator {
     }
   }
 
-  private final void genCodeProduction(CodeProduction jp, PrintWriter writer, Options options) {
-    Token t = jp.getReturnTypeTokens().get(0);
-    genTokenSetup(t);
-    writer.print(getLeadingComments(t));
-    writer.print("  ");
-    writer.print(getStringForTokenOnly(t));
-    for (int i = 1; i < jp.getReturnTypeTokens().size(); i++) {
-      t = (jp.getReturnTypeTokens().get(i));
-      writer.print(getStringToPrint(t));
-    }
-    writer.print(getTrailingComments(t));
-    writer.print(" " + jp.getLhs() + "(");
-    if (jp.getParameterListTokens().size() != 0) {
-      genTokenSetup((jp.getParameterListTokens().get(0)));
-      for (Iterator<Token> it = jp.getParameterListTokens().iterator(); it.hasNext();) {
-        t = it.next();
-        writer.print(getStringToPrint(t));
-      }
-      writer.print(getTrailingComments(t));
-    }
-    writer.print(")");
-    writer.print(" throws ParseException");
-    for (List<Token> name : jp.getThrowsList()) {
-      writer.print(", ");
-      for (Iterator<Token> it2 = name.iterator(); it2.hasNext();) {
-        t = it2.next();
-        writer.print(t.image);
-      }
-    }
-    writer.print(" {");
-    if (options.getDebugParser()) {
-      writer.println();
-      writer.println("    trace_call(\"" + Encoding.escapeUnicode(jp.getLhs()) + "\");");
-      writer.print("    try {");
-    }
-    if (jp.getCodeTokens().size() != 0) {
-      genTokenSetup((jp.getCodeTokens().get(0)));
-
-      for (Iterator<Token> it = jp.getCodeTokens().iterator(); it.hasNext();) {
-        t = it.next();
-        writer.print(getStringToPrint(t));
-      }
-
-      if (t != null) {
-        writer.print(getTrailingComments(t));
-      }
-    }
-    writer.println();
-    if (options.getDebugParser()) {
-      writer.println("    } finally {");
-      writer.println("      trace_return(\"" + Encoding.escapeUnicode(jp.getLhs()) + "\");");
-      writer.println("    }");
-    }
-    writer.println("  }");
-    writer.println();
-  }
-
   private void generatePhase2(Expansion e, PrintWriter writer, Options options) {
     writer.println("  private boolean jj_2" + e.internal_name + "(int xla) {");
     writer.println("    jj_la = xla;");
@@ -855,7 +789,8 @@ public class JavaParserGenerator extends ParserGenerator {
       }
     } else if (e instanceof TryBlock) {
       TryBlock e_nrw = (TryBlock) e;
-      xsp_declared = buildPhase3RoutineRecursive(data, jj3_expansion, xsp_declared, e_nrw.getExpansion(), count, writer);
+      xsp_declared =
+          buildPhase3RoutineRecursive(data, jj3_expansion, xsp_declared, e_nrw.getExpansion(), count, writer);
     } else if (e instanceof OneOrMore) {
       if (!xsp_declared) {
         xsp_declared = true;

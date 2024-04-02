@@ -33,4 +33,8 @@ abstract class AbstractTokenManager {
   }
 
   protected abstract JavaCharStream inputStream();
+
+  protected void streamBackup(int amount) {
+    inputStream().backup(amount);
+  }
 }

@@ -487,7 +487,7 @@ public class Options {
     } else if (language.equalsIgnoreCase(Options.OUTPUT_LANGUAGE__CPP) || language.equalsIgnoreCase("cpp")) {
       return JJLanguage.Cpp;
     }
-    return JJLanguage.None;
+    return JJLanguage.Code;
   }
 
   public final String getJavaPackage() {

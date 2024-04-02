@@ -125,4 +125,8 @@ private void jjCheckNAddStates(int start)
     protected JavaCharStream inputStream() {
         return input_stream;
     }
+    
+    protected void streamBackup(int amount) {
+        inputStream().backup(amount);
+    }
 }

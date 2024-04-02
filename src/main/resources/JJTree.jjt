@@ -51,7 +51,7 @@ SPECIAL_TOKEN :
 MORE :
 {
   "//" : IN_SINGLE_LINE_COMMENT
-| <"/**" ~["/"]> { input_stream.backup(1); } : IN_FORMAL_COMMENT
+| <"/**" ~["/"]> @java streamBackup(1); @end : IN_FORMAL_COMMENT
 | "/*" : IN_MULTI_LINE_COMMENT
 | "@java" : JAVA_CODE
 }
@@ -78,7 +78,7 @@ SPECIAL_TOKEN :
 <JAVA_CODE>
 TOKEN :
 {
-  < ECODE_END: "@" > : DEFAULT
+  < ECODE_END: "@end" > : DEFAULT
 | < ECODE: (~["@"])+ >
 }
 
@@ -98,14 +98,8 @@ TOKEN :
 | < NULL: "null" >
 | < TRUE: "true" >
 | < FALSE: "false" >
-| < IF: "if" >
-| < ELSE: "else" >
-| < BREAK: "break" >
-| < NEW: "new" >
-| < RETURN: "return" >
 | < THIS: "this" >
 | < VOID: "void" >
-| < WHILE: "while" >
 }
 
 /* JAVA LITERALS */
@@ -193,8 +187,6 @@ TOKEN :
 | < NE: "!=" >
 | < SC_OR: "||" >
 | < SC_AND: "&&" >
-| < INCR: "++" >
-| < DECR: "--" >
 | < PLUS: "+" >
 | < MINUS: "-" >
 | < STAR: "*" >
@@ -217,21 +209,18 @@ TOKEN :
  * THE JAVACC GRAMMAR SPECIFICATION STARTS HERE *
  ************************************************/
 void javacc_input() #Grammar :
-@java
-@
-{}
 {
   (
     < _PARSER_BEGIN > < LPAREN >
     identifier()
-    {
+    @java
       setParserName();
-    }
+    @end
     < RPAREN >
     ( ( option_binding() )* ) #Options
-    {
+    @java
       normalize();
-    }
+    @end
     < _PARSER_END >
   ) #CompilationUnit(true)
   ( ( production() )+ ) #Productions
@@ -241,35 +230,31 @@ void javacc_input() #Grammar :
 void option_binding() #OptionBinding :
 @java
     Token o;
-@
-{}
+@end
 {
   ( o=<IDENTIFIER> ) < COLON >
   (
     IntegerLiteral()
-  {
+  @java
     setInputFileOption(o, this.token, Integer.valueOf(this.token.image));
     jjtThis.initialize(o.image, this.token.image);
-  }
+  @end
   | BooleanLiteral()
-  {
+  @java
     setInputFileOption(o, this.token, Boolean.valueOf(this.token.image));
     jjtThis.initialize(o.image, this.token.image);
-  }
+  @end
   | StringLiteral()
-  {
+  @java
     String vs = TokenUtils.remove_escapes_and_quotes(this.token, this.token.image);
     setInputFileOption(o, this.token, vs);
     jjtThis.initialize(o.image, vs);
-  }
+  @end
   )
   < SEMICOLON >
 }
 
 void production() :
-@java
-@
-{}
 {
   LOOKAHEAD(1)
   /*
@@ -289,47 +274,40 @@ void bnf_production() #BNF :
     NodeScope ns;
     JJTreeNode eu;
     String n;
-@
-{}
+@end
 {
-  { prod = jjtThis; }
+  @java prod = jjtThis; @end
   ResultType() t1=identifier() FormalParameters()
   [ nd=node_descriptor() ]
   < COLON >
-  {
+  @java
 	prod.name = t1.image;
 	ns = new NodeScope(prod, nd);
-  }
+  @end
 
-  < ECODE > < ECODE_END >
-
-  < LBRACE >
+  ( < ECODE > < ECODE_END > ) ?
   (
-    ( BlockStatement() )*
-    {
+    @java
 	  jjtThis.node_scope = ns;
-	}
+	@end
   ) #BNFDeclaration
-  < RBRACE >
+
   < LBRACE >
   (
     eu=expansion_choices(prod)
-    {
+    @java
 	  jjtThis.node_scope = ns;
 	  jjtThis.expansion_unit = eu;
-	}
+	@end
   ) #BNFNodeScope
  < RBRACE >
-  {
+  @java
     addProduction(prod);
-  }
+  @end
 }
 
 
 void regular_expr_production() #RE :
-@java
-@
-{}
 {
   [
     LOOKAHEAD(2) < LT > < STAR > < GT >
@@ -340,9 +318,6 @@ void regular_expr_production() #RE :
 }
 
 void regexpr_kind() :
-@java
-@
-{}
 {
   < _TOKEN >
 | < _SPECIAL_TOKEN >
@@ -351,9 +326,6 @@ void regexpr_kind() :
 }
 
 void regexpr_spec() #RESpec :
-@java
-@
-{}
 {
   regular_expression()
   [ Block() ]
@@ -361,32 +333,28 @@ void regexpr_spec() #RESpec :
 }
 
 JJTreeNode expansion_choices(ASTProduction p) #BNFChoice(>1) :
-@java
-@
-{}
 {
   expansion(p) ( < BIT_OR > expansion(p) )*
-  { return (JJTreeNode)jjtree.peekNode(); }
+  @java return (JJTreeNode)jjtree.peekNode(); @end
 }
 
 void expansion(ASTProduction p) #BNFSequence(>1) :
 @java
     JJTreeNode eu;
     ASTNodeDescriptor nd = null;
-@
-{}
+@end
 {
   ( LOOKAHEAD(1) ( < _LOOKAHEAD > < LPAREN > local_lookahead(p) < RPAREN > ) #BNFLookahead )?
   ( LOOKAHEAD(0, { notTailOfExpansionUnit() } )
     (
       eu=expansion_unit(p)
       [ nd=node_descriptor() ]
-      {
+      @java
 	    if (jjtree.nodeCreated()) {
 	      jjtThis.node_scope = new NodeScope(p, nd);
 	      jjtThis.expansion_unit = eu;
 	    }
-	  }
+	  @end
     ) #ExpansionNodeScope(>1)
   )+
 }
@@ -395,8 +363,7 @@ void local_lookahead(ASTProduction p) :
 @java
     boolean commaAtEnd = false;
     boolean emptyLA = true;
-@
-{}
+@end
 {
   [
     /*
@@ -407,18 +374,18 @@ void local_lookahead(ASTProduction p) :
      */
     LOOKAHEAD(1)
     IntegerLiteral()
-	{ emptyLA = false; }
+	@java emptyLA = false; @end
   ]
   [ LOOKAHEAD(0, { !emptyLA && (getToken(1).kind != RPAREN) } )
-    < COMMA >	{ commaAtEnd = true; }
+    < COMMA >	@java commaAtEnd = true; @end
   ]
   [ LOOKAHEAD(0, { getToken(1).kind != RPAREN && getToken(1).kind != LBRACE } )
     expansion_choices(p)
-	{ emptyLA = false; commaAtEnd = false; }
+	@java emptyLA = false; commaAtEnd = false; @end
   ]
   [ LOOKAHEAD(0, { !emptyLA && !commaAtEnd && (getToken(1).kind != RPAREN) } )
     < COMMA >
-	{ commaAtEnd = true; }
+	@java commaAtEnd = true; @end
   ]
   [ LOOKAHEAD(0, { emptyLA || commaAtEnd } )
     < LBRACE > [ Expression() ] < RBRACE >
@@ -428,8 +395,7 @@ void local_lookahead(ASTProduction p) :
 JJTreeNode expansion_unit(ASTProduction p) :
 @java
     Token t;
-@
-{}
+@end
 {
 (
   LOOKAHEAD(1)
@@ -460,17 +426,14 @@ JJTreeNode expansion_unit(ASTProduction p) :
   | < HOOK > #BNFZeroOrOne(1)
   | {} #BNFParenthesized(1)
   )
-  { ((JJTreeNode)jjtree.peekNode()).setFirstToken(t); }
+  @java ((JJTreeNode)jjtree.peekNode()).setFirstToken(t); @end
 )
-  {
+  @java
 	return (JJTreeNode)jjtree.peekNode();
-  }
+  @end
 }
 
 void regular_expression() :
-@java
-@
-{}
 {
   StringLiteral() #REStringLiteral
 |
@@ -483,17 +446,11 @@ void regular_expression() :
 }
 
 void complex_regular_expression_choices() #REChoice(>1) :
-@java
-@
-{}
 {
   complex_regular_expression() ( < BIT_OR > complex_regular_expression() )*
 }
 
 void complex_regular_expression() #RESequence(>1) :
-@java
-@
-{}
 {
   ( complex_regular_expression_unit() )+
 }
@@ -501,8 +458,7 @@ void complex_regular_expression() #RESequence(>1) :
 void complex_regular_expression_unit() :
 @java
     Token t;
-@
-{}
+@end
 {
   StringLiteral() #REStringLiteral
 | ( < LT > identifier() < GT > ) #REReference
@@ -521,17 +477,11 @@ void complex_regular_expression_unit() :
 }
 
 void character_list() #RECharList :
-@java
-@
-{}
 {
   [ < TILDE > ] < LBRACKET > [ character_descriptor() ( < COMMA > character_descriptor() )* ] < RBRACKET >
 }
 
 void character_descriptor() #CharDescriptor :
-@java
-@
-{}
 {
   StringLiteral() [ < MINUS > StringLiteral() ]
 }
@@ -539,22 +489,18 @@ void character_descriptor() #CharDescriptor :
 Token identifier() :
 @java
     Token t;
-@
-{}
+@end
 {
-  t=<IDENTIFIER> { return t; }
+  t=<IDENTIFIER> @java return t; @end
 }
 
 Token value() :
-@java
-@
-{}
 {
 ( <INTEGER_LITERAL>
 | <FALSE>
 | <TRUE>
 )
-  { return token; }
+  @java return token; @end
 }
 
 /**********************************************
@@ -565,24 +511,23 @@ ASTNodeDescriptor node_descriptor() #NodeDescriptor :
 @java
     Token t = null;
     String s = null;
-@
-{}
+@end
 {
   < HASH >
-  ( s=Name() { jjtThis.name = s; }
-  | t=<VOID> { jjtThis.name = t.image; }
+  ( s=Name() @java jjtThis.name = s; @end
+  | t=<VOID> @java jjtThis.name = t.image; @end
   )
   [
    LOOKAHEAD(1)
    < LPAREN >
-      [ < GT > { jjtThis.isGT = true; } ]
-      t=value() { jjtThis.setExpressionText(t.image); }
+      [ < GT > @java jjtThis.isGT = true; @end ]
+      t=value() @java jjtThis.setExpressionText(t.image); @end
    < RPAREN >
   ]
-{
+@java
   jjtThis.setNodeIdValue();
   return jjtThis;
-}
+@end
 }
 
 /**********************************************
@@ -595,9 +540,6 @@ ASTNodeDescriptor node_descriptor() #NodeDescriptor :
  */
 
 String JavaIdentifier() :
-@java
-@
-{}
 {
 ( <IDENTIFIER>
 | < _LOOKAHEAD >
@@ -610,9 +552,9 @@ String JavaIdentifier() :
 | < _SKIP >
 | < _EOF >
 )
-{
+@java
   return token.image;
-}
+@end
 }
 
 /*
@@ -626,132 +568,31 @@ String JavaIdentifier() :
  */
 
 void TypeParameters() :
-@java
-@
-{}
 {
   < LT > TypeParameter() ( < COMMA > TypeParameter() )* < GT >
 }
 
 void TypeParameter() :
-@java
-@
-{}
 {
   JavaIdentifier()
 }
-
-void FieldDeclaration() :
-@java
-@
-{}
-{
-  // Modifiers are already matched in the caller
-  Type() VariableDeclarator() ( < COMMA > VariableDeclarator() )* < SEMICOLON >
-}
-
-void VariableDeclarator() :
-@java
-@
-{}
-{
-  VariableDeclaratorId() [ < ASSIGN > VariableInitializer() ]
-}
-
 void VariableDeclaratorId() :
-@java
-@
-{}
 {
   JavaIdentifier() ( < LBRACKET > < RBRACKET > )*
 }
 
-void VariableInitializer() :
-@java
-@
-{}
-{
-  ArrayInitializer()
-| Expression()
-}
-
-void ArrayInitializer() :
-@java
-@
-{}
-{
-  < LBRACE > [ VariableInitializer() ( LOOKAHEAD(2) < COMMA > VariableInitializer() )* ] [ < COMMA > ] < RBRACE >
-}
-
-void MethodDeclaration() :
-@java
-@
-{}
-{
-  // Modifiers already matched in the caller!
-  [ TypeParameters() ]
-  ResultType()
-  MethodDeclarator()
-  ( Block() | < SEMICOLON > )
-}
-
-void MethodDeclarator() :
-@java
-@
-{}
-{
-  JavaIdentifier() FormalParameters() ( < LBRACKET > < RBRACKET > )*
-}
-
 void FormalParameters() :
-@java
-@
 /*
  * Parsing this fills "tokens" with all tokens of the formal
  * parameters excluding the parentheses at each end.
  */
-{}
 {
   < LPAREN > [ FormalParameter() ( < COMMA > FormalParameter() )* ] < RPAREN >
 }
 
 void FormalParameter() :
-@java
-@
-{}
 {
   Type() [ < BIT_AND > | < STAR > ] VariableDeclaratorId()
-}
-
-void ConstructorDeclaration() :
-@java
-@
-{}
-{
-  [ TypeParameters() ]
-  // Modifiers matched in the caller
-  JavaIdentifier() FormalParameters()
-  < LBRACE >
-    [ LOOKAHEAD(ExplicitConstructorInvocation()) ExplicitConstructorInvocation() ]
-    ( BlockStatement() )*
-  < RBRACE >
-}
-
-void ExplicitConstructorInvocation() :
-@java
-@
-{}
-{
-  LOOKAHEAD(< THIS > Arguments() < SEMICOLON >)
-  < THIS > Arguments() < SEMICOLON >
-}
-
-void Initializer() :
-@java
-@
-{}
-{
-  Block()
 }
 
 
@@ -760,53 +601,30 @@ void Initializer() :
  */
 
 void Type() :
-@java
-@
-{}
 {
    LOOKAHEAD(2) ReferenceType()
  | PrimitiveType()
 }
 
 void ReferenceType() :
-@java
-@
-{}
 {
   PrimitiveType() ( LOOKAHEAD(2) < LBRACKET > < RBRACKET > )+
 | ( ClassOrInterfaceType() ) ( LOOKAHEAD(2) < LBRACKET > < RBRACKET > )*
 }
 
 void ClassOrInterfaceType() :
-@java
-@
-{}
 {
   JavaIdentifier() [ LOOKAHEAD(2) TypeArguments() ]
   ( LOOKAHEAD(1) < DOT > JavaIdentifier() [ LOOKAHEAD(2) TypeArguments() ] )*
 }
 
 void TypeArguments() :
-@java
-@
-{}
 {
-  < LT > TypeArgument() ( < COMMA > TypeArgument() )* < GT >
-}
-
-void TypeArgument() :
-@java
-@
-{}
-{
-  ReferenceType()
+  < LT > ReferenceType() ( < COMMA > ReferenceType() )* < GT >
 }
 
 
 void PrimitiveType() :
-@java
-@
-{}
 {
   < BOOLEAN >
 | < CHAR >
@@ -815,9 +633,6 @@ void PrimitiveType() :
 
 
 void ResultType() :
-@java
-@
-{}
 {
 (
   < VOID > [ < STAR > ]
@@ -832,19 +647,15 @@ String Name() :
  */
 @java
     String s, ss;
-@
-{}
+@end
 {
   s=JavaIdentifier()
-  ( LOOKAHEAD(2) < DOT > ss=JavaIdentifier() { s = String.join(".", s, ss); } )*
-  { return s; }
+  ( LOOKAHEAD(2) < DOT > ss=JavaIdentifier() @java s = String.join(".", s, ss); @end )*
+  @java return s; @end
 }
 
 
 void NameList() :
-@java
-@
-{}
 {
   Name() ( < COMMA > Name() )*
 }
@@ -855,8 +666,6 @@ void NameList() :
  */
 
 void Expression() :
-@java
-@
 /*
  * This expansion has been written this way instead of:
  *   Assignment() | ConditionalExpression()
@@ -866,7 +675,6 @@ void Expression() :
  * a primary expression.  Consider adding a semantic predicate to work
  * around this.
  */
-{}
 {
   ConditionalExpression()
   [
@@ -877,187 +685,105 @@ void Expression() :
 
 
 void AssignmentOperator() :
-@java
-@
-{}
 {
   < ASSIGN > | < PLUSASSIGN > | < MINUSASSIGN >
 }
 
 void ConditionalExpression() :
-@java
-@
-{}
 {
   ConditionalOrExpression() [ < HOOK > Expression() < COLON > Expression() ]
 }
 
 void ConditionalOrExpression() :
-@java
-@
-{}
 {
   ConditionalAndExpression() ( < SC_OR > ConditionalAndExpression() )*
 }
 
 void ConditionalAndExpression() :
-@java
-@
-{}
 {
   InclusiveOrExpression() ( < SC_AND > InclusiveOrExpression() )*
 }
 
 void InclusiveOrExpression() :
-@java
-@
-{}
 {
   AndExpression() ( < BIT_OR > AndExpression() )*
 }
 
 void AndExpression() :
-@java
-@
-{}
 {
   EqualityExpression() ( < BIT_AND > EqualityExpression() )*
 }
 
 void EqualityExpression() :
-@java
-@
-{}
 {
   RelationalExpression() ( ( < EQ > | < NE > ) RelationalExpression() )*
 }
 
 void RelationalExpression() :
-@java
-@
-{}
 {
   AdditiveExpression() ( ( < LT > | < GT > ) AdditiveExpression() )*
 }
 
 void AdditiveExpression() :
-@java
-@
-{}
 {
   MultiplicativeExpression() ( ( < PLUS > | < MINUS > ) MultiplicativeExpression() )*
 }
 
 void MultiplicativeExpression() :
-@java
-@
-{}
 {
   UnaryExpression() ( ( < STAR > | < SLASH > ) UnaryExpression() )*
 }
 
 void UnaryExpression() :
-@java
-@
-{}
 {
   ( < PLUS > | < MINUS > ) UnaryExpression()
-| PreIncrementExpression()
-| PreDecrementExpression()
 | UnaryExpressionNotPlusMinus()
 }
 
-void PreIncrementExpression() :
-@java
-@
-{}
-{
-  < INCR > PrimaryExpression()
-}
-
-void PreDecrementExpression() :
-@java
-@
-{}
-{
-  < DECR > PrimaryExpression()
-}
-
 void UnaryExpressionNotPlusMinus() :
-@java
-@
-{}
 {
   ( < TILDE > | < BANG > ) UnaryExpression()
 | LOOKAHEAD( CastLookahead() ) CastExpression()
-| PostfixExpression()
+| PrimaryExpression()
 }
 
 // This production is to determine lookahead only.  The LOOKAHEAD specifications
 // below are not used, but they are there just to indicate that we know about
 // this.
 void CastLookahead() :
-@java
-@
-{}
 {
   LOOKAHEAD(2) < LPAREN > PrimitiveType()
 | LOOKAHEAD(< LPAREN > Type() < LBRACKET >) < LPAREN > Type() < LBRACKET > < RBRACKET >
-| < LPAREN > Type() < RPAREN > ( < TILDE > | < BANG > | < LPAREN > | JavaIdentifier() | < THIS > | < NEW > | Literal() )
-}
-
-void PostfixExpression() :
-@java
-@
-{}
-{
-  PrimaryExpression() [ < INCR > | < DECR > ]
+| < LPAREN > Type() < RPAREN > ( < TILDE > | < BANG > | < LPAREN > | JavaIdentifier() | < THIS > | Literal() )
 }
 
 void CastExpression() :
-@java
-@
-{}
 {
   LOOKAHEAD(< LPAREN > PrimitiveType()) < LPAREN > Type() < RPAREN > UnaryExpression()
 | < LPAREN > Type() < RPAREN > UnaryExpressionNotPlusMinus()
 }
 
 void PrimaryExpression() #PrimaryExpression :
-@java
-@
-{}
 {
   PrimaryPrefix() ( LOOKAHEAD(2) PrimarySuffix() )*
 }
 
 void MemberSelector() :
-@java
-@
-{}
 {
   < DOT > TypeArguments() JavaIdentifier()
 }
 
 void PrimaryPrefix() :
-@java
-@
-{}
 {
   Literal()
 | < THIS >
 | < LPAREN > Expression() < RPAREN >
-| AllocationExpression()
 | Name()
 }
 
 void PrimarySuffix() :
-@java
-@
-{}
 {
   LOOKAHEAD(2) < DOT > < THIS >
-| LOOKAHEAD(2) < DOT > AllocationExpression()
 | LOOKAHEAD(3) MemberSelector()
 | < LBRACKET > Expression() < RBRACKET >
 | < DOT > JavaIdentifier()
@@ -1065,9 +791,6 @@ void PrimarySuffix() :
 }
 
 void Literal() :
-@java
-@
-{}
 {
   <INTEGER_LITERAL>
 | <FLOATING_POINT_LITERAL>
@@ -1078,83 +801,38 @@ void Literal() :
 }
 
 void IntegerLiteral() :
-@java
-@
-{}
 {
   <INTEGER_LITERAL>
 }
 
 void BooleanLiteral() :
-@java
-@
-{}
 {
   < TRUE >
 | < FALSE >
 }
 
 void StringLiteral() :
-@java
-@
-{}
 {
   <STRING_LITERAL>
 }
 
 void NullLiteral() :
-@java
-@
-{}
 {
   < NULL >
 }
 
 void Arguments() :
-@java
-@
 /*
  * Parsing this fills "tokens" with all tokens of the arguments
  * excluding the parentheses at each end.
  */
-{}
 {
   < LPAREN > [ ArgumentList() ] < RPAREN >
 }
 
 void ArgumentList() :
-@java
-@
-{}
 {
   Expression() ( < COMMA > Expression() )*
-}
-
-void AllocationExpression() :
-@java
-@
-{}
-{
-  LOOKAHEAD(2)
-  < NEW > PrimitiveType() ArrayDimsAndInits()
-| < NEW > ClassOrInterfaceType() [ TypeArguments() ]
-  (
-    ArrayDimsAndInits()
-  | Arguments()
-  )
-}
-
-/*
- * The third LOOKAHEAD specification below is to parse to PrimarySuffix
- * if there is an expression between the "[...]".
- */
-void ArrayDimsAndInits() :
-@java
-@
-{}
-{
-  LOOKAHEAD(2) ( LOOKAHEAD(2) < LBRACKET > Expression() < RBRACKET > )+ ( LOOKAHEAD(2) < LBRACKET > < RBRACKET > )*
-| ( < LBRACKET > < RBRACKET > )+ ArrayInitializer()
 }
 
 
@@ -1162,169 +840,37 @@ void ArrayDimsAndInits() :
  * Statement syntax follows.
  */
 void Statement() :
-@java
-@
-{}
 {
   Block()
-| EmptyStatement()
 | StatementExpression() < SEMICOLON >
-| IfStatement()
-| WhileStatement()
-| BreakStatement()
-| ReturnStatement()
 }
 
 void Block() :
-@java
-@
 /*
  * Parsing this fills "tokens" with all tokens of the block
  * excluding the braces at each end.
  */
-{}
 {
-  < LBRACE > ( BlockStatement() )* < RBRACE >
-}
-
-void BlockStatement() :
-@java
-@
-{}
-{
-  LOOKAHEAD( Type() JavaIdentifier() ) LocalVariableDeclaration() < SEMICOLON >
-| Statement()
-}
-
-void LocalVariableDeclaration() :
-@java
-@
-{}
-{
-  Type() VariableDeclarator() ( < COMMA > VariableDeclarator() )*
-}
-
-void EmptyStatement() :
-@java
-@
-{}
-{
-  < SEMICOLON >
+  < ECODE > < ECODE_END >
+| < LBRACE > ( Statement() )* < RBRACE >
 }
 
 void StatementExpression():
-@java
-@
 /*
  * The last expansion of this production accepts more than the legal
  * Java expansions for StatementExpression.  This expansion does not
- * use PostfixExpression for performance reasons.
+ * use PrimaryExpression for performance reasons.
  */
-{}
 {
-  PreIncrementExpression()
-| PreDecrementExpression()
-| PrimaryExpression()
+  PrimaryExpression()
   [
-    < INCR >
-  | < DECR >
-  | AssignmentOperator() Expression()
+    AssignmentOperator() Expression()
   ]
 }
 
-void IfStatement():
-@java
-@
-/*
- * The disambiguating algorithm of JavaCC automatically binds dangling
- * else's to the innermost if statement.  The LOOKAHEAD specification
- * is to tell JavaCC that we know what we are doing.
- */
-{}
-{
-  < IF > < LPAREN > Expression() < RPAREN > Statement() [ LOOKAHEAD(1) < ELSE > Statement() ]
-}
-
-void WhileStatement() :
-@java
-@
-{}
-{
-  < WHILE > < LPAREN > Expression() < RPAREN > Statement()
-}
-
-void ForInit() :
-@java
-@
-{}
-{
-  LOOKAHEAD( Type() JavaIdentifier() ) LocalVariableDeclaration()
-| StatementExpressionList()
-}
-
 void StatementExpressionList() :
-@java
-@
-{}
 {
   StatementExpression() ( < COMMA > StatementExpression() )*
-}
-
-void ForUpdate() :
-@java
-@
-{}
-{
-  StatementExpressionList()
-}
-
-void BreakStatement() :
-@java
-@
-{}
-{
-  < BREAK > [ JavaIdentifier() ] < SEMICOLON >
-}
-
-void ReturnStatement() :
-@java
-@
-{}
-{
-  < RETURN > [ Expression() ] < SEMICOLON >
-}
-
-void MemberValuePairs() :
-@java
-@
-{}
-{
-  MemberValuePair() ( < COMMA > MemberValuePair() )*
-}
-
-void MemberValuePair() :
-@java
-@
-{}
-{
-  JavaIdentifier() < ASSIGN > MemberValue()
-}
-
-void MemberValue() :
-@java
-@
-{}
-{
-  MemberValueArrayInitializer()
-| ConditionalExpression()
-}
-
-void  MemberValueArrayInitializer() :
-@java
-@
-{}
-{
-  < LBRACE > MemberValue() ( LOOKAHEAD(2) < COMMA > MemberValue() )* [ < COMMA > ] < RBRACE >
 }
 
 /* IDENTIFIERS */

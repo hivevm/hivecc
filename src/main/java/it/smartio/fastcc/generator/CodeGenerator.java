@@ -5,6 +5,7 @@ package it.smartio.fastcc.generator;
 
 import java.io.File;
 
+import it.smartio.fastcc.JJLanguage;
 import it.smartio.fastcc.parser.JavaCCParserConstants;
 import it.smartio.fastcc.parser.Token;
 import it.smartio.fastcc.source.SourceWriter;
@@ -56,6 +57,12 @@ class CodeGenerator {
     }
     if ((t.kind == JavaCCParserConstants.STRING_LITERAL) || (t.kind == JavaCCParserConstants.CHARACTER_LITERAL)) {
       retval += Encoding.escapeUnicode(t.image);
+    } else if (t.image.startsWith(JJLanguage.Code.CODE)) {
+      retval += JJLanguage.Java.strip(t.image);
+    } else if (t.image.startsWith(JJLanguage.Java.CODE)) {
+      retval += JJLanguage.Java.strip(t.image);
+    } else if (t.image.startsWith(JJLanguage.Cpp.CODE)) {
+      retval += JJLanguage.Cpp.strip(t.image);
     } else {
       retval += t.image;
     }

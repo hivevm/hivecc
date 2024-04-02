@@ -26,7 +26,7 @@ package it.smartio.fastcc.jjtree;
 public class NodeScope {
 
   private final ASTProduction production;
-  public ASTNodeDescriptor    node_descriptor;
+  private ASTNodeDescriptor   node_descriptor;
 
   public String               closedVar;
   public String               exceptionVar;
@@ -53,13 +53,13 @@ public class NodeScope {
   }
 
 
-  public boolean isVoid() {
-    return this.node_descriptor.isVoid();
+  public ASTNodeDescriptor getNodeDescriptor() {
+    return this.node_descriptor;
   }
 
 
-  public ASTNodeDescriptor getNodeDescriptor() {
-    return this.node_descriptor;
+  public boolean isVoid() {
+    return this.node_descriptor.isVoid();
   }
 
 

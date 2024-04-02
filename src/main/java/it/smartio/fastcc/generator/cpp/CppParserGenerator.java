@@ -40,9 +40,7 @@ import it.smartio.fastcc.generator.ParserGenerator;
 import it.smartio.fastcc.parser.Action;
 import it.smartio.fastcc.parser.BNFProduction;
 import it.smartio.fastcc.parser.Choice;
-import it.smartio.fastcc.parser.CodeProduction;
 import it.smartio.fastcc.parser.Expansion;
-import it.smartio.fastcc.parser.JavaCCErrors;
 import it.smartio.fastcc.parser.JavaCCParserConstants;
 import it.smartio.fastcc.parser.Lookahead;
 import it.smartio.fastcc.parser.NonTerminal;
@@ -76,12 +74,8 @@ public class CppParserGenerator extends ParserGenerator {
       StringWriter writer = new StringWriter();
       PrintWriter printer = new PrintWriter(writer);
       for (NormalProduction p : data.getProductions()) {
-        if (p instanceof CodeProduction) {
-          JavaCCErrors.semantic_error("Cannot use JAVACODE productions with C++ output (yet).");
-        } else {
-          String code = generatePhase1Expansion(data, p.getExpansion());
-          generatePhase1((BNFProduction) p, code, data.getParserName(), printer, data.options());
-        }
+        String code = generatePhase1Expansion(data, p.getExpansion());
+        generatePhase1((BNFProduction) p, code, data.getParserName(), printer, data.options());
       }
       return writer.toString();
     };
@@ -305,7 +299,9 @@ public class CppParserGenerator extends ParserGenerator {
       Choice e_nrw = (Choice) e;
       Lookahead[] conds = data.getLoakaheads(e);
       String[] actions = new String[e_nrw.getChoices().size() + 1];
-      actions[e_nrw.getChoices().size()] = "\n" + "jj_consume_token(-1);\nerrorHandler->parseError(token, getToken(1), __FUNCTION__), hasError = true;" + (data.options().booleanValue(FastCC.JJPARSER_CPP_STOP_ON_FIRST_ERROR) ? "return __ERROR_RET__;\n" : "");
+      actions[e_nrw.getChoices().size()] =
+          "\n" + "jj_consume_token(-1);\nerrorHandler->parseError(token, getToken(1), __FUNCTION__), hasError = true;"
+              + (data.options().booleanValue(FastCC.JJPARSER_CPP_STOP_ON_FIRST_ERROR) ? "return __ERROR_RET__;\n" : "");
 
       // In previous line, the "throw" never throws an exception since the
       // evaluation of jj_consume_token(-1) causes ParseException to be
@@ -327,7 +323,8 @@ public class CppParserGenerator extends ParserGenerator {
         if (!data.isGenerated()) {
           // for the last one, if it's an action, we will not protect it.
           Expansion elem = (Expansion) e_nrw.getUnits().get(i);
-          if (!(elem instanceof Action) || !(e.parent instanceof BNFProduction) || (i != (e_nrw.getUnits().size() - 1))) {
+          if (!(elem instanceof Action) || !(e.parent instanceof BNFProduction)
+              || (i != (e_nrw.getUnits().size() - 1))) {
             wrap_in_block = true;
             retval += "\nif (!hasError) {";
           }
@@ -783,7 +780,8 @@ public class CppParserGenerator extends ParserGenerator {
               "    if (jj_scan_token(" + e_nrw.getOrdinal() + ")) " + genReturn(jj3_expansion, true, data.options()));
         }
       } else {
-        writer.println("    if (jj_scan_token(" + e_nrw.getLabel() + ")) " + genReturn(jj3_expansion, true, data.options()));
+        writer.println(
+            "    if (jj_scan_token(" + e_nrw.getLabel() + ")) " + genReturn(jj3_expansion, true, data.options()));
       }
     } else if (e instanceof NonTerminal) {
       // All expansions of non-terminals have the "name" fields set. So
@@ -848,7 +846,8 @@ public class CppParserGenerator extends ParserGenerator {
       }
     } else if (e instanceof TryBlock) {
       TryBlock e_nrw = (TryBlock) e;
-      xsp_declared = buildPhase3RoutineRecursive(data, jj3_expansion, xsp_declared, e_nrw.getExpansion(), count, writer);
+      xsp_declared =
+          buildPhase3RoutineRecursive(data, jj3_expansion, xsp_declared, e_nrw.getExpansion(), count, writer);
     } else if (e instanceof OneOrMore) {
       if (!xsp_declared) {
         xsp_declared = true;

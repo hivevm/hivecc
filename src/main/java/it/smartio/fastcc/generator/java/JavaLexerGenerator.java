@@ -355,7 +355,7 @@ public class JavaLexerGenerator extends LexerGenerator {
 
       if (data.singlesToSkip[i].HasTransitions()) {
         // added the backup(0) to make JIT happy
-        writer.println(prefix + "try { input_stream.backup(0);");
+        writer.println(prefix + "try { streamBackup(0);");
         if ((data.singlesToSkip[i].asciiMoves[0] != 0L) && (data.singlesToSkip[i].asciiMoves[1] != 0L)) {
           writer.println(
               prefix + "   while ((curChar < 64" + " && (0x" + Long.toHexString(data.singlesToSkip[i].asciiMoves[0])
@@ -459,7 +459,7 @@ public class JavaLexerGenerator extends LexerGenerator {
             + "\"   Putting back \" + (curPos - jjmatchedPos - 1) + \" characters into the input stream.\");");
       }
 
-      writer.println(prefix + "         input_stream.backup(curPos - jjmatchedPos - 1);");
+      writer.println(prefix + "         streamBackup(curPos - jjmatchedPos - 1);");
 
       if (data.options().getDebugTokenManager()) {
         writer.println(prefix + "      }");
@@ -580,7 +580,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       writer.println(prefix + "   int error_column = input_stream.getEndColumn();");
       writer.println(prefix + "   String error_after = null;");
       writer.println(prefix + "   boolean EOFSeen = false;");
-      writer.println(prefix + "   try { input_stream.readChar(); input_stream.backup(1); }");
+      writer.println(prefix + "   try { input_stream.readChar(); streamBackup(1); }");
       writer.println(prefix + "   catch (java.io.IOException e1) {");
       writer.println(prefix + "      EOFSeen = true;");
       writer.println(prefix + "      error_after = curPos <= 1 ? \"\" : input_stream.GetImage();");
@@ -592,7 +592,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       writer.println(prefix + "         error_column++;");
       writer.println(prefix + "   }");
       writer.println(prefix + "   if (!EOFSeen) {");
-      writer.println(prefix + "      input_stream.backup(1);");
+      writer.println(prefix + "      streamBackup(1);");
       writer.println(prefix + "      error_after = curPos <= 1 ? \"\" : input_stream.GetImage();");
       writer.println(prefix + "   }");
       writer.println(prefix + "   throw new TokenMgrException("
@@ -1723,7 +1723,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       writer.println("   int strKind = jjmatchedKind;");
       writer.println("   int strPos = jjmatchedPos;");
       writer.println("   int seenUpto;");
-      writer.println("   input_stream.backup(seenUpto = curPos + 1);");
+      writer.println("   streamBackup(seenUpto = curPos + 1);");
       writer.println("   try { curChar = input_stream.readChar(); }");
       writer.println("   catch(java.io.IOException e) { throw new Error(\"Internal Error\"); }");
       writer.println("   curPos = 0;");
