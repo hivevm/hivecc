@@ -102,22 +102,6 @@ public class JavaLexerGenerator extends LexerGenerator {
         + "0x" + Long.toHexString(data.lohiByte.get(i)[3]) + "L\n}";
   }
 
-  private final void dumpClassHeader(PrintWriter writer, LexerData data) {
-    writer.print("package " + data.options().getJavaPackage());
-    writer.println(";");
-
-    writer.println("");
-    writer.println("/** Token Manager. */");
-
-    writer.print("class " + data.getParserName() + "TokenManager");
-    if ((data.options().getJavaLexer() != null) && !data.options().getJavaLexer().isEmpty()) {
-      writer.print(" extends " + data.options().getJavaLexer());
-    }
-    writer.print(" implements " + data.getParserName() + "Constants");
-
-    writer.println(" {");
-  }
-
   private static void DumpStaticVarDeclarations(PrintWriter writer, LexerData data) {
     int i;
 
@@ -129,7 +113,7 @@ public class JavaLexerGenerator extends LexerGenerator {
     }
     writer.println("};");
 
-    {
+    if (data.maxLexStates > 1) {
       writer.println();
       writer.println("/** Lex State array. */");
       writer.print("public static final int[] jjnewLexState = {");
@@ -148,7 +132,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       writer.println("\n};");
     }
 
-    {
+    if (data.hasSkip || data.hasMore || data.hasSpecial) {
       // Bit vector for TOKEN
       writer.print("static final long[] jjtoToken = {");
       for (i = 0; i < ((data.maxOrdinal / 64) + 1); i++) {
@@ -195,82 +179,6 @@ public class JavaLexerGenerator extends LexerGenerator {
       }
       writer.println("\n};");
     }
-  }
-
-  // Assumes l != 0L
-  private static char MaxChar(long l) {
-    for (int i = 64; i-- > 0;) {
-      if ((l & (1L << i)) != 0L) {
-        return (char) i;
-      }
-    }
-
-    return 0xffff;
-  }
-
-  private static void DumpFillToken(PrintWriter writer, LexerData data) {
-    writer.println("protected Token jjFillToken()");
-    writer.println("{");
-    writer.println("   final Token t;");
-    writer.println("   final String curTokenImage;");
-    if (data.keepLineCol) {
-      writer.println("   final int beginLine;");
-      writer.println("   final int endLine;");
-      writer.println("   final int beginColumn;");
-      writer.println("   final int endColumn;");
-    }
-
-    if (data.hasEmptyMatch) {
-      writer.println("   if (jjmatchedPos < 0)");
-      writer.println("   {");
-      writer.println("      if (image == null)");
-      writer.println("         curTokenImage = \"\";");
-      writer.println("      else");
-      writer.println("         curTokenImage = image.toString();");
-
-      if (data.keepLineCol) {
-        writer.println("      beginLine = endLine = input_stream.getEndLine();");
-        writer.println("      beginColumn = endColumn = input_stream.getEndColumn();");
-      }
-
-      writer.println("   }");
-      writer.println("   else");
-      writer.println("   {");
-      writer.println("      String im = jjstrLiteralImages[jjmatchedKind];");
-      writer.println("      curTokenImage = (im == null) ? input_stream.GetImage() : im;");
-
-      if (data.keepLineCol) {
-        writer.println("      beginLine = input_stream.getBeginLine();");
-        writer.println("      beginColumn = input_stream.getBeginColumn();");
-        writer.println("      endLine = input_stream.getEndLine();");
-        writer.println("      endColumn = input_stream.getEndColumn();");
-      }
-
-      writer.println("   }");
-    } else {
-      writer.println("   String im = jjstrLiteralImages[jjmatchedKind];");
-      writer.println("   curTokenImage = (im == null) ? input_stream.GetImage() : im;");
-      if (data.keepLineCol) {
-        writer.println("   beginLine = input_stream.getBeginLine();");
-        writer.println("   beginColumn = input_stream.getBeginColumn();");
-        writer.println("   endLine = input_stream.getEndLine();");
-        writer.println("   endColumn = input_stream.getEndColumn();");
-      }
-    }
-
-    writer.println("   t = Token.newToken(jjmatchedKind, curTokenImage);");
-
-    if (data.keepLineCol) {
-      writer.println("");
-      writer.println("   t.beginLine = beginLine;");
-      writer.println("   t.endLine = endLine;");
-      writer.println("   t.beginColumn = beginColumn;");
-      writer.println("   t.endColumn = endColumn;");
-    }
-
-    writer.println("");
-    writer.println("   return t;");
-    writer.println("}");
   }
 
   private void DumpGetNextToken(PrintWriter writer, LexerData data) {
@@ -355,7 +263,7 @@ public class JavaLexerGenerator extends LexerGenerator {
 
       if (data.singlesToSkip[i].HasTransitions()) {
         // added the backup(0) to make JIT happy
-        writer.println(prefix + "try { streamBackup(0);");
+        writer.println(prefix + "try { input_stream.backup(0);");
         if ((data.singlesToSkip[i].asciiMoves[0] != 0L) && (data.singlesToSkip[i].asciiMoves[1] != 0L)) {
           writer.println(
               prefix + "   while ((curChar < 64" + " && (0x" + Long.toHexString(data.singlesToSkip[i].asciiMoves[0])
@@ -375,7 +283,7 @@ public class JavaLexerGenerator extends LexerGenerator {
           writer.println(prefix + "{");
           writer.println("      debugStream.println("
               + (data.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
-              + "\"Skipping character : \" + TokenMgrException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \")\");");
+              + "\"Skipping character : \" + TokenException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \")\");");
         }
         writer.println(prefix + "      curChar = input_stream.BeginToken();");
 
@@ -404,7 +312,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       if (data.options().getDebugTokenManager()) {
         writer.println("      debugStream.println("
             + (data.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
-            + "\"Current character : \" + TokenMgrException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
+            + "\"Current character : \" + TokenException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
             + "at line \" + input_stream.getEndLine() + \" column \" + input_stream.getEndColumn());");
       }
 
@@ -459,7 +367,7 @@ public class JavaLexerGenerator extends LexerGenerator {
             + "\"   Putting back \" + (curPos - jjmatchedPos - 1) + \" characters into the input stream.\");");
       }
 
-      writer.println(prefix + "         streamBackup(curPos - jjmatchedPos - 1);");
+      writer.println(prefix + "         input_stream.backup(curPos - jjmatchedPos - 1);");
 
       if (data.options().getDebugTokenManager()) {
         writer.println(prefix + "      }");
@@ -467,7 +375,7 @@ public class JavaLexerGenerator extends LexerGenerator {
 
       if (data.options().getDebugTokenManager()) {
         writer.println("    debugStream.println(" + "\"****** FOUND A \" + tokenImage[jjmatchedKind] + \" MATCH "
-            + "(\" + TokenMgrException.addEscapes(new String(input_stream.GetSuffix(jjmatchedPos + 1))) + "
+            + "(\" + TokenException.addEscapes(new String(input_stream.GetSuffix(jjmatchedPos + 1))) + "
             + "\") ******\\n\");");
       }
 
@@ -566,7 +474,7 @@ public class JavaLexerGenerator extends LexerGenerator {
             writer.println("   debugStream.println("
                 + (data.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
                 + "\"Current character : \" + "
-                + "TokenMgrException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
+                + "TokenException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
                 + "at line \" + input_stream.getEndLine() + \" column \" + input_stream.getEndColumn());");
           }
           writer.println(prefix + "         continue;");
@@ -580,7 +488,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       writer.println(prefix + "   int error_column = input_stream.getEndColumn();");
       writer.println(prefix + "   String error_after = null;");
       writer.println(prefix + "   boolean EOFSeen = false;");
-      writer.println(prefix + "   try { input_stream.readChar(); streamBackup(1); }");
+      writer.println(prefix + "   try { input_stream.readChar(); input_stream.backup(1); }");
       writer.println(prefix + "   catch (java.io.IOException e1) {");
       writer.println(prefix + "      EOFSeen = true;");
       writer.println(prefix + "      error_after = curPos <= 1 ? \"\" : input_stream.GetImage();");
@@ -592,11 +500,11 @@ public class JavaLexerGenerator extends LexerGenerator {
       writer.println(prefix + "         error_column++;");
       writer.println(prefix + "   }");
       writer.println(prefix + "   if (!EOFSeen) {");
-      writer.println(prefix + "      streamBackup(1);");
+      writer.println(prefix + "      input_stream.backup(1);");
       writer.println(prefix + "      error_after = curPos <= 1 ? \"\" : input_stream.GetImage();");
       writer.println(prefix + "   }");
-      writer.println(prefix + "   throw new TokenMgrException("
-          + "EOFSeen, curLexState, error_line, error_column, error_after, curChar, TokenMgrException.LEXICAL_ERROR);");
+      writer.println(prefix + "   throw new TokenException("
+          + "EOFSeen, curLexState, error_line, error_column, error_after, curChar, TokenException.LEXICAL_ERROR);");
     }
 
     if (data.hasMore) {
@@ -635,10 +543,10 @@ public class JavaLexerGenerator extends LexerGenerator {
           writer.println("            if (jjbeenHere[" + data.getState(i) + "] &&");
           writer.println("                jjemptyLineNo[" + data.getState(i) + "] == input_stream.getBeginLine() &&");
           writer.println("                jjemptyColNo[" + data.getState(i) + "] == input_stream.getBeginColumn())");
-          writer.println("               throw new TokenMgrException("
+          writer.println("               throw new TokenException("
               + "(\"Error: Bailing out of infinite loop caused by repeated empty string matches "
               + "at line \" + input_stream.getBeginLine() + \", "
-              + "column \" + input_stream.getBeginColumn() + \".\"), TokenMgrException.LOOP_DETECTED);");
+              + "column \" + input_stream.getBeginColumn() + \".\"), TokenException.LOOP_DETECTED);");
           writer.println("            jjemptyLineNo[" + data.getState(i) + "] = input_stream.getBeginLine();");
           writer.println("            jjemptyColNo[" + data.getState(i) + "] = input_stream.getBeginColumn();");
           writer.println("            jjbeenHere[" + data.getState(i) + "] = true;");
@@ -705,10 +613,10 @@ public class JavaLexerGenerator extends LexerGenerator {
           writer.println("            if (jjbeenHere[" + data.getState(i) + "] &&");
           writer.println("                jjemptyLineNo[" + data.getState(i) + "] == input_stream.getBeginLine() &&");
           writer.println("                jjemptyColNo[" + data.getState(i) + "] == input_stream.getBeginColumn())");
-          writer.println("               throw new TokenMgrException("
+          writer.println("               throw new TokenException("
               + "(\"Error: Bailing out of infinite loop caused by repeated empty string matches "
               + "at line \" + input_stream.getBeginLine() + \", "
-              + "column \" + input_stream.getBeginColumn() + \".\"), TokenMgrException.LOOP_DETECTED);");
+              + "column \" + input_stream.getBeginColumn() + \".\"), TokenException.LOOP_DETECTED);");
           writer.println("            jjemptyLineNo[" + data.getState(i) + "] = input_stream.getBeginLine();");
           writer.println("            jjemptyColNo[" + data.getState(i) + "] = input_stream.getBeginColumn();");
           writer.println("            jjbeenHere[" + data.getState(i) + "] = true;");
@@ -776,10 +684,10 @@ public class JavaLexerGenerator extends LexerGenerator {
           writer.println("            if (jjbeenHere[" + data.getState(i) + "] &&");
           writer.println("                jjemptyLineNo[" + data.getState(i) + "] == input_stream.getBeginLine() &&");
           writer.println("                jjemptyColNo[" + data.getState(i) + "] == input_stream.getBeginColumn())");
-          writer.println("               throw new TokenMgrException("
+          writer.println("               throw new TokenException("
               + "(\"Error: Bailing out of infinite loop caused by repeated empty string matches "
               + "at line \" + input_stream.getBeginLine() + \", "
-              + "column \" + input_stream.getBeginColumn() + \".\"), TokenMgrException.LOOP_DETECTED);");
+              + "column \" + input_stream.getBeginColumn() + \".\"), TokenException.LOOP_DETECTED);");
           writer.println("            jjemptyLineNo[" + data.getState(i) + "] = input_stream.getBeginLine();");
           writer.println("            jjemptyColNo[" + data.getState(i) + "] = input_stream.getBeginColumn();");
           writer.println("            jjbeenHere[" + data.getState(i) + "] = true;");
@@ -929,7 +837,7 @@ public class JavaLexerGenerator extends LexerGenerator {
     if (data.global.options().getDebugTokenManager()) {
       writer.println("   debugStream.println("
           + (data.global.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
-          + "\"Current character : \" + TokenMgrException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
+          + "\"Current character : \" + TokenException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
           + "at line \" + input_stream.getEndLine() + \" column \" + input_stream.getEndColumn());");
     }
     writer.println("   return jjMoveNfa" + data.lexStateSuffix + "(state, pos + 1);");
@@ -997,6 +905,22 @@ public class JavaLexerGenerator extends LexerGenerator {
     writer.println("         return false;");
     writer.println("   }");
     writer.println("}");
+  }
+
+  private final void dumpClassHeader(PrintWriter writer, LexerData data) {
+    writer.print("package " + data.options().getJavaPackage());
+    writer.println(";");
+
+    writer.println("");
+    writer.println("/** Token Manager. */");
+
+    writer.print("class " + data.getParserName() + "TokenManager");
+    if ((data.options().getJavaLexer() != null) && !data.options().getJavaLexer().isEmpty()) {
+      writer.print(" extends " + data.options().getJavaLexer());
+    }
+    writer.print(" implements " + data.getParserName() + "Constants");
+
+    writer.println(" {");
   }
 
   private String getStatesForState(LexerData data) {
@@ -1406,7 +1330,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       if ((i != 0) && data.global.options().getDebugTokenManager()) {
         writer.println("   debugStream.println("
             + (data.global.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
-            + "\"Current character : \" + TokenMgrException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
+            + "\"Current character : \" + TokenException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
             + "at line \" + input_stream.getEndLine() + \" column \" + input_stream.getEndColumn());");
       }
 
@@ -1723,7 +1647,7 @@ public class JavaLexerGenerator extends LexerGenerator {
       writer.println("   int strKind = jjmatchedKind;");
       writer.println("   int strPos = jjmatchedPos;");
       writer.println("   int seenUpto;");
-      writer.println("   streamBackup(seenUpto = curPos + 1);");
+      writer.println("   input_stream.backup(seenUpto = curPos + 1);");
       writer.println("   try { curChar = input_stream.readChar(); }");
       writer.println("   catch(java.io.IOException e) { throw new Error(\"Internal Error\"); }");
       writer.println("   curPos = 0;");
@@ -1742,7 +1666,7 @@ public class JavaLexerGenerator extends LexerGenerator {
     if (data.global.options().getDebugTokenManager()) {
       writer.println("      debugStream.println("
           + (data.global.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
-          + "\"Current character : \" + TokenMgrException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
+          + "\"Current character : \" + TokenException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
           + "at line \" + input_stream.getEndLine() + \" column \" + input_stream.getEndColumn());");
     }
 
@@ -1813,7 +1737,7 @@ public class JavaLexerGenerator extends LexerGenerator {
     if (data.global.options().getDebugTokenManager()) {
       writer.println("      debugStream.println("
           + (data.global.maxLexStates > 1 ? "\"<\" + lexStateNames[curLexState] + \">\" + " : "")
-          + "\"Current character : \" + TokenMgrException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
+          + "\"Current character : \" + TokenException.addEscapes(String.valueOf(curChar)) + \" (\" + (int)curChar + \") "
           + "at line \" + input_stream.getEndLine() + \" column \" + input_stream.getEndColumn());");
     }
 
@@ -1841,6 +1765,82 @@ public class JavaLexerGenerator extends LexerGenerator {
       writer.println("");
       writer.println("   return toRet;");
     }
+    writer.println("}");
+  }
+
+  // Assumes l != 0L
+  private static char MaxChar(long l) {
+    for (int i = 64; i-- > 0;) {
+      if ((l & (1L << i)) != 0L) {
+        return (char) i;
+      }
+    }
+
+    return 0xffff;
+  }
+
+  private static void DumpFillToken(PrintWriter writer, LexerData data) {
+    writer.println("protected Token jjFillToken()");
+    writer.println("{");
+    writer.println("   final Token t;");
+    writer.println("   final String curTokenImage;");
+    if (data.keepLineCol) {
+      writer.println("   final int beginLine;");
+      writer.println("   final int endLine;");
+      writer.println("   final int beginColumn;");
+      writer.println("   final int endColumn;");
+    }
+
+    if (data.hasEmptyMatch) {
+      writer.println("   if (jjmatchedPos < 0)");
+      writer.println("   {");
+      writer.println("      if (image == null)");
+      writer.println("         curTokenImage = \"\";");
+      writer.println("      else");
+      writer.println("         curTokenImage = image.toString();");
+
+      if (data.keepLineCol) {
+        writer.println("      beginLine = endLine = input_stream.getEndLine();");
+        writer.println("      beginColumn = endColumn = input_stream.getEndColumn();");
+      }
+
+      writer.println("   }");
+      writer.println("   else");
+      writer.println("   {");
+      writer.println("      String im = jjstrLiteralImages[jjmatchedKind];");
+      writer.println("      curTokenImage = (im == null) ? input_stream.GetImage() : im;");
+
+      if (data.keepLineCol) {
+        writer.println("      beginLine = input_stream.getBeginLine();");
+        writer.println("      beginColumn = input_stream.getBeginColumn();");
+        writer.println("      endLine = input_stream.getEndLine();");
+        writer.println("      endColumn = input_stream.getEndColumn();");
+      }
+
+      writer.println("   }");
+    } else {
+      writer.println("   String im = jjstrLiteralImages[jjmatchedKind];");
+      writer.println("   curTokenImage = (im == null) ? input_stream.GetImage() : im;");
+      if (data.keepLineCol) {
+        writer.println("   beginLine = input_stream.getBeginLine();");
+        writer.println("   beginColumn = input_stream.getBeginColumn();");
+        writer.println("   endLine = input_stream.getEndLine();");
+        writer.println("   endColumn = input_stream.getEndColumn();");
+      }
+    }
+
+    writer.println("   t = new Token(jjmatchedKind, curTokenImage);");
+
+    if (data.keepLineCol) {
+      writer.println("");
+      writer.println("   t.beginLine = beginLine;");
+      writer.println("   t.endLine = endLine;");
+      writer.println("   t.beginColumn = beginColumn;");
+      writer.println("   t.endColumn = endColumn;");
+    }
+
+    writer.println("");
+    writer.println("   return t;");
     writer.println("}");
   }
 }

@@ -26,7 +26,7 @@ package it.smartio.fastcc.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import it.smartio.fastcc.JJLanguage;
+import it.smartio.fastcc.jjtree.JJTreeParserConstants;
 
 /**
  * Utilities.
@@ -44,16 +44,6 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
    */
   protected int      inLocalLA;
 
-  // Set to true when the parser is within an action.
-  protected boolean inAction;
-
-  /**
-   * This flag keeps track of whether or not return and throw statements have been patched during
-   * the parsing of a production. The value of this flag is assigned the field with the same name in
-   * BNFProduction.java.
-   */
-  protected boolean jumpPatched;
-
   /**
    * Constructs an instance of {@link AbstractJavaCCParser}.
    *
@@ -61,12 +51,10 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
   protected AbstractJavaCCParser() {
     this.nextFreeLexState = 1;
     this.inLocalLA = 0;
-    this.inAction = false;
-    this.jumpPatched = false;
   }
 
   /**
-   * Gets the {@link #options}.
+   * Gets the options.
    */
   public Options getOptions() {
     throw new UnsupportedOperationException();
@@ -76,8 +64,8 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
     this.data = data;
   }
 
-  protected void setParserName() {
-    this.data.setParser(getToken(0).image);
+  protected void setParserName(int index) {
+    this.data.setParser(getToken(index).image);
   }
 
   protected void addproduction(NormalProduction p) {
@@ -270,11 +258,6 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
     }
   }
 
-  protected final boolean isCpp() {
-    getOptions();
-    return Options.getOutputLanguage() == JJLanguage.Cpp;
-  }
-
   /*
    * Returns true if the next token is not in the FOLLOW list of "expansion". It is used to decide
    * when the end of an "expansion" has been reached.
@@ -290,40 +273,6 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
     return true;
   }
 
-  protected void eatUptoCloseBrace(List<Token> tokens) {
-    int b = 1;
-    Token t;
-    while (((t = getToken(1)).kind != JavaCCParserConstants.RBRACE) || (--b != 0)) {
-      if (tokens != null) {
-        tokens.add(t);
-      }
-      if (t.kind == JavaCCParserConstants.EOF) {
-        break;
-      }
-      if (t.kind == JavaCCParserConstants.LBRACE) {
-        b++;
-      }
-      getNextToken(); // eat it
-    }
-  }
-
-  protected void eatUptoRParen(List<Token> tokens) {
-    int b = 1;
-    Token t;
-    while (((t = getToken(1)).kind != JavaCCParserConstants.RPAREN) || (--b != 0)) {
-      if (tokens != null) {
-        tokens.add(t);
-      }
-      if (t.kind == JavaCCParserConstants.EOF) {
-        break;
-      }
-      if (t.kind == JavaCCParserConstants.LPAREN) {
-        b++;
-      }
-      getNextToken(); // eat it
-    }
-  }
-
   protected abstract Token getNextToken();
 
   protected abstract Token getToken(int index);
@@ -332,24 +281,16 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
     Arguments(new ArrayList<>());
   }
 
-  protected void Block() throws ParseException {
-    Block(new ArrayList<>());
+  protected void Statement() throws ParseException {
+    Statement(new ArrayList<>());
   }
 
   protected void Expression() throws ParseException {
     Expression(new ArrayList<>());
   }
 
-  protected void FormalParameters() throws ParseException {
-    FormalParameters(new ArrayList<>());
-  }
-
   protected void Name() throws ParseException {
     Name(new ArrayList<>());
-  }
-
-  protected void ResultType() throws ParseException {
-    ResultType(new ArrayList<>());
   }
 
   protected void TypeArguments() throws ParseException {
@@ -358,7 +299,7 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
 
   protected abstract void Arguments(List<Token> tokens) throws ParseException;
 
-  protected abstract void Block(List<Token> tokens) throws ParseException;
+  protected abstract void Statement(List<Token> tokens) throws ParseException;
 
   protected abstract void Expression(List<Token> tokens) throws ParseException;
 
@@ -369,4 +310,37 @@ abstract class AbstractJavaCCParser implements JavaCCParserConstants {
   protected abstract void ResultType(List<Token> tokens) throws ParseException;
 
   protected abstract void TypeArguments(List<Token> tokens) throws ParseException;
+
+  protected boolean checkEmptyLA(boolean emptyLA, Token token) {
+    return !emptyLA && (token.kind != JavaCCParserConstants.RPAREN);
+  }
+
+  protected boolean checkEmptyLAAndCommandEnd(boolean emptyLA, boolean commaAtEnd, Token token) {
+    return !emptyLA && !commaAtEnd && (getToken(1).kind != JavaCCParserConstants.RPAREN);
+  }
+
+  protected boolean checkEmptyLAOrCommandEnd(boolean emptyLA, boolean commaAtEnd) {
+    return emptyLA || commaAtEnd;
+  }
+
+  protected boolean checkEmpty(Token token) {
+    return token.kind != JavaCCParserConstants.RPAREN && token.kind != JavaCCParserConstants.LBRACE;
+  }
+
+  protected final void setInputOption(Token o, Token v) {
+    switch (v.kind) {
+      case JJTreeParserConstants.INTEGER_LITERAL:
+        getOptions().setInputOption(o, v, o.image, Integer.valueOf(v.image));
+        break;
+
+      case JJTreeParserConstants.TRUE:
+      case JJTreeParserConstants.FALSE:
+        getOptions().setInputOption(o, v, o.image, Boolean.valueOf(v.image));
+        break;
+
+      default:
+        getOptions().setInputOption(o, v, o.image, remove_escapes_and_quotes(v, v.image));
+        break;
+    }
+  }
 }

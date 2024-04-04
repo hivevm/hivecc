@@ -106,7 +106,7 @@ private void jjCheckNAddStates(int start)
   public void SwitchTo(int lexState)
   {
     if (lexState >= {{lexStateNameLength}} || lexState < 0)
-      throw new TokenMgrException("Error: Ignoring invalid lexical state : " + lexState + ". State unchanged.", TokenMgrException.INVALID_LEXICAL_STATE);
+      throw new TokenException("Error: Ignoring invalid lexical state : " + lexState + ". State unchanged.", TokenException.INVALID_LEXICAL_STATE);
     else
       curLexState = lexState;
   }
@@ -121,12 +121,4 @@ private void jjCheckNAddStates(int start)
     private int jjimageLen;
     private int lengthOfMatch;
     protected int curChar;
-    
-    protected JavaCharStream inputStream() {
-        return input_stream;
-    }
-    
-    protected void streamBackup(int amount) {
-        inputStream().backup(amount);
-    }
 }

@@ -37,6 +37,7 @@ import it.smartio.fastcc.parser.Lookahead;
 import it.smartio.fastcc.parser.NonTerminal;
 import it.smartio.fastcc.parser.NormalProduction;
 import it.smartio.fastcc.parser.OneOrMore;
+import it.smartio.fastcc.parser.Options;
 import it.smartio.fastcc.parser.ParseException;
 import it.smartio.fastcc.parser.RChoice;
 import it.smartio.fastcc.parser.REndOfFile;
@@ -143,7 +144,8 @@ public class Semanticize {
     return this.rexps_of_tokens.get(index);
   }
 
-  public static void semanticize(SemanticRequest request, SemanticContext context) throws ParseException {
+  public static void semanticize(SemanticRequest request, Options options) throws ParseException {
+    SemanticContext context = new SemanticContext(options);
     if (context.hasErrors()) {
       throw new ParseException();
     }
@@ -265,7 +267,7 @@ public class Semanticize {
      * their ordinal values), and populates the table "names_of_tokens".
      */
 
-    request.setTokenCount();
+    request.unsetTokenCount();
     for (TokenProduction tokenProduction : request.getTokenProductions()) {
       TokenProduction tp = (tokenProduction);
       List<RegExprSpec> respecs = tp.getRespecs();
@@ -743,18 +745,15 @@ public class Semanticize {
         }
         // Create a singleton choice with an empty action.
         Choice ch = new Choice();
-        ch.setLine(la.getLine());
-        ch.setColumn(la.getColumn());
+        ch.setLocation(la);
         ch.parent = seq;
         Sequence seq1 = new Sequence();
-        seq1.setLine(la.getLine());
-        seq1.setColumn(la.getColumn());
+        seq1.setLocation(la);
         seq1.parent = ch;
         seq1.getUnits().add(la);
         la.parent = seq1;
         Action act = new Action();
-        act.setLine(la.getLine());
-        act.setColumn(la.getColumn());
+        act.setLocation(la);
         act.parent = seq1;
         seq1.getUnits().add(act);
         ch.getChoices().add(seq1);
@@ -771,8 +770,7 @@ public class Semanticize {
         // a new dummy lookahead node to replace this one at its original location.
         Lookahead la1 = new Lookahead();
         la1.setExplicit(false);
-        la1.setLine(la.getLine());
-        la1.setColumn(la.getColumn());
+        la1.setLocation(la);
         la1.parent = seq;
         // Now set the la_expansion field of la and la1 with a dummy expansion (we use EOF).
         la.setLaExpansion(new REndOfFile());

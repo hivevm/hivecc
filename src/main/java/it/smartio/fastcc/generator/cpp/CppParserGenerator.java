@@ -129,7 +129,7 @@ public class CppParserGenerator extends ParserGenerator {
     };
 
     cpp.setOption("writeProductions", writeProductions);
-    cpp.setOption("writeLoakAheads", writeLoakAheads);
+    cpp.setOption("writeLookaheads", writeLoakAheads);
     cpp.setOption("writeExpansions", writeExpansions);
     cpp.writeTemplate("/templates/cpp/Parser.h.template");
   }
@@ -219,9 +219,6 @@ public class CppParserGenerator extends ParserGenerator {
       writer.println();
     }
 
-    if (p.isJumpPatched() && !voidReturn) {
-      writer.println("    throw \"Missing return statement in function\";");
-    }
     if (options.getDebugParser()) {
       writer.println("    } catch(...) { }");
     }
@@ -725,7 +722,7 @@ public class CppParserGenerator extends ParserGenerator {
     if (e.internal_name.startsWith("jj_scan_token")) {
       return xsp_declared;
     }
-    Token t = null;
+
     if (e instanceof RegularExpression) {
       RegularExpression e_nrw = (RegularExpression) e;
       if (e_nrw.getLabel().equals("")) {
@@ -760,6 +757,8 @@ public class CppParserGenerator extends ParserGenerator {
         }
         writer.println("    xsp = jj_scanpos;");
       }
+
+      Token t = null;
       for (int i = 0; i < e_nrw.getChoices().size(); i++) {
         nested_seq = (Sequence) (e_nrw.getChoices().get(i));
         Lookahead la = (Lookahead) (nested_seq.getUnits().get(0));

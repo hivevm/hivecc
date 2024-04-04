@@ -11,7 +11,7 @@ public class ASTBNFDeclaration extends JJTreeNode {
 
   /** Accept the visitor. **/
   @Override
-  public final Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
+  public final Object jjtAccept(JJTreeParserVisitor visitor, JJTreeWriter data) {
     return visitor.visit(this, data);
   }
 }

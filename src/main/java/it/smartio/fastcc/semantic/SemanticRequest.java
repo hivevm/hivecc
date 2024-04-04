@@ -28,7 +28,7 @@ import it.smartio.fastcc.parser.TokenProduction;
  */
 public interface SemanticRequest {
 
-  void setTokenCount();
+  void unsetTokenCount();
 
   int addTokenCount();
 

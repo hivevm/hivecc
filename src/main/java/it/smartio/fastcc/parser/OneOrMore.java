@@ -37,8 +37,7 @@ public class OneOrMore extends Expansion {
   public OneOrMore() {}
 
   OneOrMore(Token t, Expansion e) {
-    setLine(t.beginLine);
-    setColumn(t.beginColumn);
+    setLocation(t);
     this.expansion = e;
     this.expansion.parent = this;
   }

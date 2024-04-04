@@ -36,9 +36,8 @@ public class ZeroOrMore extends Expansion {
 
   public ZeroOrMore() {}
 
-  ZeroOrMore(Token token, Expansion expansion) {
-    setLine(token.beginLine);
-    setColumn(token.beginColumn);
+  ZeroOrMore(Token t, Expansion expansion) {
+    setLocation(t);
     this.expansion = expansion;
     this.expansion.parent = this;
   }

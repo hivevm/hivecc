@@ -46,7 +46,7 @@ public class SourceWriter extends PrintWriter {
   public SourceWriter(String name, Options options) {
     super(new StringWriter());
     this.name = name;
-    this.options = DigestOptions.get(options);
+    this.options = new DigestOptions(options);
   }
 
   /**
@@ -70,7 +70,7 @@ public class SourceWriter extends PrintWriter {
    * @param value
    */
   public final void setOption(String name, Object value) {
-    this.options.put(name, value);
+    this.options.set(name, value);
   }
 
   /**
@@ -80,7 +80,7 @@ public class SourceWriter extends PrintWriter {
    * @param writer
    */
   public final void setWriter(String name, BiConsumer<PrintWriter, Object> writer) {
-    this.options.put(name, writer);
+    this.options.set(name, writer);
   }
 
   /**
@@ -90,7 +90,7 @@ public class SourceWriter extends PrintWriter {
    * @param function
    */
   public final void setFunction(String name, Function<Object, String> function) {
-    this.options.put(name, function);
+    this.options.set(name, function);
   }
 
   /**

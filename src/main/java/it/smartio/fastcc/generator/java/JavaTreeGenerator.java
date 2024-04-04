@@ -7,15 +7,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import it.smartio.fastcc.FastCC;
 import it.smartio.fastcc.generator.JJTreeCodeGenerator;
 import it.smartio.fastcc.jjtree.ASTNodeDescriptor;
 import it.smartio.fastcc.jjtree.JJTreeGlobals;
 import it.smartio.fastcc.jjtree.JJTreeOptions;
+import it.smartio.fastcc.jjtree.JJTreeWriter;
 import it.smartio.fastcc.jjtree.NodeScope;
 import it.smartio.fastcc.utils.DigestOptions;
 import it.smartio.fastcc.utils.DigestWriter;
@@ -24,12 +23,22 @@ import it.smartio.fastcc.utils.Template;
 public class JavaTreeGenerator extends JJTreeCodeGenerator {
 
   @Override
+  protected String getPointer() {
+    return ".";
+  }
+
+  @Override
+  protected String getBoolean() {
+    return "boolean";
+  }
+
+  @Override
   protected final String getTryFinally() {
     return "finally ";
   }
 
   @Override
-  protected final void insertOpenNodeCode(NodeScope ns, PrintWriter io, String indent, JJTreeOptions options) {
+  protected final void insertOpenNodeCode(NodeScope ns, JJTreeWriter io, String indent, JJTreeOptions options) {
     String type = ns.getNodeDescriptor().getNodeType();
     final String nodeClass;
     if ((options.getNodeClass().length() > 0) && !options.getMulti()) {
@@ -38,8 +47,7 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
       nodeClass = type;
     }
 
-    // Ensure that there is a template definition file for the node type.
-    JavaTreeGenerator.ensure(io, type, options);
+    addType(type);
 
     io.print(indent + nodeClass + " " + ns.nodeVar + " = ");
     if (options.getNodeFactory().equals("*")) {
@@ -66,9 +74,8 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
   }
 
   @Override
-  protected final void insertCatchBlocks(NodeScope ns, PrintWriter io, Enumeration<String> thrown_names,
+  protected final void insertCatchBlocks(NodeScope ns, JJTreeWriter io, Enumeration<String> thrown_names,
       String indent) {
-    String thrown;
     if (thrown_names.hasMoreElements()) {
       io.println(indent + "} catch (Throwable " + ns.exceptionVar + ") {");
 
@@ -81,75 +88,42 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
         io.println(indent + "  }");
       }
 
+      String thrown = null;
       while (thrown_names.hasMoreElements()) {
         thrown = thrown_names.nextElement();
         io.println(indent + "  if (" + ns.exceptionVar + " instanceof " + thrown + ") {");
         io.println(indent + "    throw (" + thrown + ")" + ns.exceptionVar + ";");
         io.println(indent + "  }");
       }
-      /*
-       * This is either an Error or an undeclared Exception. If it's an Error then the cast is good,
-       * otherwise we want to force the user to declare it by crashing on the bad cast.
-       */
+      // This is either an Error or an undeclared Exception. If it's an Error then the cast is good,
+      // otherwise we want to force the user to declare it by crashing on the bad cast.
       io.println(indent + "  throw (Error)" + ns.exceptionVar + ";");
     }
   }
 
   @Override
   public final void generateJJTree(JJTreeOptions o) {
-    JavaTreeGenerator.generateTreeConstants(o);
-    JavaTreeGenerator.generateVisitors(o);
-    JavaTreeGenerator.generateDefaultVisitors(o);
-    JavaTreeGenerator.generateTreeState(o);
+    generateTreeConstants(o);
+    generateVisitors(o);
+    generateTreeState(o);
+    generateDefaultVisitors(o);
+
+    // TreeClasses
+    generateNodeClass(o);
+    generateTreeClass(o);
+    generateTreeClasses(o);
   }
 
-  private static void generateTreeState(JJTreeOptions o) {
-    DigestOptions options = DigestOptions.get(o);
-    options.put(FastCC.PARSER_NAME, JJTreeGlobals.parserName);
-    options.put(FastCC.JJPARSER_JAVA_PACKAGE, o.getJavaPackage());
+  private void generateTreeState(JJTreeOptions o) {
+    DigestOptions options = new DigestOptions(o);
+    options.set(FastCC.PARSER_NAME, JJTreeGlobals.parserName);
+    options.set(FastCC.JJPARSER_JAVA_PACKAGE, o.getJavaPackage());
 
-    File file = new File(o.getOutputDirectory(), "JJT" + JJTreeGlobals.parserName + "State.java");
+    String filePrefix = new File(o.getOutputDirectory(), "JJT" + JJTreeGlobals.parserName + "State").getAbsolutePath();
+
+    File file = new File(filePrefix + ".java");
     try (DigestWriter ostr = DigestWriter.create(file, FastCC.VERSION, options)) {
       Template.of("/templates/java/TreeState.template", options).write(ostr);
-    } catch (IOException e) {
-      throw new Error(e.toString());
-    }
-  }
-
-  private static Set<String> nodesGenerated = new HashSet<>();
-
-  private static void ensure(PrintWriter io, String nodeType, JJTreeOptions o) {
-    File file = new File(o.getOutputDirectory(), nodeType + ".java");
-
-    if (nodeType.equals("Tree")) {} else if (nodeType.equals("Node")) {
-      JavaTreeGenerator.ensure(io, "Tree", o);
-    } else {
-      JavaTreeGenerator.ensure(io, "Node", o);
-    }
-
-    if (!(nodeType.equals("Node") || o.getBuildNodeFiles())) {
-      return;
-    }
-
-    if (file.exists() && JavaTreeGenerator.nodesGenerated.contains(file.getName())) {
-      return;
-    }
-
-    DigestOptions options = DigestOptions.get(o);
-    options.put(FastCC.PARSER_NAME, JJTreeGlobals.parserName);
-    options.put(FastCC.JJPARSER_JAVA_PACKAGE, o.getJavaPackage());
-    try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, options)) {
-      JavaTreeGenerator.nodesGenerated.add(file.getName());
-
-      if (nodeType.equals("Tree")) {
-        Template.of("/templates/java/Tree.template", options).write(writer);
-      } else if (nodeType.equals("Node")) {
-        Template.of("/templates/java/Node.template", options).write(writer);
-      } else {
-        options.put(FastCC.JJTREE_NODE_TYPE, nodeType);
-        options.put(FastCC.JJTREE_VISITOR_RETURN_VOID, Boolean.valueOf(o.getVisitorReturnType().equals("void")));
-        Template.of("/templates/java/MultiNode.template", options).write(writer);
-      }
     } catch (IOException e) {
       throw new Error(e.toString());
     }
@@ -160,11 +134,11 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
     ostr.println();
   }
 
-  private static void generateTreeConstants(JJTreeOptions o) {
+  private void generateTreeConstants(JJTreeOptions o) {
     String name = JJTreeGlobals.parserName + "TreeConstants";
     File file = new File(o.getOutputDirectory(), name + ".java");
 
-    try (PrintWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get(o))) {
+    try (PrintWriter ostr = DigestWriter.create(file, FastCC.VERSION, new DigestOptions(o))) {
       List<String> nodeIds = ASTNodeDescriptor.getNodeIds();
       List<String> nodeNames = ASTNodeDescriptor.getNodeNames();
 
@@ -192,7 +166,7 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
     }
   }
 
-  private static void generateVisitors(JJTreeOptions o) {
+  private void generateVisitors(JJTreeOptions o) {
     if (!o.getVisitor()) {
       return;
     }
@@ -200,7 +174,7 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
     String name = JJTreeGlobals.parserName + "Visitor";
     File file = new File(o.getOutputDirectory(), name + ".java");
 
-    try (PrintWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get(o))) {
+    try (PrintWriter ostr = DigestWriter.create(file, FastCC.VERSION, new DigestOptions(o))) {
       List<String> nodeNames = ASTNodeDescriptor.getNodeNames();
 
       JavaTreeGenerator.generatePrologue(ostr, o);
@@ -231,7 +205,7 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
     }
   }
 
-  private static void generateDefaultVisitors(JJTreeOptions o) {
+  private void generateDefaultVisitors(JJTreeOptions o) {
     if (!o.getVisitor()) {
       return;
     }
@@ -239,7 +213,7 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
     String className = JJTreeGlobals.parserName + "DefaultVisitor";
     File file = new File(o.getOutputDirectory(), className + ".java");
 
-    try (PrintWriter ostr = DigestWriter.create(file, FastCC.VERSION, DigestOptions.get(o))) {
+    try (PrintWriter ostr = DigestWriter.create(file, FastCC.VERSION, new DigestOptions(o))) {
       List<String> nodeNames = ASTNodeDescriptor.getNodeNames();
 
       JavaTreeGenerator.generatePrologue(ostr, o);
@@ -304,6 +278,55 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
       ostr.println("}");
     } catch (final IOException e) {
       throw new Error(e.toString());
+    }
+  }
+
+  private void generateTreeClass(JJTreeOptions o) {
+    String nodeType = "Tree";
+    File file = new File(o.getOutputDirectory(), nodeType + ".java");
+
+    DigestOptions options = new DigestOptions(o);
+    options.set(FastCC.PARSER_NAME, JJTreeGlobals.parserName);
+    options.set(FastCC.JJPARSER_JAVA_PACKAGE, o.getJavaPackage());
+    try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, options)) {
+      Template.of("/templates/java/Tree.template", options).write(writer);
+    } catch (IOException e) {
+      throw new Error(e.toString());
+    }
+  }
+
+  private void generateNodeClass(JJTreeOptions o) {
+    String nodeType = "Node";
+    File file = new File(o.getOutputDirectory(), nodeType + ".java");
+
+    DigestOptions options = new DigestOptions(o);
+    options.set(FastCC.PARSER_NAME, JJTreeGlobals.parserName);
+    options.set(FastCC.JJPARSER_JAVA_PACKAGE, o.getJavaPackage());
+    try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, options)) {
+      Template.of("/templates/java/Node.template", options).write(writer);
+    } catch (IOException e) {
+      throw new Error(e.toString());
+    }
+  }
+
+  private void generateTreeClasses(JJTreeOptions o) {
+    for (String nodeType : nodesToGenerate()) {
+      if (!o.getBuildNodeFiles()) {
+        continue;
+      }
+
+      File file = new File(o.getOutputDirectory(), nodeType + ".java");
+
+      DigestOptions options = new DigestOptions(o);
+      options.set(FastCC.PARSER_NAME, JJTreeGlobals.parserName);
+      options.set(FastCC.JJPARSER_JAVA_PACKAGE, o.getJavaPackage());
+      try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, options)) {
+        options.set(FastCC.JJTREE_NODE_TYPE, nodeType);
+        options.set(FastCC.JJTREE_VISITOR_RETURN_VOID, Boolean.valueOf(o.getVisitorReturnType().equals("void")));
+        Template.of("/templates/java/MultiNode.template", options).write(writer);
+      } catch (IOException e) {
+        throw new Error(e.toString());
+      }
     }
   }
 

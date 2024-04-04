@@ -16,21 +16,21 @@
 package it.smartio.fastcc.generator;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.text.ParseException;
 
 import it.smartio.fastcc.JJLanguage;
 import it.smartio.fastcc.JavaCCRequest;
 import it.smartio.fastcc.generator.cpp.CppLexerGenerator;
-import it.smartio.fastcc.generator.cpp.CppOtherFilesGenerator;
+import it.smartio.fastcc.generator.cpp.CppFileGenerator;
 import it.smartio.fastcc.generator.cpp.CppParserGenerator;
 import it.smartio.fastcc.generator.cpp.CppTreeGenerator;
 import it.smartio.fastcc.generator.java.JavaLexerGenerator;
-import it.smartio.fastcc.generator.java.JavaOtherFilesGenerator;
+import it.smartio.fastcc.generator.java.JavaFileGenerator;
 import it.smartio.fastcc.generator.java.JavaParserGenerator;
 import it.smartio.fastcc.generator.java.JavaTreeGenerator;
 import it.smartio.fastcc.jjtree.ASTGrammar;
 import it.smartio.fastcc.jjtree.JJTreeOptions;
+import it.smartio.fastcc.jjtree.JJTreeWriter;
 
 /**
  * The {@link ParserEngine} class.
@@ -40,13 +40,13 @@ public class ParserEngine {
   private final LexerGenerator      lexerGenerator;
   private final ParserGenerator     parserGenerator;
   private final JJTreeCodeGenerator treeGenerator;
-  private final OtherFilesGenerator otherFilesGenerator;
+  private final FileGenerator otherFilesGenerator;
 
   /**
    * Constructs an instance of {@link ParserEngine}.
    */
   private ParserEngine(LexerGenerator lexerGenerator, ParserGenerator parserGenerator,
-      JJTreeCodeGenerator treeGenerator, OtherFilesGenerator otherFilesGenerator) {
+      JJTreeCodeGenerator treeGenerator, FileGenerator otherFilesGenerator) {
     this.lexerGenerator = lexerGenerator;
     this.parserGenerator = parserGenerator;
     this.treeGenerator = treeGenerator;
@@ -57,7 +57,7 @@ public class ParserEngine {
     LexerData data = new LexerBuilder().build(request);
     this.lexerGenerator.start(data);
     this.parserGenerator.start(request);
-    this.otherFilesGenerator.start(data, request);
+    this.otherFilesGenerator.handleRequest(request, data);
   }
 
   /**
@@ -66,7 +66,7 @@ public class ParserEngine {
    * @param node
    * @param writer
    */
-  public void generateJJTree(ASTGrammar node, PrintWriter writer, JJTreeOptions options) throws IOException {
+  public void generateJJTree(ASTGrammar node, JJTreeWriter writer, JJTreeOptions options) throws IOException {
     node.jjtAccept(this.treeGenerator, writer);
     this.treeGenerator.generateJJTree(options);
   }
@@ -80,11 +80,11 @@ public class ParserEngine {
     switch (language) {
       case Cpp:
         return new ParserEngine(new CppLexerGenerator(), new CppParserGenerator(), new CppTreeGenerator(),
-            new CppOtherFilesGenerator());
+            new CppFileGenerator());
 
       case Java:
         return new ParserEngine(new JavaLexerGenerator(), new JavaParserGenerator(), new JavaTreeGenerator(),
-            new JavaOtherFilesGenerator());
+            new JavaFileGenerator());
 
       default:
         throw new RuntimeException("Language '" + language + "' type not supported!");

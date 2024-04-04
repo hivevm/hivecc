@@ -75,7 +75,7 @@
   }
 
   /** Constructor. */
-  public {{PARSER_NAME}}(String dsl) throws ParseException, TokenMgrException {
+  public {{PARSER_NAME}}(String dsl) throws ParseException, TokenException {
     this(new StringProvider(dsl));
   }
 
@@ -418,7 +418,7 @@
 	   for (int i = 0; i < trace_indent; i++) { System.out.print(" "); }
 	   System.out.print("Consumed token: <" + tokenImage[t.kind]);
 	   if (t.kind != 0 && !tokenImage[t.kind].equals("\\"" + t.image + "\\"")) {
-		 System.out.print(": \\"" + TokenMgrException.addEscapes(" + "t.image) + "\\"");
+		 System.out.print(": \\"" + TokenException.addEscapes(" + "t.image) + "\\"");
 	   }
       genCodeLine(
           "	   System.out.println(" at line " + t.beginLine + " + "" column " + t.beginColumn + ">" + where);
@@ -430,7 +430,7 @@
 	   for (int i = 0; i < trace_indent; i++) { System.out.print(" "); }
 	   System.out.print("Visited token: <" + tokenImage[t1.kind]);
 	   if (t1.kind != 0 && !tokenImage[t1.kind].equals("\\"" + t1.image + "\\"")) {
-		 System.out.print(": \\"" + TokenMgrException.addEscapes(" + "t1.image) + "\\"");
+		 System.out.print(": \\"" + TokenException.addEscapes(" + "t1.image) + "\\"");
 	   }
 	   System.out.println(" at line " + t1.beginLine + ""
           + " column " + t1.beginColumn + ">; Expected token: <" + tokenImage[t2] + ">");

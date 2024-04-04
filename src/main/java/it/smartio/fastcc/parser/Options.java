@@ -55,8 +55,8 @@ public class Options {
     }
   }
 
-  public static final String OUTPUT_LANGUAGE__CPP  = "c++";
-  public static final String OUTPUT_LANGUAGE__JAVA = "java";
+  private static final String OUTPUT_LANGUAGE__CPP  = "c++";
+  private static final String OUTPUT_LANGUAGE__JAVA = "java";
 
 
   private static final Set<OptionInfo> userOptions;
@@ -442,20 +442,6 @@ public class Options {
    */
   public final boolean getKeepLineColumn() {
     return booleanValue(FastCC.JJPARSER_KEEP_LINE_COLUMN);
-  }
-
-  /**
-   * As of 6.1 JavaCC now throws subclasses of {@link RuntimeException} rather than {@link Error} s
-   * (by default), as {@link Error} s typically lead to the closing down of the parent VM and are
-   * only to be used in extreme circumstances (failure of parsing is generally not regarded as
-   * such). If this value is set to true, then then {@link Error}s will be thrown (for compatibility
-   * with older .jj files)
-   *
-   * @return true if throws errors (legacy), false if use {@link RuntimeException} s (better
-   *         approach)
-   */
-  boolean isLegacy() {
-    return booleanValue(FastCC.JJPARSER_LEGACY);
   }
 
   /**

@@ -26,7 +26,7 @@ namespace {{NAMESPACE}} {
 class {{PARSER_NAME}} {
 public:
 {{writeProductions()}}
-{{writeLoakAheads()}}
+{{writeLookaheads()}}
 {{writeExpansions()}}
 
 public: 

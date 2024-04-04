@@ -117,16 +117,24 @@ public class Expansion {
   }
 
   /**
-   * @param line the line to set
+   * Sets the position in the source.
+   * 
+   * @param token
+   * @param token
    */
-  public void setLine(int line) {
-    this.line = line;
+  public void setLocation(Expansion expansion) {
+    this.line = expansion.getLine();
+    this.column = expansion.getColumn();
   }
 
   /**
-   * @param column the column to set
+   * Sets the position in the source.
+   * 
+   * @param token
+   * @param token
    */
-  public void setColumn(int column) {
-    this.column = column;
+  public void setLocation(Token token) {
+    this.line = token.beginLine;
+    this.column = token.beginColumn;
   }
 }

@@ -81,13 +81,6 @@ public class NormalProduction {
   private Token firstToken;
 
   /**
-   * @param line the line to set
-   */
-  public void setLine(int line) {
-    this.line = line;
-  }
-
-  /**
    * @return the line
    */
   public int getLine() {
@@ -97,8 +90,9 @@ public class NormalProduction {
   /**
    * @param column the column to set
    */
-  public void setColumn(int column) {
-    this.column = column;
+  public void setLocation(Token token) {
+    this.line = token.beginLine;
+    this.column = token.beginColumn;
   }
 
   /**

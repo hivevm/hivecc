@@ -116,7 +116,7 @@ public class CppLexerGenerator extends LexerGenerator {
     genStringLiteralArrayCPP(writer, "lexStateNames", stateNames);
 
     if (data.maxLexStates > 1) {
-      writer.println("");
+      writer.println();
       writer.println("/** Lex State array. */");
       writer.print("static const int jjnewLexState[] = {");
 
@@ -166,6 +166,18 @@ public class CppLexerGenerator extends LexerGenerator {
           writer.print("\n   ");
         }
         writer.print("0x" + Long.toHexString(data.toSpecial[i]) + "L, ");
+      }
+      writer.println("\n};");
+    }
+
+    if (data.hasMore) {
+      // Bit vector for MORE
+      writer.print("static const unsigned long long jjtoMore[] = {");
+      for (i = 0; i < ((data.maxOrdinal / 64) + 1); i++) {
+        if ((i % 4) == 0) {
+          writer.print("\n   ");
+        }
+        writer.print("0x" + Long.toHexString(data.toMore[i]) + "L, ");
       }
       writer.println("\n};");
     }
@@ -559,8 +571,8 @@ public class CppLexerGenerator extends LexerGenerator {
 
   private void DumpMoreActions(PrintWriter writer, LexerData data) {
     Action act;
-    writer.print("\nvoid " + data.getParserName() + "TokenManager::MoreLexicalActions()");
 
+    writer.print("\nvoid " + data.getParserName() + "TokenManager::MoreLexicalActions()");
     writer.println("{");
     writer.println("   jjimageLen += (lengthOfMatch = jjmatchedPos + 1);");
     writer.println("   switch(jjmatchedKind)");
@@ -701,38 +713,6 @@ public class CppLexerGenerator extends LexerGenerator {
     writer.println("         break;");
     writer.println("   }");
     writer.println("}");
-  }
-
-  private static void genStringLiteralArrayCPP(PrintWriter writer, String varName, String[] arr) {
-    // First generate char array vars
-    for (int i = 0; i < arr.length; i++) {
-      writer.println("static const JJChar " + varName + "_arr_" + i + "[] = ");
-      String s = arr[i];
-      // String literals in CPP become char arrays
-      writer.print("{");
-      for (int ii = 0; ii < s.length(); ii++) {
-        writer.print("0x" + Integer.toHexString(s.charAt(ii)) + ", ");
-      }
-      writer.print("0}");
-      writer.println(";");
-    }
-
-    writer.println("static const JJString " + varName + "[] = {");
-    for (int i = 0; i < arr.length; i++) {
-      writer.println(varName + "_arr_" + i + ", ");
-    }
-    writer.println("};");
-  }
-
-  // Assumes l != 0L
-  private static char MaxChar(long l) {
-    for (int i = 64; i-- > 0;) {
-      if ((l & (1L << i)) != 0L) {
-        return (char) i;
-      }
-    }
-
-    return 0xffff;
   }
 
   private void DumpStatesForKind(PrintWriter writer, LexerData data) {
@@ -942,7 +922,6 @@ public class CppLexerGenerator extends LexerGenerator {
     writer.println("   return jjMoveNfa" + data.lexStateSuffix + "(state, pos + 1);");
     writer.println("}");
   }
-
 
   @Override
   protected final void DumpHeadForCase(PrintWriter writer, int byteNum) {
@@ -1878,5 +1857,37 @@ public class CppLexerGenerator extends LexerGenerator {
       writer.println("   return toRet;");
     }
     writer.println("}");
+  }
+
+  private static void genStringLiteralArrayCPP(PrintWriter writer, String varName, String[] arr) {
+    // First generate char array vars
+    for (int i = 0; i < arr.length; i++) {
+      writer.println("static const JJChar " + varName + "_arr_" + i + "[] = ");
+      String s = arr[i];
+      // String literals in CPP become char arrays
+      writer.print("{");
+      for (int ii = 0; ii < s.length(); ii++) {
+        writer.print("0x" + Integer.toHexString(s.charAt(ii)) + ", ");
+      }
+      writer.print("0}");
+      writer.println(";");
+    }
+
+    writer.println("static const JJString " + varName + "[] = {");
+    for (int i = 0; i < arr.length; i++) {
+      writer.println(varName + "_arr_" + i + ", ");
+    }
+    writer.println("};");
+  }
+
+  // Assumes l != 0L
+  private static char MaxChar(long l) {
+    for (int i = 64; i-- > 0;) {
+      if ((l & (1L << i)) != 0L) {
+        return (char) i;
+      }
+    }
+
+    return 0xffff;
   }
 }

@@ -76,7 +76,7 @@ public class RRepetitionRange extends RegularExpression {
   /**
    * Sets the {@link #regexpr}.
    */
-  public final void setRegexpr(RegularExpression regexpr, int min, int max, boolean hasMax) {
+  final void setRegexpr(RegularExpression regexpr, int min, int max, boolean hasMax) {
     this.regexpr = regexpr;
     this.min = min;
     this.max = max;

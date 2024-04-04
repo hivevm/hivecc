@@ -40,13 +40,11 @@ public class Choice extends Expansion {
   public Choice() {}
 
   Choice(Token token) {
-    setLine(token.beginLine);
-    setColumn(token.beginColumn);
+    setLocation(token);
   }
 
   Choice(Expansion expansion) {
-    setLine(expansion.getLine());
-    setColumn(expansion.getColumn());
+    setLocation(expansion);
     getChoices().add(expansion);
   }
 

@@ -56,13 +56,6 @@ public class CharacterRange {
   }
 
   /**
-   * @param line the line to set
-   */
-  void setLine(int line) {
-    this.line = line;
-  }
-
-  /**
    * @return the line
    */
   int getLine() {
@@ -70,17 +63,18 @@ public class CharacterRange {
   }
 
   /**
-   * @param column the column to set
-   */
-  void setColumn(int column) {
-    this.column = column;
-  }
-
-  /**
    * @return the column
    */
   int getColumn() {
     return this.column;
+  }
+
+  /**
+   * @param column the column to set
+   */
+  void setLocation(Token token) {
+    this.line = token.beginLine;
+    this.column = token.beginColumn;
   }
 
   /**

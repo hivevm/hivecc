@@ -22,19 +22,18 @@ import it.smartio.fastcc.parser.RegularExpression;
 /**
  * The {@link LexerUtility} class.
  */
-abstract class LexerUtility {
+interface LexerUtility {
 
   static void CheckUnmatchability(RChoice choice, LexerData data) {
-    for (Object element : choice.getChoices()) {
-      RegularExpression curRE = (RegularExpression) element;
-      if (!curRE.isPrivateExp() && (// curRE instanceof RJustName &&
-      curRE.getOrdinal() > 0) && (curRE.getOrdinal() < choice.getOrdinal())
-          && (data.getState(curRE.getOrdinal()) == data.getState(choice.getOrdinal()))) {
+    for (RegularExpression regexp : choice.getChoices()) {
+      if (!regexp.isPrivateExp() && (// curRE instanceof RJustName &&
+      regexp.getOrdinal() > 0) && (regexp.getOrdinal() < choice.getOrdinal())
+          && (data.getState(regexp.getOrdinal()) == data.getState(choice.getOrdinal()))) {
         if (choice.getLabel() != null) {
           JavaCCErrors.warning(choice,
-              "Regular Expression choice : " + curRE.getLabel() + " can never be matched as : " + choice.getLabel());
+              "Regular Expression choice : " + regexp.getLabel() + " can never be matched as : " + choice.getLabel());
         } else {
-          JavaCCErrors.warning(choice, "Regular Expression choice : " + curRE.getLabel()
+          JavaCCErrors.warning(choice, "Regular Expression choice : " + regexp.getLabel()
               + " can never be matched as token of kind : " + choice.getOrdinal());
         }
       }

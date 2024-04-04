@@ -48,24 +48,10 @@ public class SingleCharacter {
   }
 
   /**
-   * @param line the line to set
-   */
-  void setLine(int line) {
-    this.line = line;
-  }
-
-  /**
    * @return the line
    */
   int getLine() {
     return this.line;
-  }
-
-  /**
-   * @param column the column to set
-   */
-  void setColumn(int column) {
-    this.column = column;
   }
 
   /**
@@ -75,4 +61,11 @@ public class SingleCharacter {
     return this.column;
   }
 
+  /**
+   * @param column the column to set
+   */
+  void setLocation(Token token) {
+    this.line = token.beginLine;
+    this.column = token.beginColumn;
+  }
 }

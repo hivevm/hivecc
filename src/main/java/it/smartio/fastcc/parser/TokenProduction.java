@@ -46,7 +46,6 @@ public class TokenProduction {
    * The starting line and column of this token production.
    */
   private int                     column;
-
   private int                     line;
 
   /**
@@ -86,13 +85,6 @@ public class TokenProduction {
   private Token                   firstToken;
 
   /**
-   * @param line the line to set
-   */
-  public void setLine(int line) {
-    this.line = line;
-  }
-
-  /**
    * @return the line
    */
   public int getLine() {
@@ -102,8 +94,9 @@ public class TokenProduction {
   /**
    * @param column the column to set
    */
-  public void setColumn(int column) {
-    this.column = column;
+  public void setLocation(Token token) {
+    this.line = token.beginLine;
+    this.column = token.beginColumn;
   }
 
   /**

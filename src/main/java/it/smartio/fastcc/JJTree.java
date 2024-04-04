@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.io.Reader;
 import java.text.ParseException;
 
@@ -39,6 +38,7 @@ import it.smartio.fastcc.jjtree.ASTGrammar;
 import it.smartio.fastcc.jjtree.JJTreeGlobals;
 import it.smartio.fastcc.jjtree.JJTreeOptions;
 import it.smartio.fastcc.jjtree.JJTreeParserDefault;
+import it.smartio.fastcc.jjtree.JJTreeWriter;
 import it.smartio.fastcc.parser.JavaCCErrors;
 import it.smartio.fastcc.parser.Options;
 
@@ -153,7 +153,7 @@ public class JJTree {
 
         ParserEngine engine = ParserEngine.create(Options.getOutputLanguage());
 
-        try (PrintWriter writer = new PrintWriter(file)) {
+        try (JJTreeWriter writer = new JJTreeWriter(file, Options.getOutputLanguage())) {
           JJMain.writeGenerated(writer);
           engine.generateJJTree(root, writer, options);
         } catch (IOException ioe) {

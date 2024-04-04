@@ -20,8 +20,8 @@ package it.smartio.fastcc.jjtree;
  */
 abstract class AbstractJJTreeParser {
 
-  protected final void setParserName() {
-    JJTreeGlobals.parserName = getToken(0).image;
+  protected final void setParserName(int index) {
+    JJTreeGlobals.parserName = getToken(index).image;
   }
 
   protected final void addProduction(ASTProduction prod) {
@@ -32,8 +32,24 @@ abstract class AbstractJJTreeParser {
     getOptions().normalize();
   }
 
-  protected final void setInputOption(Token o, Token v, Object value) {
-    getOptions().setInputOption(o, v, o.image, value);
+  protected final String setInputOption(Token o, Token v) {
+    String image = v.image;
+    switch (v.kind) {
+      case JJTreeParserConstants.INTEGER_LITERAL:
+        getOptions().setInputOption(o, v, o.image, Integer.valueOf(image));
+        break;
+
+      case JJTreeParserConstants.TRUE:
+      case JJTreeParserConstants.FALSE:
+        getOptions().setInputOption(o, v, o.image, Boolean.valueOf(image));
+        break;
+
+      default:
+        image = TokenUtils.remove_escapes_and_quotes(v, image);
+        getOptions().setInputOption(o, v, o.image, image);
+        break;
+    }
+    return image;
   }
 
   protected abstract Token getNextToken();
@@ -61,5 +77,21 @@ abstract class AbstractJJTreeParser {
       return false;
     }
     return true;
+  }
+
+  protected boolean checkEmptyLA(boolean emptyLA, Token token) {
+    return !emptyLA && (token.kind != JJTreeParserConstants.RPAREN);
+  }
+
+  protected boolean checkEmptyLAAndCommandEnd(boolean emptyLA, boolean commaAtEnd, Token token) {
+    return !emptyLA && !commaAtEnd && (getToken(1).kind != JJTreeParserConstants.RPAREN);
+  }
+
+  protected boolean checkEmptyLAOrCommandEnd(boolean emptyLA, boolean commaAtEnd) {
+    return emptyLA || commaAtEnd;
+  }
+
+  protected boolean checkEmpty(Token token) {
+    return token.kind != JJTreeParserConstants.RPAREN && token.kind != JJTreeParserConstants.LBRACE;
   }
 }

@@ -25,7 +25,6 @@ import java.io.PrintWriter;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -72,12 +71,8 @@ public class DigestWriter extends PrintWriter {
   /**
    * Get options as wrapper.
    */
-  public Map<String, Object> options() {
+  public DigestOptions options() {
     return this.options;
-  }
-
-  private final boolean isPrintableOption(Object value) {
-    return (value instanceof String) || (value instanceof Number) || (value instanceof Boolean);
   }
 
   /**
@@ -99,8 +94,7 @@ public class DigestWriter extends PrintWriter {
       this.stream.write(this.bytes.toByteArray());
       writer.printf("// FastCC Checksum=%s (Do not edit this line!)\n", checksum);
       if (this.options.hasConsumed()) {
-        writer.printf("// FastCC Options: %s\n", this.options.consumed().filter(e -> isPrintableOption(e.getValue()))
-            .map(e -> String.format("%s='%s'", e.getKey(), e.getValue())).collect(Collectors.joining(", ")));
+        writer.printf("// FastCC Options: %s\n", this.options.consumed().collect(Collectors.joining(", ")));
       }
     } catch (IOException e) {
       e.printStackTrace();

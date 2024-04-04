@@ -37,8 +37,7 @@ public class RZeroOrMore extends RegularExpression {
   public RZeroOrMore() {}
 
   RZeroOrMore(Token t, RegularExpression r) {
-    setLine(t.beginLine);
-    setColumn(t.beginColumn);
+    setLocation(t);
     this.regexpr = r;
   }
 

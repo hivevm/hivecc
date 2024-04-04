@@ -202,7 +202,7 @@ public class JavaCCData implements SemanticRequest, JavaCCRequest {
   }
 
   @Override
-  public final void setTokenCount() {
+  public final void unsetTokenCount() {
     this.tokenCount = 1;
   }
 

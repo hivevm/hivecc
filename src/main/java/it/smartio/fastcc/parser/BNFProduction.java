@@ -36,13 +36,7 @@ public class BNFProduction extends NormalProduction {
    * The declarations of this production.
    */
   private final List<Token> declaration_tokens = new ArrayList<>();
-  private final List<Token> end_tokens         = new ArrayList<>();
-
-  /**
-   * This flag keeps track of whether or not return and throw statements have been patched within
-   * this production's actions to include a preceding "if (true)".
-   */
-  private boolean           jumpPatched;
+  private final List<Token> end_tokens         = new ArrayList<>();;
 
   /**
    * @return the declaration_tokens
@@ -54,19 +48,4 @@ public class BNFProduction extends NormalProduction {
   public List<Token> getDeclarationEndTokens() {
     return this.end_tokens;
   }
-
-  /**
-   * @param jumpPatched the jumpPatched to set
-   */
-  public void setJumpPatched(boolean jumpPatched) {
-    this.jumpPatched = jumpPatched;
-  }
-
-  /**
-   * @return the jumpPatched
-   */
-  public boolean isJumpPatched() {
-    return this.jumpPatched;
-  }
-
 }

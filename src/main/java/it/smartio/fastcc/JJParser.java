@@ -39,7 +39,6 @@ import it.smartio.fastcc.parser.JavaCCParser;
 import it.smartio.fastcc.parser.JavaCCParserDefault;
 import it.smartio.fastcc.parser.Options;
 import it.smartio.fastcc.parser.StreamProvider;
-import it.smartio.fastcc.semantic.SemanticContext;
 import it.smartio.fastcc.semantic.Semanticize;
 
 /**
@@ -142,7 +141,7 @@ public abstract class JJParser {
 
       JJMain.createOutputDir(options.getOutputDirectory());
 
-      Semanticize.semanticize(request, new SemanticContext(options));
+      Semanticize.semanticize(request, options);
 
       options.setStringOption(FastCC.PARSER_NAME, request.getParserName());
 

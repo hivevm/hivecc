@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2021 Territorium Online Srl / TOL GmbH. All Rights Reserved.
+ * Copyright (c) 2001-2022 Territorium Online Srl / TOL GmbH. All Rights Reserved.
  *
  * This file contains Original Code and/or Modifications of Original Code as defined in and that are
  * subject to the Territorium Online License Version 1.0. You may not use this file except in
@@ -13,15 +13,30 @@
  * the specific language governing rights and limitations under the License.
  */
 
-package it.smartio.fastcc.generator;
+package it.smartio.fastcc.utils;
 
-import it.smartio.fastcc.JavaCCRequest;
-import it.smartio.fastcc.parser.ParseException;
+import java.util.List;
+import java.util.function.Function;
 
 /**
- * The {@link OtherFilesGenerator} class.
+ * The {@link TemplateFunction} class.
  */
-public interface OtherFilesGenerator {
+public class TemplateFunction<T> {
 
-  void start(LexerData data, JavaCCRequest request) throws ParseException;
+  final Iterable<T>               values;
+  final List<Function<T, String>> functions;
+
+  /**
+   * Constructs an instance of {@link TemplateFunction}.
+   *
+   */
+  TemplateFunction(Iterable<T> values, List<Function<T, String>> functions) {
+    this.values = values;
+    this.functions = functions;
+  }
+
+  public final TemplateFunction<T> add(Function<T, String> function) {
+    this.functions.add(function);
+    return this;
+  }
 }

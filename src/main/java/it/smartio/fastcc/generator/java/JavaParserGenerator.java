@@ -40,7 +40,6 @@ import it.smartio.fastcc.parser.Action;
 import it.smartio.fastcc.parser.BNFProduction;
 import it.smartio.fastcc.parser.Choice;
 import it.smartio.fastcc.parser.Expansion;
-import it.smartio.fastcc.parser.JavaCCParserConstants;
 import it.smartio.fastcc.parser.Lookahead;
 import it.smartio.fastcc.parser.NonTerminal;
 import it.smartio.fastcc.parser.NormalProduction;
@@ -162,7 +161,6 @@ public class JavaParserGenerator extends ParserGenerator {
   private void generatePhase1(BNFProduction p, String code, PrintWriter writer, Options options) {
     Token t = p.getReturnTypeTokens().get(0);
 
-    boolean voidReturn = (t.kind == JavaCCParserConstants.VOID);
     genHeaderMethod(p, t, writer, options);
 
     writer.print(" {");
@@ -233,9 +231,6 @@ public class JavaParserGenerator extends ParserGenerator {
       writer.println();
     }
 
-    if (p.isJumpPatched() && !voidReturn) {
-      writer.println("    throw new " + "RuntimeException" + "(\"Missing return statement in function\");");
-    }
     if (options.getDebugParser()) {
       writer.println("    } finally {");
       writer.println("      trace_return(\"" + Encoding.escapeUnicode(p.getLhs()) + "\");");

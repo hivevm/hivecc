@@ -37,9 +37,8 @@ public class RJustName extends RegularExpression {
 
   public RJustName() {}
 
-  RJustName(Token token, String image) {
-    setLine(token.beginLine);
-    setColumn(token.beginColumn);
+  RJustName(Token t, String image) {
+    setLocation(t);
     this.label = image;
   }
 

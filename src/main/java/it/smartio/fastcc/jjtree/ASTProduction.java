@@ -54,7 +54,7 @@ public class ASTProduction extends JJTreeNode {
   }
 
   @Override
-  public Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
+  public Object jjtAccept(JJTreeParserVisitor visitor, JJTreeWriter data) {
     return visitor.visit(this, data);
   }
 }

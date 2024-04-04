@@ -444,7 +444,7 @@ public class RCharacterList extends RegularExpression {
   /**
    * Sets the {@link #negated_list}.
    */
-  public final void setNegatedList() {
+  final void setNegatedList() {
     this.negated_list = true;
   }
 }

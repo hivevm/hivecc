@@ -24,7 +24,7 @@ public class ASTBNFAction extends JJTreeNode {
 
 
   @Override
-  public final Object jjtAccept(JJTreeParserVisitor visitor, Object data) {
+  public final Object jjtAccept(JJTreeParserVisitor visitor, JJTreeWriter data) {
     return visitor.visit(this, data);
   }
 }

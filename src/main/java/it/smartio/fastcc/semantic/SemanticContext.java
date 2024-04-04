@@ -21,7 +21,7 @@ import it.smartio.fastcc.parser.Options;
 /**
  * The {@link SemanticContext} class.
  */
-public class SemanticContext {
+class SemanticContext {
 
   private final Options options;
 

@@ -71,8 +71,7 @@ public class RStringLiteral extends RegularExpression {
   public RStringLiteral() {}
 
   RStringLiteral(Token t, String image) {
-    setLine(t.beginLine);
-    setColumn(t.beginColumn);
+    setLocation(t);
     this.image = image;
   }
 
