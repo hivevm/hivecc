@@ -15,16 +15,8 @@
 
 package it.smartio.fastcc.utils;
 
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import it.smartio.fastcc.parser.Options;
@@ -35,26 +27,36 @@ import it.smartio.fastcc.parser.Options;
  */
 public class DigestOptions implements Environment {
 
-  private final Options delegate;
-
-
-  private final Map<String, Object> options  = new HashMap<>();
-  private final Set<String>         consumed = new HashSet<>();
+  private final Options     global;
+  private final Environment environment;
+  private final Set<String> consumed = new HashSet<>();
 
   /**
    * Constructs an instance of {@link DigestOptions}.
    * 
-   * @param delegate
+   * @param global
+   * @param environment
    */
-  public DigestOptions(Options delegate) {
-    this.delegate = delegate;
+  public DigestOptions(Options global) {
+    this(global, new TemplateOptions());
+  }
+
+  /**
+   * Constructs an instance of {@link DigestOptions}.
+   * 
+   * @param global
+   * @param environment
+   */
+  public DigestOptions(Options global, Environment environment) {
+    this.global = global;
+    this.environment = environment;
   }
 
   /**
    * Gets the {@link Options}.
    */
   public final Options getOptions() {
-    return delegate;
+    return global;
   }
 
   final boolean hasConsumed() {
@@ -73,7 +75,7 @@ public class DigestOptions implements Environment {
    */
   @Override
   public final boolean isSet(String name) {
-    return options.containsKey(name) || delegate.getOptions().containsKey(name);
+    return environment.isSet(name) || global.getOptions().containsKey(name);
   }
 
   /**
@@ -84,7 +86,7 @@ public class DigestOptions implements Environment {
    */
   @Override
   public final Object get(String name) {
-    Object value = options.containsKey(name) ? options.get(name) : delegate.getOptions().get(name);
+    Object value = environment.isSet(name) ? environment.get(name) : global.getOptions().get(name);
     this.consumed.add(name);
     return value;
   }
@@ -92,68 +94,21 @@ public class DigestOptions implements Environment {
   /**
    * Sets a key/value option.
    *
-   * @param key
+   * @param name
    * @param value
    */
   @Override
-  public final void set(String key, Object value) {
-    options.put(key, value);
+  public final void set(String name, Object value) {
+    environment.set(name, value);
   }
-
-  /**
-   * Set an {@link BiConsumer} writer.
-   *
-   * @param name
-   * @param function
-   */
-  public final TemplateFunction<Integer> addValues(String key, Integer value) {
-    return addValues(key, IntStream.range(0, value).boxed().collect(Collectors.toList()));
-  }
-
-  /**
-   * Set an {@link BiConsumer} writer.
-   *
-   * @param name
-   * @param function
-   */
-  public final <T> TemplateFunction<T> addValues(String key, Iterable<T> value) {
-    TemplateFunction<T> functions = new TemplateFunction<>(value, new ArrayList<>());
-    options.put(key, functions);
-    return functions;
-  }
-
-  /**
-   * Set an {@link BiConsumer} writer.
-   *
-   * @param name
-   * @param function
-   */
-  public final <T> void setFunc(String key, Function<T, String> function) {
-    options.put(key, function);
-  }
-
-  /**
-   * Set an {@link BiConsumer} writer.
-   *
-   * @param name
-   * @param writer
-   */
-  public final void set(String key, BiConsumer<PrintWriter, Object> writer) {
-    options.put(key, writer);
-  }
-
 
   private static boolean isPrintableOption(Object value) {
-    return (value instanceof String) || (value instanceof Number) || (value instanceof Boolean)
-        || (value instanceof TemplateFunction);
+    return (value instanceof String) || (value instanceof Number) || (value instanceof Boolean);
   }
 
   private static String toPrintable(String name, Object value) {
     if ((value instanceof Number) || (value instanceof Boolean))
       return String.format("%s=%s", name, value);
-    if (value instanceof TemplateFunction) {
-      return name;
-    }
     return String.format("%s='%s'", name, value);
   }
 }

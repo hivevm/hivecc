@@ -1,5 +1,5 @@
 #include "ParseException.h"
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 
@@ -113,6 +113,6 @@ JJString ParseException::addEscapes(const JJString& str) {
 */ return str;
 }
 
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi

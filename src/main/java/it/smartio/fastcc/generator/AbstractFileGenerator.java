@@ -48,10 +48,10 @@ public abstract class AbstractFileGenerator {
    * Generates a {@link File} from a template.
    *
    * @param filename
-   * @param context
+   * @param options
    */
-  protected final void generateFile(String filename, LexerData context) {
-    generateFile(filename, filename, new DigestOptions(context.options()));
+  protected final void generateFile(String filename, DigestOptions options) {
+    generateFile(filename, filename, options);
   }
 
   /**
@@ -66,7 +66,7 @@ public abstract class AbstractFileGenerator {
 
     try (DigestWriter writer = createDigestWriter(file, options)) {
       Template template = Template.of(getTemplate(name), writer.options());
-      template.write(writer);
+      template.render(writer);
     } catch (IOException e) {
       System.err.println("Failed to create file: " + filename + " " + e);
       JavaCCErrors.semantic_error("Could not open file: " + filename + " for writing.");

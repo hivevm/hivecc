@@ -6,42 +6,42 @@
 
 #include "JavaCC.h"
 
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 
 // RegularExpressions
 const int _EOF = 0; // End of File
-@FOREACH(TOKENS, ordinal, label)
-const int {{label}} = {{ordinal}};
+@forEach(token : TOKENS)
+const int {{token.label}} = {{token.ordinal}};
 @end
 
 // Lexical states
-@FOREACH(STATES, index, name)
-const int {{name}} = {{index}};
+@forEach(index : STATES)
+const int {{index.name}} = {{index}};
 @end
 
 // Literal token images
-@FOREACH(REGEXPS, index, label, image)
-static const JJChar tokenImage_{{image}};
+@forEach(index : REGEXPS)
+static const JJChar tokenImage_{{index}}[] = { {{index.image}}0};
 @end
 static const JJChar* const tokenImages[] = {
-@FOREACH(REGEXPS, index)
+@forEach(index : REGEXPS)
     tokenImage_{{index}},
 @end
 };
 
 // Literal token labels
-@FOREACH(REGEXPS, index, label)
-static const JJChar tokenLabel_{{label}};
+@forEach(index : REGEXPS)
+static const JJChar tokenLabel_{{index}}[] = { {{index.label}}0};
 @end
 static const JJChar* const tokenLabels[] = {
-@FOREACH(REGEXPS, index)
+@forEach(index : REGEXPS)
     tokenLabel_{{index}},
 @end
 };
 
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi
 #endif

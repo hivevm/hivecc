@@ -1,12 +1,12 @@
 #ifndef JAVACC_TOKEN_H
 #define JAVACC_TOKEN_H
 
-@if LIBRARY
+@if(LIBRARY)
 #include "ImportExport.h"
 @fi
 #include "JavaCC.h"
 
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 
@@ -14,7 +14,7 @@ namespace {{NAMESPACE}} {
  * Describes the input token stream.
  */
 
-@if LIBRARY
+@if(LIBRARY)
 class {{PARSER_NAME_UPPER_CASE}}_API Token 
 @else
 class Token
@@ -136,7 +136,7 @@ inline	void*& 			Token::value() 				{ return _value; }
 inline	const void* 	Token::value() const		{ return _value; }
 
 
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi
 

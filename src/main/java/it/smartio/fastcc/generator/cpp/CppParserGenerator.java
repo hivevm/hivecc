@@ -28,9 +28,7 @@ package it.smartio.fastcc.generator.cpp;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Iterator;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import it.smartio.fastcc.FastCC;
@@ -53,7 +51,9 @@ import it.smartio.fastcc.parser.ZeroOrMore;
 import it.smartio.fastcc.parser.ZeroOrOne;
 import it.smartio.fastcc.semantic.Semanticize;
 import it.smartio.fastcc.source.CppWriter;
+import it.smartio.fastcc.utils.DigestOptions;
 import it.smartio.fastcc.utils.Encoding;
+import it.smartio.fastcc.utils.TemplateOptions;
 
 /**
  * Generate the parser.
@@ -62,76 +62,32 @@ public class CppParserGenerator extends ParserGenerator {
 
   @Override
   protected void generate(ParserData data) throws IOException {
-    Function<Object, String> writeMasks = i -> {
-      int index = (Integer) i;
-      return data.maskVals().isEmpty() ? ""
-          : String.format("static unsigned int jj_la1_%s[] = {%s};", index,
-              data.maskVals().stream().map(v -> "0x" + Integer.toHexString(v[index])).collect(Collectors.joining(",")));
-    };
-    Function<Object, String> writeProductionsImpl = i -> {
-      StringWriter writer = new StringWriter();
-      PrintWriter printer = new PrintWriter(writer);
-      for (NormalProduction p : data.getProductions()) {
-        String code = generatePhase1Expansion(data, p.getExpansion());
-        generatePhase1((BNFProduction) p, code, data.getParserName(), printer, data.options());
-      }
-      return writer.toString();
-    };
-    Function<Object, String> writeJJ_3Call = i -> {
-      int index = (Integer) i;
-      return "" + (index + 1);
-    };
+    TemplateOptions options = new TemplateOptions();
+    options.set("LOOKAHEAD_NEEDED", data.isLookAheadNeeded());
+    options.set("IS_GENERATED", data.isGenerated());
+    options.set("jj2Index", data.jj2Index());
+    options.set("maskIndex", data.maskIndex());
+    options.set("tokenCount", data.getTokenCount());
 
-    CppWriter writer = new CppWriter(data.getParserName(), data.options());
-    writer.setOption("LOOKAHEAD_NEEDED", data.isLookAheadNeeded());
-    writer.setOption("IS_GENERATED", data.isGenerated());
-    writer.setOption("jj2Index", data.jj2Index());
-    writer.setOption("maskIndex", data.maskIndex());
-    writer.setOption("tokenCount", data.getTokenCount());
-    writer.setOption("tokenMaskSize", ((data.getTokenCount() - 1) / 32) + 1);
-    writer.setOption("writeMasks", writeMasks);
-    writer.setOption("writeProductionsImpl", writeProductionsImpl);
-    writer.setOption("writeJJ_3Call", writeJJ_3Call);
+    options.add("JJ2_INDEX", data.jj2Index()).set("offset", i -> (i + 1));
+    options.add("TOKEN_MAX_SIZE", ((data.getTokenCount() - 1) / 32) + 1).set("masks",
+        i -> data.maskVals().isEmpty() ? ""
+            : String.format("static unsigned int jj_la1_%s[] = {%s};", i,
+                data.maskVals().stream().map(v -> "0x" + Integer.toHexString(v[i])).collect(Collectors.joining(","))));
+
+    options.add("NORMALPRODUCTIONS", data.getProductions()).set("phase", (n, p) -> generatePhase1((BNFProduction) n,
+        generatePhase1Expansion(data, n.getExpansion()), data.getParserName(), p, data.options()));
+    options.add("PRODUCTIONS_LHS", data.getProductions()).set("lhs", n -> ((BNFProduction) n).getLhs());
+    options.add("LOOKAHEADS", data.getLoakaheads()).set("phase",
+        (la, p) -> generatePhase2(la.getLaExpansion(), p, data.options()));
+    options.add("EXPANSIONS", data.getExpansions()).set("phase",
+        (e, p) -> generatePhase3Routine(data, e, data.getCount(e), p, data.options()));
+
+    CppWriter writer = new CppWriter(data.getParserName(), new DigestOptions(data.options(), options));
     writer.writeTemplate("/templates/cpp/Parser.template");
-
-    generateHeader(data, writer);
+    writer.switchToHeader();
+    writer.writeTemplate("/templates/cpp/Parser.h.template");
     saveOutput(writer, data.options().getOutputDirectory());
-  }
-
-  private void generateHeader(ParserData data, CppWriter cpp) throws IOException {
-    cpp.switchToHeader();
-
-    Function<Object, String> writeProductions = i -> {
-      StringWriter writer = new StringWriter();
-      PrintWriter printer = new PrintWriter(writer);
-      for (NormalProduction p : data.getProductions()) {
-        if (p instanceof BNFProduction) {
-          printer.printf("  void %s();\n", p.getLhs());
-        }
-      }
-      return writer.toString();
-    };
-    Function<Object, String> writeLoakAheads = i -> {
-      StringWriter writer = new StringWriter();
-      PrintWriter printer = new PrintWriter(writer);
-      for (Lookahead la : data.getLoakaheads()) {
-        generatePhase2(la.getLaExpansion(), printer, data.options());
-      }
-      return writer.toString();
-    };
-    Function<Object, String> writeExpansions = i -> {
-      StringWriter writer = new StringWriter();
-      PrintWriter printer = new PrintWriter(writer);
-      for (Expansion e : data.getExpansions()) {
-        generatePhase3Routine(data, e, data.getCount(e), printer, data.options());
-      }
-      return writer.toString();
-    };
-
-    cpp.setOption("writeProductions", writeProductions);
-    cpp.setOption("writeLookaheads", writeLoakAheads);
-    cpp.setOption("writeExpansions", writeExpansions);
-    cpp.writeTemplate("/templates/cpp/Parser.h.template");
   }
 
   /**

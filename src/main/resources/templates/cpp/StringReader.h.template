@@ -1,13 +1,13 @@
 #ifndef JAVACC_DEFAULT_CHAR_STREAM_H
 #define JAVACC_DEFAULT_CHAR_STREAM_H
 
-@if LIBRARY
+@if(LIBRARY)
 #include "ImportExport.h"
 @fi
 #include "JavaCC.h"
 #include "Reader.h"
 
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 
@@ -26,7 +26,7 @@ namespace {{NAMESPACE}} {
  * operation.
  */
 
-@if LIBRARY
+@if(LIBRARY)
 class {{PARSER_NAME_UPPER_CASE}}_API StringReader : public Reader {
 @else
 class StringReader : public Reader {
@@ -92,7 +92,7 @@ public:
     int  getTabSize()      		{ return tabSize; }
 
     virtual void adjustBeginLineColumn(int newLine, int newCol);
-@if KEEP_LINE_COLUMN
+@if(KEEP_LINE_COLUMN)
 private:
     int getBufcolumn(int pos) ;
     int getBufline(int pos);
@@ -140,7 +140,7 @@ private:
     void updateLineColumn(uint32_t c);
 };
 
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi
 

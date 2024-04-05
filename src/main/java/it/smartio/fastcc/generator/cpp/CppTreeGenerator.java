@@ -269,9 +269,9 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
       for (int i = 0; i < nodeNames.size(); ++i) {
         ostr.print("static JJChar jjtNodeName_arr_" + i + "[] = ");
         String n = nodeNames.get(i);
-        // ostr.println(" (JJChar*)\"" + n + "\",");
+        ostr.print("{ ");
         CppFileGenerator.printCharArray(ostr, n);
-        ostr.println(";");
+        ostr.println("0};");
       }
       ostr.println("static JJString jjtNodeName[] = {");
       for (int i = 0; i < nodeNames.size(); i++) {
@@ -398,6 +398,6 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
 
   private static void generateFile(PrintWriter writer, String template, Environment environment)
       throws IOException {
-    Template.of(template, environment).write(writer);
+    Template.of(template, environment).render(writer);
   }
 }

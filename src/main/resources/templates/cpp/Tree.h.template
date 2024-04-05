@@ -5,7 +5,7 @@
 #include "JavaCC.h"
 #include "Token.h"
 
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 // All AST nodes must implement this interface.
@@ -13,7 +13,7 @@ namespace {{NAMESPACE}} {
 
 class Node;
 class {{PARSER_NAME}};
-@if VISITOR
+@if(VISITOR)
 class {{PARSER_NAME}}Visitor;
 @fi
 
@@ -41,7 +41,7 @@ public:
     virtual int     jjtGetNumChildren() const = 0;
     virtual int     getId() const = 0;
 
-@if VISITOR
+@if(VISITOR)
     // Accept the visitor.
     virtual {{VISITOR_RETURN_TYPE:-void}} jjtAccept({{PARSER_NAME}}Visitor *visitor, {{VISITOR_DATA_TYPE:-void *}} data) const = 0;
 @fi
@@ -55,7 +55,7 @@ public:
     virtual ~Tree() { }
 };
 
-@if NODE_FACTORY
+@if(NODE_FACTORY)
     class {{NODE_FACTORY}};
     extern {{NODE_FACTORY}} *nodeFactory;
   
@@ -64,7 +64,7 @@ public:
     {{NODE_FACTORY}} *getNodeFactory();
 @fi
 
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi
 

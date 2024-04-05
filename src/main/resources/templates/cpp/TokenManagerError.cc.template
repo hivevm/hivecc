@@ -1,5 +1,5 @@
 #include "TokenManagerError.h"
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 
@@ -48,7 +48,7 @@ TokenManagerError::TokenManagerError(bool EOFSeen, int lexState, int errorLine, 
 }
 TokenManagerError::~TokenManagerError() { 
 }
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi
 

@@ -28,10 +28,10 @@ package it.smartio.fastcc.generator.java;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import it.smartio.fastcc.generator.ParserData;
@@ -52,7 +52,9 @@ import it.smartio.fastcc.parser.ZeroOrMore;
 import it.smartio.fastcc.parser.ZeroOrOne;
 import it.smartio.fastcc.semantic.Semanticize;
 import it.smartio.fastcc.source.SourceWriter;
+import it.smartio.fastcc.utils.DigestOptions;
 import it.smartio.fastcc.utils.Encoding;
+import it.smartio.fastcc.utils.TemplateOptions;
 
 /**
  * Implements the {@link ParserGenerator} for the JAVA language.
@@ -61,92 +63,31 @@ public class JavaParserGenerator extends ParserGenerator {
 
   @Override
   protected void generate(ParserData data) throws IOException {
-    Function<Object, String> maskFunction = i -> {
-      int index = (Integer) i;
-      return data.maskVals().stream().map(v -> "0x" + Integer.toHexString(v[index])).collect(Collectors.joining(", "));
-    };
-    Function<Object, String> la1tokens = i -> {
-      int index = (Integer) i;
-      return (index == 0) ? "" : (32 * index) + " + ";
-    };
-    Function<Object, String> rescanToken = i -> {
-      return "" + ((Integer) i + 1);
-    };
-    Function<Object, String> writeProductions = i -> {
-      StringWriter writer = new StringWriter();
-      PrintWriter pp = new PrintWriter(writer);
-      for (NormalProduction p : data.getProductions()) {
-        String code = generatePhase1Expansion(data, p.getExpansion());
-        generatePhase1((BNFProduction) p, code, pp, data.options());
-      }
-      return writer.toString();
-    };
-    Function<Object, String> writeLookaheads = i -> {
-      StringWriter writer = new StringWriter();
-      PrintWriter p = new PrintWriter(writer);
-      for (Lookahead la : data.getLoakaheads()) {
-        generatePhase2(la.getLaExpansion(), p, data.options());
-      }
-      return writer.toString();
-    };
-    Function<Object, String> writeExpansions = i -> {
-      StringWriter writer = new StringWriter();
-      PrintWriter p = new PrintWriter(writer);
-      for (Expansion e : data.getExpansions()) {
-        generatePhase3Routine(data, e, data.getCount(e), p);
-      }
-      return writer.toString();
-    };
-    Function<Object, String> preInsertion = i -> {
-      StringWriter writer = new StringWriter();
-      PrintWriter p = new PrintWriter(writer);
+    TemplateOptions options = new TemplateOptions();
+    options.set("IS_GENERATED", data.isGenerated());
+    options.set("LOOKAHEAD_NEEDED", data.isLookAheadNeeded());
 
-      p.println("package " + data.options().getJavaPackage() + ";");
-      p.println();
-      if (!data.options().getJavaImports().isEmpty()) {
-        for (String im : data.options().getJavaImports().split(",")) {
-          p.println("import " + im + ";");
-        }
-      }
+    options.set("jj2Index", data.jj2Index());
+    options.set("maskIndex", data.maskIndex());
+    options.set("tokenCount", data.getTokenCount());
+    options.set("EXTENDS", data.options().getJavaExtends());
+    options.set("IMPORTS", data.options().getJavaImports().isEmpty() ? Collections.emptyList()
+        : Arrays.asList(data.options().getJavaImports().split(",")));
 
-      p.print("public class ");
-      p.print(data.getParserName());
-      if (!data.options().getJavaExtends().isEmpty()) {
-        p.print(" extends ");
-        p.print(data.options().getJavaExtends());
-      }
+    options.add("NORMALPRODUCTIONS", data.getProductions()).set("routine", (n, p) -> generatePhase1((BNFProduction) n,
+        generatePhase1Expansion(data, n.getExpansion()), p, data.options()));
+    options.add("LOOKAHEADS", data.getLoakaheads()).set("routine",
+        (e, p) -> generatePhase2(e.getLaExpansion(), p, data.options()));
+    options.add("EXPANSIONS", data.getExpansions()).set("routine",
+        (e, p) -> generatePhase3Routine(data, e, data.getCount(e), p));
 
-      p.print(" implements ");
+    options.add("JJ2_INDEX", data.jj2Index()).set("offset", i -> (i + 1));
+    options.add("TOKEN_MAX_SIZE", ((data.getTokenCount() - 1) / 32) + 1)
+        .set("mask",
+            i -> data.maskVals().stream().map(v -> "0x" + Integer.toHexString(v[i])).collect(Collectors.joining(", ")))
+        .set("la1", i -> (i == 0) ? "" : (32 * i) + " + ");
 
-      if (data.isGenerated()) {
-        p.print(data.getParserName() + "TreeConstants, ");
-      }
-
-      p.println(data.getParserName() + "Constants {");
-
-      if (data.isGenerated()) {
-        p.println(
-            "protected JJT" + data.getParserName() + "State jjtree = new JJT" + data.getParserName() + "State();");
-      }
-      return writer.toString();
-    };
-
-    SourceWriter writer = new SourceWriter(data.getParserName(), data.options());
-
-    writer.setOption("LOOKAHEAD_NEEDED", data.isLookAheadNeeded());
-    writer.setOption("IS_GENERATED", data.isGenerated());
-    writer.setOption("jj2Index", data.jj2Index());
-    writer.setOption("maskIndex", data.maskIndex());
-    writer.setOption("tokenCount", data.getTokenCount());
-    writer.setOption("tokenMaskSize", ((data.getTokenCount() - 1) / 32) + 1);
-    writer.setOption("maskFunction", maskFunction);
-    writer.setOption("la1tokens", la1tokens);
-    writer.setOption("rescanToken", rescanToken);
-    writer.setOption("writeProductions", writeProductions);
-    writer.setOption("writeLookaheads", writeLookaheads);
-    writer.setOption("writeExpansions", writeExpansions);
-    writer.setOption("preInsertion", preInsertion);
-
+    SourceWriter writer = new SourceWriter(data.getParserName(), new DigestOptions(data.options(), options));
     writer.writeTemplate("/templates/java/Parser.template");
     saveOutput(writer, data.options().getOutputDirectory());
   }

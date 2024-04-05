@@ -7,7 +7,7 @@
 #include "JavaCC.h"
 #include "Token.h"
 
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 
@@ -52,6 +52,6 @@ void ParserErrorHandler::otherError(const JJString& message) {
     JJOUT << JJWIDE(Error:) << JJSPACE  << message << std::endl;
 }
 
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi

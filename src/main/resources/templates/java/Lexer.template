@@ -1,31 +1,110 @@
-@foreach lohiBytes
-static final long[] jjbitVec{{$}} = {{getLohiBytes()}};
+@forEach(index : LOHI_BYTES)
+static final long[] jjbitVec{{index}} = { {{index.bytes}} };
 @end
-@foreach stateNames
-{{dumpNfaAndDfa()}}
+@forEach(name: STATES)
+{{name.NfaAndDfa}}
 @end
 /** Token literal values. */
 public static final String[] jjstrLiteralImages = {
-{{getStrLiteralImages()}}};
+{{LITERAL_IMAGES}}};
 
-{{DumpFillToken()}}
-{{DumpStateSets()}}
-@FOREACH nonAsciiTableForMethod
-{{DumpNonAsciiMoveMethod()}}
-@END
-{{DumpGetNextToken()}}
-@if DEBUG_TOKEN_MANAGER
-protected static final int[][][] statesForState = {{getStatesForState()}};
-protected static final int[][] kindForState = {{getKindForState()}};
+protected Token jjFillToken()
+{
+   final Token t;
+   final String curTokenImage;
+@if(keepLineCol)
+   final int beginLine;
+   final int endLine;
+   final int beginColumn;
+   final int endColumn;
 @fi
-@if hasLoop
+@if(hasEmptyMatch)
+   if (jjmatchedPos < 0)
+   {
+      if (image == null)
+         curTokenImage = "";
+      else
+         curTokenImage = image.toString();
+
+@if(keepLineCol)
+        beginLine = endLine = input_stream.getEndLine();
+        beginColumn = endColumn = input_stream.getEndColumn();
+@fi
+   } else {
+      String im = jjstrLiteralImages[jjmatchedKind];
+      curTokenImage = (im == null) ? input_stream.GetImage() : im;
+@if(keepLineCol)
+        beginLine = input_stream.getBeginLine();
+        beginColumn = input_stream.getBeginColumn();
+        endLine = input_stream.getEndLine();
+        endColumn = input_stream.getEndColumn();
+@fi
+   }
+@else
+   String im = jjstrLiteralImages[jjmatchedKind];
+   curTokenImage = (im == null) ? input_stream.GetImage() : im;
+@if(keepLineCol)
+   beginLine = input_stream.getBeginLine();
+   beginColumn = input_stream.getBeginColumn();
+   endLine = input_stream.getEndLine();
+   endColumn = input_stream.getEndColumn();
+@fi
+@fi
+   t = new Token(jjmatchedKind, curTokenImage);
+@if(keepLineCol)
+   t.beginLine = beginLine;
+   t.endLine = endLine;
+   t.beginColumn = beginColumn;
+   t.endColumn = endColumn;
+@fi
+   return t;
+}
+
+{{DumpStateSets}}
+@forEach(nfa : NON_ASCII_TABLE)
+{{nfa.AsciiMove}}
+@end
+{{DumpGetNextToken}}
+@if(DEBUG_TOKEN_MANAGER)
+protected static final int[][][] statesForState = {{STATES_FOR_STATE}};
+protected static final int[][] kindForState = {{KIND_FOR_STATE}};
+@fi
+@if(hasLoop)
 	int[] jjemptyLineNo = new int[{{maxLexStates}}];
 	int[] jjemptyColNo = new int[{{maxLexStates}}];
 boolean[] jjbeenHere = new boolean[{{maxLexStates}}];
 @fi
-{{DumpSkipActions()}}
-{{DumpMoreActions()}}
-{{DumpTokenActions()}}
+void SkipLexicalActions(Token matchedToken)
+{
+   switch(jjmatchedKind)
+   {
+{{DumpSkipActions}}
+      default :
+         break;
+   }
+}
+
+void MoreLexicalActions()
+{
+   jjimageLen += (lengthOfMatch = jjmatchedPos + 1);
+   switch(jjmatchedKind)
+   {
+{{DumpMoreActions}}
+      default :
+         break;
+   }
+}
+
+void TokenLexicalActions(Token matchedToken)
+{
+   switch(jjmatchedKind)
+   {
+{{DumpTokenActions}}
+      default :
+         break;
+   }
+}
+
 
 private void jjCheckNAdd(int state)
 {
@@ -47,7 +126,7 @@ private void jjCheckNAddTwoStates(int state1, int state2)
    jjCheckNAdd(state2);
 }
 
-@if jjCheckNAddStatesDualNeeded
+@if(jjCheckNAddStatesDualNeeded)
 private void jjCheckNAddStates(int start, int end)
 {
    do {
@@ -56,7 +135,7 @@ private void jjCheckNAddStates(int start, int end)
 }
 
 @fi
-@if jjCheckNAddStatesUnaryNeeded
+@if(jjCheckNAddStatesUnaryNeeded)
 private void jjCheckNAddStates(int start)
 {
    jjCheckNAdd(jjnextStates[start]);
@@ -111,7 +190,7 @@ private void jjCheckNAddStates(int start)
       curLexState = lexState;
   }
 
-{{dumpStaticVarDeclarations()}}
+{{dumpStaticVarDeclarations}}
 
     private JavaCharStream  input_stream;
     private final int[] jjrounds = new int[{{stateSetSize}}];

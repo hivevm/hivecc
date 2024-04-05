@@ -6,7 +6,7 @@
 #include "TokenManager.h"
 #include "{{PARSER_NAME}}Constants.h"
 
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 
@@ -15,12 +15,12 @@ public:
 
   FILE *debugStream;
   void setDebugStream(FILE *ds);
-@foreach stateNames
-{{dumpNfaAndDfaHeader()}}
+@forEach(name : STATES)
+{{name.head}}
 @end
 Token * jjFillToken();
-@foreach nonAsciiTableForMethod
-bool jjCanMove_{{getNonAsciiMethod()}}(int hiByte, int i1, int i2, unsigned long long l1, unsigned long long l2);
+@forEach(nfa : NON_ASCII_TABLE)
+bool jjCanMove_{{nfa.offset}}(int hiByte, int i1, int i2, unsigned long long l1, unsigned long long l2);
 @end
 public:
   int defaultLexState;
@@ -31,13 +31,13 @@ public:
   int jjmatchedKind = 0;
 
 Token * getNextToken();
-@if hasSkipActions
+@if(hasSkipActions)
 void SkipLexicalActions(Token *matchedToken);
 @fi
-@if hasMoreActions
+@if(hasMoreActions)
 void MoreLexicalActions();
 @fi
-@if hasTokenActions
+@if(hasTokenActions)
 void TokenLexicalActions(Token *matchedToken);
 @fi
 #define jjCheckNAdd(state)\
@@ -60,7 +60,7 @@ void TokenLexicalActions(Token *matchedToken);
    jjCheckNAdd(state2);\
 }
 
-@if jjCheckNAddStatesDualNeeded
+@if(jjCheckNAddStatesDualNeeded)
 #define jjCheckNAddStates(start, end)\
 {\
    for (int x = start; x <= end; x++) {\
@@ -69,7 +69,7 @@ void TokenLexicalActions(Token *matchedToken);
 }
 
 @fi
-@if jjCheckNAddStatesUnaryNeeded
+@if(jjCheckNAddStatesUnaryNeeded)
 #define jjCheckNAddStates(start)\
 {\
    jjCheckNAdd(jjnextStates[start]);\
@@ -89,7 +89,7 @@ protected:
   void ReInit(Reader * stream, int lexState = {{defaultLexState}});
   void SwitchTo(int lexState);
   void clear();
-@if DEBUG_TOKEN_MANAGER
+@if(DEBUG_TOKEN_MANAGER)
   const Latin1 jjKindsForBitVector(int i, unsigned long long vec);
   const Latin1 jjKindsForStateVector(int lexState, int vec[], int start, int end);
 @fi
@@ -107,7 +107,7 @@ public:
   void	 lexicalError();
   const  TokenManagerErrorHandler*	 getErrorHandler() const;
 };
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi
 #endif

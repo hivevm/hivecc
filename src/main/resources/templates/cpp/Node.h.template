@@ -2,34 +2,34 @@
 #define JAVACC_NODE_H
 
 #include <vector>
-@if LIBRARY
+@if(LIBRARY)
 #include "ImportExport.h"
 @fi
 #include "JavaCC.h"
 #include "Token.h"
 #include "Tree.h"
 #include "{{PARSER_NAME}}TreeConstants.h"
-@if NODE_EXTENDS
+@if(NODE_EXTENDS)
 #include "{{NODE_EXTENDS}}.h"
 @fi
 
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
-@if VISITOR
+@if(VISITOR)
 class {{PARSER_NAME}}Visitor;
 @fi
 
 class {{PARSER_NAME}};
 
-@if LIBRARY
-@if NODE_EXTENDS
+@if(LIBRARY)
+@if(NODE_EXTENDS)
 class {{PARSER_NAME_UPPER_CASE}}_API Node : public {{NODE_EXTENDS}}, public Tree {
 @else
 class {{PARSER_NAME_UPPER_CASE}}_API Node : public Tree {
 @fi
 @else
-@if NODE_EXTENDS
+@if(NODE_EXTENDS)
 class Node : public {{NODE_EXTENDS}}, public Tree {
 @else
 class Node : public Tree {
@@ -39,7 +39,7 @@ protected:
     std::vector<Node*> children;
     Node*              parent;
     void*              value;
-@if TRACK_TOKENS
+@if(TRACK_TOKENS)
     Token*             firstToken;
     Token*             lastToken;
 @fi
@@ -51,7 +51,7 @@ public:
     Node({{PARSER_NAME}}* parser, int id);
     virtual ~Node();
 
-//@if !NODE_FACTORY
+//@if(!NODE_FACTORY)
 //#define jjtCreate(id) new Node(id)
 //#define jjtCreate(p, id) new Node(p, id)
 //@fi
@@ -65,14 +65,14 @@ public:
     virtual void jjtSetValue(void * value);
     virtual void * jjtGetValue() const;
 
-@if TRACK_TOKENS
+@if(TRACK_TOKENS)
     virtual Token * jjtGetFirstToken() const;
     virtual Token * jjtGetLastToken() const;
     virtual void jjtSetFirstToken(Token* token);
     virtual void jjtSetLastToken(Token* token);
 
 @fi
-@if VISITOR
+@if(VISITOR)
     virtual {{VISITOR_RETURN_TYPE:-void}} jjtAccept({{PARSER_NAME}}Visitor* visitor,{{VISITOR_DATA_TYPE:-void*}} data) const;
     virtual void jjtChildrenAccept({{PARSER_NAME}}Visitor* visitor, {{VISITOR_DATA_TYPE:-void*}} data) const;
     virtual void jjtChildAccept(int childNo, {{PARSER_NAME}}Visitor* visitor, {{VISITOR_DATA_TYPE:-void*}} data) const;
@@ -90,7 +90,7 @@ public:
     virtual void dumpToBuffer(const JJString& prefix, const JJString& separator, JJString* sb) const;
     virtual int getId() const { return id;  }
 };
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi
 

@@ -19,12 +19,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 import it.smartio.fastcc.FastCC;
 import it.smartio.fastcc.parser.JavaCCErrors;
-import it.smartio.fastcc.parser.Options;
 import it.smartio.fastcc.utils.DigestOptions;
 import it.smartio.fastcc.utils.DigestWriter;
 import it.smartio.fastcc.utils.Template;
@@ -43,10 +40,10 @@ public class SourceWriter extends PrintWriter {
    * @param name
    * @param options
    */
-  public SourceWriter(String name, Options options) {
+  public SourceWriter(String name, DigestOptions options) {
     super(new StringWriter());
     this.name = name;
-    this.options = new DigestOptions(options);
+    this.options = options;
   }
 
   /**
@@ -64,43 +61,13 @@ public class SourceWriter extends PrintWriter {
   }
 
   /**
-   * Set an option value.
-   *
-   * @param name
-   * @param value
-   */
-  public final void setOption(String name, Object value) {
-    this.options.set(name, value);
-  }
-
-  /**
-   * Set an {@link BiConsumer} writer.
-   *
-   * @param name
-   * @param writer
-   */
-  public final void setWriter(String name, BiConsumer<PrintWriter, Object> writer) {
-    this.options.set(name, writer);
-  }
-
-  /**
-   * Set an {@link Function} by name.
-   *
-   * @param name
-   * @param function
-   */
-  public final void setFunction(String name, Function<Object, String> function) {
-    this.options.set(name, function);
-  }
-
-  /**
    * Write the content using a template.
    *
    * @param path
    */
   public final void writeTemplate(String path) throws IOException {
     Template template = Template.of(path, getOptions());
-    template.write(new PrintWriter(this.out));
+    template.render(new PrintWriter(this.out));
   }
 
   /**
@@ -110,7 +77,7 @@ public class SourceWriter extends PrintWriter {
    */
   public void saveOutput(File path) {
     File file = new File(path, getName() + ".java");
-    try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, getOptions())) {
+    try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, options)) {
       writer.print(toString());
     } catch (IOException e) {
       JavaCCErrors.fatal("Could not create output file: " + file);

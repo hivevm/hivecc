@@ -120,7 +120,7 @@ public class ParseException extends java.text.ParseException {
       sb.append(" " + tokenImage[tok.kind]);
       tok = tok.next;
     }
-@if KEEP_LINE_COLUMN
+@if(KEEP_LINE_COLUMN)
     sb.append(ParseException.EOL).append(ParseException.INDENT)
         .append("at line " + currentToken.next.beginLine + ", column " + currentToken.next.beginColumn);
 @fi

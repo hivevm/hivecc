@@ -1,5 +1,5 @@
 #include "Token.h"
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 
@@ -47,6 +47,6 @@ Token::~Token()
 }
 
 
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi

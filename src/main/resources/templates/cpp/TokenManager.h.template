@@ -2,14 +2,14 @@
 #define JAVACC_TOKEN_MANAGER_H
 
 #include <iostream>
-@if LIBRARY
+@if(LIBRARY)
 #include "ImportExport.h"
 @fi
 #include "JavaCC.h"
 #include "Token.h"
 #include "TokenManagerErrorHandler.h"
 
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 
@@ -18,14 +18,14 @@ namespace {{NAMESPACE}} {
  * The user is free to use any implementation of their choice.
  */
 
-@if LIBRARY
+@if(LIBRARY)
 class {{PARSER_NAME_UPPER_CASE}}_API TokenManager {
 @else
 class TokenManager {
 @fi
 public:
     TokenManager() {
-@if DEBUG_TOKEN_MANAGER
+@if(DEBUG_TOKEN_MANAGER)
         trace = true;
 @else
         trace = false;
@@ -52,19 +52,19 @@ protected:
     bool                       trace;
 public:
     void enable_tracing() {
-@if DEBUG_TOKEN_MANAGER
+@if(DEBUG_TOKEN_MANAGER)
         trace = true;
 @fi
     }
     void disable_tracing(){
-@if DEBUG_TOKEN_MANAGER
+@if(DEBUG_TOKEN_MANAGER)
         trace = false; 
 @fi
     }
     bool trace_enabled() const { return trace; }
 };
 
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi
 

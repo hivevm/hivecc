@@ -1,11 +1,11 @@
 #include "TreeState.h"
 #include "Node.h"
 
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 
-@if NODE_FACTORY
+@if(NODE_FACTORY)
   {{NODE_FACTORY}} *nodeFactory = nullptr;
   // Takes ownerhip of the factory
   void setNodeFactory({{NODE_FACTORY}} *factory) {
@@ -172,6 +172,6 @@ void TreeState::clear() {
         delete (*it);
 }
 
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi

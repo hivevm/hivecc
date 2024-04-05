@@ -123,7 +123,7 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
 
     File file = new File(filePrefix + ".java");
     try (DigestWriter ostr = DigestWriter.create(file, FastCC.VERSION, options)) {
-      Template.of("/templates/java/TreeState.template", options).write(ostr);
+      Template.of("/templates/java/TreeState.template", options).render(ostr);
     } catch (IOException e) {
       throw new Error(e.toString());
     }
@@ -289,7 +289,7 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
     options.set(FastCC.PARSER_NAME, JJTreeGlobals.parserName);
     options.set(FastCC.JJPARSER_JAVA_PACKAGE, o.getJavaPackage());
     try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, options)) {
-      Template.of("/templates/java/Tree.template", options).write(writer);
+      Template.of("/templates/java/Tree.template", options).render(writer);
     } catch (IOException e) {
       throw new Error(e.toString());
     }
@@ -303,7 +303,7 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
     options.set(FastCC.PARSER_NAME, JJTreeGlobals.parserName);
     options.set(FastCC.JJPARSER_JAVA_PACKAGE, o.getJavaPackage());
     try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, options)) {
-      Template.of("/templates/java/Node.template", options).write(writer);
+      Template.of("/templates/java/Node.template", options).render(writer);
     } catch (IOException e) {
       throw new Error(e.toString());
     }
@@ -323,7 +323,7 @@ public class JavaTreeGenerator extends JJTreeCodeGenerator {
       try (DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, options)) {
         options.set(FastCC.JJTREE_NODE_TYPE, nodeType);
         options.set(FastCC.JJTREE_VISITOR_RETURN_VOID, Boolean.valueOf(o.getVisitorReturnType().equals("void")));
-        Template.of("/templates/java/MultiNode.template", options).write(writer);
+        Template.of("/templates/java/MultiNode.template", options).render(writer);
       } catch (IOException e) {
         throw new Error(e.toString());
       }

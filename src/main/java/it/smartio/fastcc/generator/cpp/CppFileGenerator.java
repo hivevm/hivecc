@@ -29,7 +29,6 @@ package it.smartio.fastcc.generator.cpp;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +45,7 @@ import it.smartio.fastcc.parser.RegularExpression;
 import it.smartio.fastcc.parser.TokenProduction;
 import it.smartio.fastcc.utils.DigestOptions;
 import it.smartio.fastcc.utils.DigestWriter;
+import it.smartio.fastcc.utils.TemplateOptions;
 
 /**
  * Generates the Constants file.
@@ -73,46 +73,6 @@ public class CppFileGenerator extends AbstractFileGenerator implements FileGener
 
   @Override
   public final void handleRequest(JavaCCRequest request, LexerData context) throws ParseException {
-    if (JavaCCErrors.hasError()) {
-      throw new ParseException();
-    }
-
-    handleToken(request, context);
-    handleProvider(request, context);
-    handleException(request, context);
-    handleGeneric(request, context);
-
-    handleParserConstants(request, context);
-  }
-
-  protected void handleToken(JavaCCRequest request, LexerData context) throws ParseException {
-    generateFile("Token.h", context);
-    generateFile("Token.cc", context);
-    generateFile("TokenManager.h", context);
-    generateFile("TokenManagerError.h", context);
-    generateFile("TokenManagerError.cc", context);
-    generateFile("TokenManagerErrorHandler.h", context);
-    generateFile("TokenManagerErrorHandler.cc", context);
-  }
-
-  protected final void handleProvider(JavaCCRequest request, LexerData context) throws ParseException {
-    generateFile("Reader.h", context);
-    generateFile("StringReader.h", context);
-    generateFile("StringReader.cc", context);
-  }
-
-  protected final void handleException(JavaCCRequest request, LexerData context) throws ParseException {
-    generateFile("ParseException.h", context);
-    generateFile("ParseException.cc", context);
-    generateFile("ParserErrorHandler.h", context);
-    generateFile("ParserErrorHandler.cc", context);
-  }
-
-  protected final void handleGeneric(JavaCCRequest request, LexerData context) throws ParseException {
-    generateFile("JavaCC.h", context);
-  }
-
-  protected final void handleParserConstants(JavaCCRequest request, LexerData context) throws ParseException {
     List<RegularExpression> expressions = new ArrayList<>();
     for (TokenProduction tp : request.getTokenProductions()) {
       for (RegExprSpec res : tp.getRespecs()) {
@@ -120,47 +80,63 @@ public class CppFileGenerator extends AbstractFileGenerator implements FileGener
       }
     }
 
-    DigestOptions options = new DigestOptions(context.options());
-    options.addValues("TOKENS", request.getOrderedsTokens()).add(r -> "" + r.getOrdinal()).add(r -> r.getLabel());
-    options.addValues("STATES", context.getStateCount()).add(i -> String.valueOf(i)).add(i -> context.getStateName(i));
-    options.addValues("REGEXPS", expressions.size() + 1).add(i -> String.valueOf(i))
-        .add(i -> getRegExp(false, i, expressions)).add(i -> getRegExp(true, i, expressions));
+    TemplateOptions options = new TemplateOptions();
+    options.add("TOKENS", request.getOrderedsTokens()).set("ordinal", r -> r.getOrdinal()).set("label",
+        r -> r.getLabel());
+    options.add("STATES", context.getStateCount()).set("name", i -> context.getStateName(i));
+    options.add("REGEXPS", expressions.size() + 1).set("label", (i, w) -> getRegExp(w, false, i, expressions))
+        .set("image", (i, w) -> getRegExp(w, true, i, expressions));
 
-    generateFile("ParserConstants.h", request.getParserName() + "Constants.h", options);
+
+    generateFile("JavaCC.h", new DigestOptions(context.options()));
+
+    generateFile("Token.h", new DigestOptions(context.options()));
+    generateFile("Token.cc", new DigestOptions(context.options()));
+    generateFile("TokenManager.h", new DigestOptions(context.options()));
+    generateFile("TokenManagerError.h", new DigestOptions(context.options()));
+    generateFile("TokenManagerError.cc", new DigestOptions(context.options()));
+    generateFile("TokenManagerErrorHandler.h", new DigestOptions(context.options()));
+    generateFile("TokenManagerErrorHandler.cc", new DigestOptions(context.options()));
+
+    generateFile("Reader.h", new DigestOptions(context.options()));
+    generateFile("StringReader.h", new DigestOptions(context.options()));
+    generateFile("StringReader.cc", new DigestOptions(context.options()));
+
+    generateFile("ParseException.h", new DigestOptions(context.options()));
+    generateFile("ParseException.cc", new DigestOptions(context.options()));
+    generateFile("ParserErrorHandler.h", new DigestOptions(context.options()));
+    generateFile("ParserErrorHandler.cc", new DigestOptions(context.options()));
+
+    generateFile("ParserConstants.h", request.getParserName() + "Constants.h",
+        new DigestOptions(context.options(), options));
   }
 
-  private static String getRegExp(boolean isImage, int i, List<RegularExpression> expressions) {
-    StringWriter builder = new StringWriter();
-    try (PrintWriter writer = new PrintWriter(builder)) {
-      writer.print("" + i + "[] = ");
-      if (i == 0) {
-        CppFileGenerator.printCharArray(writer, "<EOF>");
-      } else if (expressions.get(i - 1) instanceof RStringLiteral) {
-        RStringLiteral literal = (RStringLiteral) expressions.get(i - 1);
+  private static void getRegExp(PrintWriter writer, boolean isImage, int i, List<RegularExpression> expressions) {
+    if (i == 0) {
+      CppFileGenerator.printCharArray(writer, "<EOF>");
+    } else {
+      RegularExpression expr = expressions.get(i - 1);
+      if (expr instanceof RStringLiteral) {
         if (isImage) {
-          CppFileGenerator.printCharArray(writer, literal.getImage());
+          CppFileGenerator.printCharArray(writer, ((RStringLiteral) expr).getImage());
         } else {
-          CppFileGenerator.printCharArray(writer, "<" + literal.getLabel() + ">");
+          CppFileGenerator.printCharArray(writer, "<" + expr.getLabel() + ">");
         }
-      } else if (!expressions.get(i - 1).getLabel().equals("")) {
-        CppFileGenerator.printCharArray(writer, "<" + expressions.get(i - 1).getLabel() + ">");
+      } else if (expr.getLabel().isEmpty()) {
+        if (expr.getTpContext().getKind() == TokenProduction.Kind.TOKEN) {
+          JavaCCErrors.warning(expr, "Consider giving this non-string token a label for better error reporting.");
+        }
+        CppFileGenerator.printCharArray(writer, "<token of kind " + expr.getOrdinal() + ">");
       } else {
-        if (expressions.get(i - 1).getTpContext().getKind() == TokenProduction.Kind.TOKEN) {
-          JavaCCErrors.warning(expressions.get(i - 1),
-              "Consider giving this non-string token a label for better error reporting.");
-        }
-        CppFileGenerator.printCharArray(writer, "<token of kind " + expressions.get(i - 1).getOrdinal() + ">");
+        CppFileGenerator.printCharArray(writer, "<" + expr.getLabel() + ">");
       }
     }
-    return builder.toString();
   }
 
   // Used by the CPP code generatror
   protected static void printCharArray(PrintWriter writer, String s) {
-    writer.print("{");
     for (int i = 0; i < s.length(); i++) {
       writer.print("0x" + Integer.toHexString(s.charAt(i)) + ", ");
     }
-    writer.print("0}");
   }
 }

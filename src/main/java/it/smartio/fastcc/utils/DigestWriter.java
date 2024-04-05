@@ -71,7 +71,7 @@ public class DigestWriter extends PrintWriter {
   /**
    * Get options as wrapper.
    */
-  public DigestOptions options() {
+  public final DigestOptions options() {
     return this.options;
   }
 

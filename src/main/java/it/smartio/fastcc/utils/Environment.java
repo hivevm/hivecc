@@ -15,7 +15,6 @@
 
 package it.smartio.fastcc.utils;
 
-
 /**
  * The {@link Environment} provides environment variables.
  */

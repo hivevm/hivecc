@@ -1,6 +1,6 @@
 package {{PACKAGE}};
 
-@if NODE_EXTENDS
+@if(NODE_EXTENDS)
 public class Node extends {{NODE_EXTENDS}} implements Tree {
 @else
 public class Node implements Tree {
@@ -11,7 +11,7 @@ public class Node implements Tree {
   protected int    id;
   protected Object value;
   protected {{PARSER_NAME}}    parser;
-@if TRACK_TOKENS
+@if(TRACK_TOKENS)
   protected Token firstToken;
   protected Token lastToken;
 @fi
@@ -21,7 +21,7 @@ public class Node implements Tree {
     this.parser = p;
   }
 
-@if NODE_FACTORY
+@if(NODE_FACTORY)
   public static Node jjtCreate({{PARSER_NAME}} p, int id) {
     return new Node(p, id);
   }
@@ -73,21 +73,21 @@ public class Node implements Tree {
     return this.value;
   }
 
-@if TRACK_TOKENS
+@if(TRACK_TOKENS)
   public Token jjtGetFirstToken() { return firstToken; }
   public void jjtSetFirstToken(Token token) { this.firstToken = token; }
   public Token jjtGetLastToken() { return lastToken; }
   public void jjtSetLastToken(Token token) { this.lastToken = token; }
 
 @fi
-@if VISITOR
+@if(VISITOR)
   /** Accept the visitor. **/
   public {{VISITOR_RETURN_TYPE}} jjtAccept({{PARSER_NAME}}Visitor visitor, {{VISITOR_DATA_TYPE:-Object}} data)
-@if VISITOR_EXCEPTION
+@if(VISITOR_EXCEPTION)
      throws {{VISITOR_EXCEPTION}}
 @fi
 {
-@if VISITOR_RETURN_TYPE_VOID
+@if(VISITOR_RETURN_TYPE_VOID)
     visitor.visit(this, data);
 @else
     return visitor.visit(this, data);
@@ -96,7 +96,7 @@ public class Node implements Tree {
 
   /** Accept the visitor. **/
   public Object childrenAccept({{PARSER_NAME}}Visitor visitor, {{VISITOR_DATA_TYPE:-Object}} data)
-@if VISITOR_EXCEPTION
+@if(VISITOR_EXCEPTION)
      throws {{VISITOR_EXCEPTION}}
 @fi
 {

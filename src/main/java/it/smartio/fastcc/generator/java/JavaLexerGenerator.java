@@ -42,7 +42,9 @@ import it.smartio.fastcc.parser.JavaCCErrors;
 import it.smartio.fastcc.parser.RStringLiteral.KindInfo;
 import it.smartio.fastcc.parser.Token;
 import it.smartio.fastcc.source.SourceWriter;
+import it.smartio.fastcc.utils.DigestOptions;
 import it.smartio.fastcc.utils.Encoding;
+import it.smartio.fastcc.utils.TemplateOptions;
 
 /**
  * Generate lexer.
@@ -51,45 +53,45 @@ public class JavaLexerGenerator extends LexerGenerator {
 
   @Override
   protected final void dumpAll(LexerData data) throws IOException {
-    SourceWriter writer = new SourceWriter(data.getParserName() + "TokenManager", data.options());
+    TemplateOptions options = new TemplateOptions();
+    options.set("LITERAL_IMAGES", () -> JavaLexerGenerator.getStrLiteralImages(data));
+    options.set("STATES_FOR_STATE", () -> getStatesForState(data));
+    options.set("KIND_FOR_STATE", () -> getKindForState(data));
 
+    options.add("LOHI_BYTES", data.lohiByte.keySet()).set("bytes", i -> getLohiBytes(data, i));
+    options.add("STATES", data.stateNames).set("NfaAndDfa", (n, w) -> dumpNfaAndDfa(data.getStateData(n), w));
+    options.add("NON_ASCII_TABLE", data.nonAsciiTableForMethod).set("AsciiMove",
+        (s, w) -> DumpNonAsciiMoveMethod(s, data, w));
+
+    options.setWriter("DumpSkipActions", p -> DumpSkipActions(p, data));
+    options.setWriter("DumpMoreActions", p -> DumpMoreActions(p, data));
+    options.setWriter("DumpTokenActions", p -> DumpTokenActions(p, data));
+    options.setWriter("DumpStateSets", p -> DumpStateSets(p, data));
+    options.setWriter("DumpGetNextToken", p -> DumpGetNextToken(p, data));
+    options.setWriter("dumpStaticVarDeclarations", p -> JavaLexerGenerator.DumpStaticVarDeclarations(p, data));
+
+    options.set("defaultLexState", data.defaultLexState);
+    options.set("maxOrdinal", data.maxOrdinal);
+    options.set("maxLexStates", data.maxLexStates);
+    options.set("hasEmptyMatch", data.hasEmptyMatch);
+    options.set("hasSkip", data.hasSkip);
+    options.set("hasMore", data.hasMore);
+    options.set("keepLineCol", data.keepLineCol);
+    options.set("hasSpecial", data.hasSpecial);
+    options.set("hasLoop", data.hasLoop);
+    options.set("hasMoreActions", data.hasMoreActions);
+    options.set("hasSkipActions", data.hasSkipActions);
+    options.set("hasTokenActions", data.hasTokenActions);
+    options.set("stateSetSize", data.stateSetSize);
+    options.set("hasActions", data.hasMoreActions || data.hasSkipActions || data.hasTokenActions);
+    options.set("lexStateNameLength", data.getStateCount());
+    options.set("generatedStates", data.totalNumStates);
+    options.set("jjCheckNAddStatesDualNeeded", data.jjCheckNAddStatesDualNeeded);
+    options.set("jjCheckNAddStatesUnaryNeeded", data.jjCheckNAddStatesUnaryNeeded);
+
+    SourceWriter writer =
+        new SourceWriter(data.getParserName() + "TokenManager", new DigestOptions(data.options(), options));
     dumpClassHeader(writer, data);
-
-    writer.setOption("stateNames", data.stateNames);
-    writer.setOption("lohiBytes", data.lohiByte.keySet());
-    writer.setOption("defaultLexState", data.defaultLexState);
-    writer.setOption("maxOrdinal", data.maxOrdinal);
-    writer.setOption("maxLexStates", data.maxLexStates);
-    writer.setOption("hasEmptyMatch", data.hasEmptyMatch);
-    writer.setOption("hasSkip", data.hasSkip);
-    writer.setOption("hasMore", data.hasMore);
-    writer.setOption("hasSpecial", data.hasSpecial);
-    writer.setOption("hasLoop", data.hasLoop);
-    writer.setOption("hasMoreActions", data.hasMoreActions);
-    writer.setOption("hasSkipActions", data.hasSkipActions);
-    writer.setOption("hasTokenActions", data.hasTokenActions);
-    writer.setOption("stateSetSize", data.stateSetSize);
-    writer.setOption("hasActions", data.hasMoreActions || data.hasSkipActions || data.hasTokenActions);
-    writer.setOption("lexStateNameLength", data.getStateCount());
-    writer.setOption("generatedStates", data.totalNumStates);
-    writer.setOption("nonAsciiTableForMethod", data.nonAsciiTableForMethod);
-    writer.setOption("jjCheckNAddStatesDualNeeded", data.jjCheckNAddStatesDualNeeded);
-    writer.setOption("jjCheckNAddStatesUnaryNeeded", data.jjCheckNAddStatesUnaryNeeded);
-
-    writer.setWriter("dumpNfaAndDfa", (p, i) -> dumpNfaAndDfa(p, data.getStateData((String) i)));
-    writer.setWriter("DumpSkipActions", (p, i) -> DumpSkipActions(p, data));
-    writer.setWriter("DumpMoreActions", (p, i) -> DumpMoreActions(p, data));
-    writer.setWriter("DumpTokenActions", (p, i) -> DumpTokenActions(p, data));
-    writer.setWriter("DumpFillToken", (p, i) -> JavaLexerGenerator.DumpFillToken(p, data));
-    writer.setWriter("DumpStateSets", (p, i) -> DumpStateSets(p, data));
-    writer.setWriter("DumpNonAsciiMoveMethod", (p, i) -> DumpNonAsciiMoveMethod(p, (NfaState) i, data));
-    writer.setWriter("DumpGetNextToken", (p, i) -> DumpGetNextToken(p, data));
-    writer.setWriter("dumpStaticVarDeclarations", (p, i) -> JavaLexerGenerator.DumpStaticVarDeclarations(p, data));
-
-    writer.setFunction("getStrLiteralImages", i -> JavaLexerGenerator.getStrLiteralImages(data));
-    writer.setFunction("getStatesForState", i -> getStatesForState(data));
-    writer.setFunction("getKindForState", i -> getKindForState(data));
-    writer.setFunction("getLohiBytes", i -> getLohiBytes(data, (int) i));
 
     writer.writeTemplate("/templates/java/Lexer.template");
     saveOutput(writer, data.options().getOutputDirectory());
@@ -97,9 +99,9 @@ public class JavaLexerGenerator extends LexerGenerator {
 
 
   private static String getLohiBytes(LexerData data, int i) {
-    return "{\n   0x" + Long.toHexString(data.lohiByte.get(i)[0]) + "L, " + "0x"
-        + Long.toHexString(data.lohiByte.get(i)[1]) + "L, " + "0x" + Long.toHexString(data.lohiByte.get(i)[2]) + "L, "
-        + "0x" + Long.toHexString(data.lohiByte.get(i)[3]) + "L\n}";
+    return "0x" + Long.toHexString(data.lohiByte.get(i)[0]) + "L, " + "0x" + Long.toHexString(data.lohiByte.get(i)[1])
+        + "L, " + "0x" + Long.toHexString(data.lohiByte.get(i)[2]) + "L, " + "0x"
+        + Long.toHexString(data.lohiByte.get(i)[3]) + "L";
   }
 
   private static void DumpStaticVarDeclarations(PrintWriter writer, LexerData data) {
@@ -518,11 +520,6 @@ public class JavaLexerGenerator extends LexerGenerator {
 
   private void DumpSkipActions(PrintWriter writer, LexerData data) {
     Action act;
-    writer.println("void SkipLexicalActions(Token matchedToken)");
-
-    writer.println("{");
-    writer.println("   switch(jjmatchedKind)");
-    writer.println("   {");
 
     Outer:
     for (int i = 0; i < data.maxOrdinal; i++) {
@@ -578,21 +575,10 @@ public class JavaLexerGenerator extends LexerGenerator {
 
       writer.println("         break;");
     }
-
-    writer.println("      default :");
-    writer.println("         break;");
-    writer.println("   }");
-    writer.println("}");
   }
 
   private void DumpMoreActions(PrintWriter writer, LexerData data) {
     Action act;
-
-    writer.println("void MoreLexicalActions()");
-    writer.println("{");
-    writer.println("   jjimageLen += (lengthOfMatch = jjmatchedPos + 1);");
-    writer.println("   switch(jjmatchedKind)");
-    writer.println("   {");
 
     Outer:
     for (int i = 0; i < data.maxOrdinal; i++) {
@@ -649,21 +635,11 @@ public class JavaLexerGenerator extends LexerGenerator {
 
       writer.println("         break;");
     }
-
-    writer.println("      default :");
-    writer.println("         break;");
-
-    writer.println("   }");
-    writer.println("}");
   }
 
   private void DumpTokenActions(PrintWriter writer, LexerData data) {
     Action act;
     int i;
-    writer.println("void TokenLexicalActions(Token matchedToken)");
-    writer.println("{");
-    writer.println("   switch(jjmatchedKind)");
-    writer.println("   {");
 
     Outer:
     for (i = 0; i < data.maxOrdinal; i++) {
@@ -724,11 +700,6 @@ public class JavaLexerGenerator extends LexerGenerator {
 
       writer.println("         break;");
     }
-
-    writer.println("      default :");
-    writer.println("         break;");
-    writer.println("   }");
-    writer.println("}");
   }
 
   private void DumpStateSets(PrintWriter writer, LexerData data) {
@@ -866,7 +837,7 @@ public class JavaLexerGenerator extends LexerGenerator {
     writer.println("            {");
   }
 
-  private void DumpNonAsciiMoveMethod(PrintWriter writer, NfaState state, LexerData data) {
+  private void DumpNonAsciiMoveMethod(NfaState state, LexerData data, PrintWriter writer) {
     int j;
     writer.println("private static final boolean jjCanMove_" + state.nonAsciiMethod
         + "(int hiByte, int i1, int i2, long l1, long l2)");
@@ -979,7 +950,7 @@ public class JavaLexerGenerator extends LexerGenerator {
     return String.format("{%s}", builder.toString());
   }
 
-  private final void dumpNfaAndDfa(PrintWriter writer, LexerStateData stateData) {
+  private final void dumpNfaAndDfa(LexerStateData stateData, PrintWriter writer) {
     if (stateData.hasNFA && !stateData.isMixedState()) {
       DumpNfaStartStatesCode(writer, stateData, stateData.statesForPos);
     }
@@ -1777,70 +1748,5 @@ public class JavaLexerGenerator extends LexerGenerator {
     }
 
     return 0xffff;
-  }
-
-  private static void DumpFillToken(PrintWriter writer, LexerData data) {
-    writer.println("protected Token jjFillToken()");
-    writer.println("{");
-    writer.println("   final Token t;");
-    writer.println("   final String curTokenImage;");
-    if (data.keepLineCol) {
-      writer.println("   final int beginLine;");
-      writer.println("   final int endLine;");
-      writer.println("   final int beginColumn;");
-      writer.println("   final int endColumn;");
-    }
-
-    if (data.hasEmptyMatch) {
-      writer.println("   if (jjmatchedPos < 0)");
-      writer.println("   {");
-      writer.println("      if (image == null)");
-      writer.println("         curTokenImage = \"\";");
-      writer.println("      else");
-      writer.println("         curTokenImage = image.toString();");
-
-      if (data.keepLineCol) {
-        writer.println("      beginLine = endLine = input_stream.getEndLine();");
-        writer.println("      beginColumn = endColumn = input_stream.getEndColumn();");
-      }
-
-      writer.println("   }");
-      writer.println("   else");
-      writer.println("   {");
-      writer.println("      String im = jjstrLiteralImages[jjmatchedKind];");
-      writer.println("      curTokenImage = (im == null) ? input_stream.GetImage() : im;");
-
-      if (data.keepLineCol) {
-        writer.println("      beginLine = input_stream.getBeginLine();");
-        writer.println("      beginColumn = input_stream.getBeginColumn();");
-        writer.println("      endLine = input_stream.getEndLine();");
-        writer.println("      endColumn = input_stream.getEndColumn();");
-      }
-
-      writer.println("   }");
-    } else {
-      writer.println("   String im = jjstrLiteralImages[jjmatchedKind];");
-      writer.println("   curTokenImage = (im == null) ? input_stream.GetImage() : im;");
-      if (data.keepLineCol) {
-        writer.println("   beginLine = input_stream.getBeginLine();");
-        writer.println("   beginColumn = input_stream.getBeginColumn();");
-        writer.println("   endLine = input_stream.getEndLine();");
-        writer.println("   endColumn = input_stream.getEndColumn();");
-      }
-    }
-
-    writer.println("   t = new Token(jjmatchedKind, curTokenImage);");
-
-    if (data.keepLineCol) {
-      writer.println("");
-      writer.println("   t.beginLine = beginLine;");
-      writer.println("   t.endLine = endLine;");
-      writer.println("   t.beginColumn = beginColumn;");
-      writer.println("   t.endColumn = endColumn;");
-    }
-
-    writer.println("");
-    writer.println("   return t;");
-    writer.println("}");
   }
 }

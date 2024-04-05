@@ -29,26 +29,23 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Generates boiler-plate files from templates.
  */
 public class Template {
 
-  private static final Pattern PARAMETERS =
-      Pattern.compile("\\{\\{([^\\{\\}\\?\\:]+)(?:\\?([^:]*):([^\\}]*))?(?:\\:\\-([^\\}]+))?\\}\\}");
-
   // COMMAND (ARGUMENT (,ARGUMENT)* )?
-  private static final Pattern COMMAND   = Pattern.compile("^@([A-Z]+)\\s*(?:\\(([^\\)]+)\\))?");
-  private static final Pattern PARAMETER = Pattern.compile("\\{\\{([^\\}]+)\\}\\}");
+  private static final Pattern COMMAND   = Pattern.compile("^@(\\w+)\\s*(?:\\(([^\\)]+)\\))?");
+  private static final Pattern PARAMETER = Pattern.compile("\\{\\{([^\\}\\:]+)(?:\\:([^\\}]*))?\\}\\}");
 
 
   private final byte[]      bytes;
@@ -92,37 +89,11 @@ public class Template {
   }
 
   /**
-   * Gets the iterable for the option
-   *
-   * @param option
-   * @param environment
-   */
-  private final Iterable<Object> getItems(String option, Environment environment) {
-    if (!environment.isSet(option)) {
-      return Collections.emptySet();
-    }
-
-    Object value = environment.get(option);
-    List<Object> list = new ArrayList<>();
-    if (value instanceof Integer) {
-      for (int i = 0; i < ((Integer) value); i++) {
-        list.add(i);
-      }
-    } else if (value instanceof Iterable) {
-      for (Object v : (Iterable<?>) value) {
-        list.add(v);
-      }
-    }
-    return list;
-  }
-
-
-  /**
    * Use the template.
    *
    * @param writer
    */
-  public void write(PrintWriter writer) throws IOException {
+  public void render(PrintWriter writer) throws IOException {
     List<String> lines = new ArrayList<>();
     InputStream stream = new ByteArrayInputStream(this.bytes);
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
@@ -131,7 +102,7 @@ public class Template {
         lines.add(line);
       }
     }
-    write(writer, lines, environment);
+    renderLines(writer, lines, environment, null, null, null);
   }
 
   /**
@@ -141,106 +112,8 @@ public class Template {
    * @param lines
    * @param env
    */
-  private void write(PrintWriter writer, List<String> lines, Environment env) {
-    int index = 0;
-    Stack<Boolean> conditions = new Stack<>();
-    while (index < lines.size()) {
-      String line = lines.get(index++);
-      String cmd = line.toLowerCase();
-
-      Matcher matcher = COMMAND.matcher(line);
-      if (matcher.matches()) {
-        switch (matcher.group(1).toUpperCase()) {
-          case "FOREACH":
-            List<String> args =
-                Arrays.asList(matcher.group(2).split(",")).stream().map(k -> k.trim()).collect(Collectors.toList());
-
-            List<String> subList = new ArrayList<>();
-            String subLine = lines.get(index++);
-            while (!subLine.toLowerCase().startsWith("@end")) {
-              subList.add(subLine);
-              subLine = lines.get(index++);
-            }
-
-            TemplateFunction<?> function = (TemplateFunction<?>) environment.get(args.get(0));
-
-            Environment e = new TemplateEnvironment(env);
-            for (Object value : function.values) {
-              for (int i = 1; i < args.size(); i++) {
-                e.set(args.get(i), function.functions.get(i - 1));
-              }
-              forEach(writer, subList, e, value);
-            }
-            break;
-
-          default:
-            break;
-        }
-      } else if (cmd.startsWith("@if ")) {
-        boolean condition = validate(line.substring(4).trim(), env);
-        conditions.push(condition && (conditions.isEmpty() || conditions.peek()));
-      } else if (cmd.startsWith("@elfi")) {
-        boolean condition = validate(line.substring(4).trim(), env);
-        conditions.push(condition && (conditions.isEmpty() || conditions.peek()));
-      } else if (cmd.startsWith("@else")) {
-        boolean condition = !conditions.pop();
-        conditions.push(condition && (conditions.isEmpty() || conditions.peek()));
-      } else if (cmd.startsWith("@fi")) {
-        conditions.pop();
-      } else if (cmd.startsWith("@foreach ")) {
-        List<String> subList = new ArrayList<>();
-        String subLine = lines.get(index++);
-        while (!subLine.toLowerCase().startsWith("@end")) {
-          subList.add(subLine);
-          subLine = lines.get(index++);
-        }
-
-        for (Object value : getItems(line.substring(9).trim(), env)) {
-          env.set("$", value);
-          write(writer, subList, env);
-        }
-      } else if (conditions.isEmpty() || conditions.peek()) {
-        int offset = 0;
-        matcher = Template.PARAMETERS.matcher(line);
-        while (matcher.find()) {
-          writer.print(line.substring(offset, matcher.start()));
-          if (matcher.group(2) != null) {
-            boolean validate = validate(matcher.group(1), env);
-            writer.print(matcher.group(validate ? 2 : 3));
-          } else if (matcher.group(4) != null) {
-            boolean validate = validate(matcher.group(1), env);
-            writer.print(validate ? env.get(matcher.group(1)) : matcher.group(4));
-          } else if (matcher.group(1).endsWith("()")) {
-            String name = matcher.group(1);
-            String funcName = name.substring(0, name.length() - 2);
-            Object instance = env.get(funcName);
-            if (instance instanceof Function) {
-              Function<Object, String> func = (Function<Object, String>) instance;
-              writer.print(func.apply(env.get("$")));
-            } else if (instance instanceof BiConsumer) {
-              BiConsumer<PrintWriter, Object> func = (BiConsumer<PrintWriter, Object>) instance;
-              func.accept(writer, env.get("$"));
-            }
-          } else {
-            writer.print(env.get(matcher.group(1)));
-          }
-          offset = matcher.end();
-        }
-        writer.print(line.substring(offset));
-        writer.println();
-      }
-    }
-  }
-
-
-  /**
-   * Use the template.
-   *
-   * @param writer
-   * @param lines
-   * @param env
-   */
-  private void forEach(PrintWriter writer, List<String> lines, Environment env, Object item) {
+  private void renderLines(PrintWriter writer, List<String> lines, Environment env, Object item, String global,
+      String local) {
     int index = 0;
     Stack<Boolean> conditions = new Stack<>();
     while (index < lines.size()) {
@@ -248,26 +121,41 @@ public class Template {
 
       Matcher matcher = COMMAND.matcher(line);
       if (matcher.matches()) {
-        switch (matcher.group(1).toUpperCase()) {
-          case "FOREACH":
-            List<String> args =
-                Arrays.asList(matcher.group(2).split(",")).stream().map(k -> k.trim()).collect(Collectors.toList());
+        switch (matcher.group(1)) {
+          case "if":
+          case "elif":
+            boolean condition = validate(matcher.group(2), env);
+            conditions.push(condition && (conditions.isEmpty() || conditions.peek()));
+            break;
 
+          case "else":
+            condition = !conditions.pop();
+            conditions.push(condition && (conditions.isEmpty() || conditions.peek()));
+            break;
+
+          case "fi":
+            conditions.pop();
+            break;
+
+          case "forEach":
             List<String> subList = new ArrayList<>();
             String subLine = lines.get(index++);
-            while (!subLine.toLowerCase().startsWith("@end")) {
+            while (!subLine.startsWith("@end")) {
               subList.add(subLine);
               subLine = lines.get(index++);
             }
 
-            TemplateFunction<?> func = (TemplateFunction<?>) environment.get(args.get(0));
+            List<String> args =
+                Arrays.asList(matcher.group(2).split(":")).stream().map(k -> k.trim()).collect(Collectors.toList());
 
+            Object instance = environment.get(args.get(1));
+            Iterable<?> iterable = (instance instanceof Integer)
+                ? IntStream.range(0, (Integer) instance).boxed().collect(Collectors.toList())
+                : (Iterable<?>) instance;
             Environment e = new TemplateEnvironment(env);
-            for (Object value : func.values) {
-              for (int i = 2; i < args.size(); i++) {
-                e.set(args.get(i), func.functions.get(i - 2));
-              }
-              forEach(writer, subList, e, value);
+            for (Object value : iterable) {
+              e.set(args.get(0), value);
+              renderLines(writer, subList, e, value, args.get(1), args.get(0));
             }
             break;
 
@@ -279,13 +167,23 @@ public class Template {
         matcher = Template.PARAMETER.matcher(line);
         while (matcher.find()) {
           writer.print(line.substring(offset, matcher.start()));
-          Object instance = env.get(matcher.group(1));
-          if (instance instanceof Function) {
-            Function<Object, String> func = (Function<Object, String>) instance;
+
+          String param = matcher.group(1);
+          if (param.startsWith(local + ".")) {
+            param = global + "." + param.substring(local.length() + 1);
+          }
+
+          String option = matcher.group(2);
+          Object instance = env.get(param);
+          if (option != null) {
+            boolean validate = validate(param, env);
+            writer.print(validate ? instance : option);
+          } else if (instance instanceof Supplier) {
+            Supplier<Object> func = (Supplier<Object>) instance;
+            writer.print(func.get());
+          } else if (instance instanceof Function) {
+            Function<Object, Object> func = (Function<Object, Object>) instance;
             writer.print(func.apply(item));
-          } else if (instance instanceof BiConsumer) {
-            BiConsumer<PrintWriter, Object> func = (BiConsumer<PrintWriter, Object>) instance;
-            func.accept(writer, item);
           } else {
             writer.print(instance);
           }

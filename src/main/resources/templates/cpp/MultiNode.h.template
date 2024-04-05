@@ -3,7 +3,7 @@
 
 #include "{{NODE_CLASS:-Node}}.h"
 
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 
@@ -12,13 +12,13 @@ public:
   {{NODE_TYPE}}(int id);
   virtual ~{{NODE_TYPE}}();
 
-@if VISITOR
+@if(VISITOR)
   /** Accept the visitor. **/
   virtual {{VISITOR_RETURN_TYPE}} jjtAccept({{PARSER_NAME}}Visitor* visitor, {{VISITOR_DATA_TYPE:-void*}} data) const ;
 @fi
 };
 
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi
 

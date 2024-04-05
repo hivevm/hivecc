@@ -1,12 +1,12 @@
 #ifndef JAVACC_CHAR_STREAM_H
 #define JAVACC_CHAR_STREAM_H
 
-@if LIBRARY
+@if(LIBRARY)
 #include "ImportExport.h"
 @fi
 #include "JavaCC.h"
 
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 
@@ -25,7 +25,7 @@ namespace {{NAMESPACE}} {
  * operation.
  */
 
-@if LIBRARY
+@if(LIBRARY)
 class {{PARSER_NAME_UPPER_CASE}}_API Reader {
 @else
 class Reader {
@@ -80,7 +80,7 @@ public:
     virtual bool endOfInput() = 0;
 };
 
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi
 

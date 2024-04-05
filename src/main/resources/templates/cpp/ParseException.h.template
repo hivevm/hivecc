@@ -5,7 +5,7 @@
 #include "Token.h"
 
 
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 /**
@@ -80,7 +80,7 @@ private:
     JJString addEscapes(const JJString& str);
 };
 
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi
 

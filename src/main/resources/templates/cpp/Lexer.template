@@ -3,44 +3,47 @@
 #include "TokenManagerErrorHandler.h"
 
 
-@foreach lohiBytes
-static const unsigned long long jjbitVec{{$}}[] = {{getLohiBytes()}};
+@forEach(index : LOHI_BYTES)
+static const unsigned long long jjbitVec{{index}}[] = { {{index.bytes}} };
 @end
-{{DumpStrLiteralImages()}}
-{{DumpStateSets()}}
-@if DEBUG_TOKEN_MANAGER
-{{DumpStatesForStateCPP()}}
-{{DumpStatesForKind()}}
+{{DumpStrLiteralImages}}
+{{DumpStateSets}}
+@if(DEBUG_TOKEN_MANAGER)
+{{DumpStatesForStateCPP}}
+{{DumpStatesForKind}}
 @fi
-@if hasLoop
+@if(hasLoop)
 static int  jjemptyLineNo[{{maxLexStates}}];
 static int  jjemptyColNo[{{maxLexStates}}];
 static bool jjbeenHere[{{maxLexStates}}];
 @fi
-{{DumpStaticVarDeclarations()}}
-@if NAMESPACE
+
+/** Lexer state names. */
+{{STATE_NAMES}}
+{{DumpStaticVarDeclarations}}
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 
   void {{PARSER_NAME}}TokenManager::setDebugStream(FILE *ds) { debugStream = ds; }
-@foreach stateNames
-{{dumpNfaAndDfa()}}
+@forEach(name : STATES)
+{{name.body}}
 @end
 
 Token * {{PARSER_NAME}}TokenManager::jjFillToken() {
    Token *t;
    JJString curTokenImage;
-@if keepLineCol
+@if(keepLineCol)
    int beginLine   = -1;
    int endLine     = -1;
    int beginColumn = -1;
    int endColumn   = -1;
 @fi
-@if hasEmptyMatch
+@if(hasEmptyMatch)
    if (jjmatchedPos < 0)
    {
        curTokenImage = image.c_str();
-@if keepLineCol
+@if(keepLineCol)
      if (reader->getTrackLineColumn()) {
         beginLine = endLine = reader->getEndLine();
         beginColumn = endColumn = reader->getEndColumn();
@@ -49,7 +52,7 @@ Token * {{PARSER_NAME}}TokenManager::jjFillToken() {
    } else {
      JJString im = jjstrLiteralImages[jjmatchedKind];
      curTokenImage = (im.length() == 0) ? reader->getImage() : im;
-@if keepLineCol
+@if(keepLineCol)
     if (reader->getTrackLineColumn()) {
         beginLine = reader->getBeginLine();
         beginColumn = reader->getBeginColumn();
@@ -61,7 +64,7 @@ Token * {{PARSER_NAME}}TokenManager::jjFillToken() {
 @else
    JJString im = jjstrLiteralImages[jjmatchedKind];
    curTokenImage = (im.length() == 0) ? reader->getImage() : im;
-@if keepLineCol
+@if(keepLineCol)
    if (reader->getTrackLineColumn()) {
      beginLine = reader->getBeginLine();
      beginColumn = reader->getBeginColumn();
@@ -71,7 +74,7 @@ Token * {{PARSER_NAME}}TokenManager::jjFillToken() {
 @fi
 @fi
    t = Token::newToken(jjmatchedKind, curTokenImage);
-@if keepLineCol
+@if(keepLineCol)
 
    t->beginLine() = beginLine;
    t->endLine() = endLine;
@@ -81,18 +84,59 @@ Token * {{PARSER_NAME}}TokenManager::jjFillToken() {
 
    return t;
 }
-@foreach nonAsciiTableForMethod
-{{DumpNonAsciiMoveMethod()}}
+@forEach(name : NON_ASCII_TABLE)
+{{name.method}}
 @end
-{{DumpGetNextToken()}}
-@if hasSkipActions
-{{DumpSkipActions()}}
+/** Get the next Token. */
+Token * {{PARSER_NAME}}TokenManager::getNextToken() {
+@if (hasSpecial)
+  Token *specialToken = nullptr;
 @fi
-@if data.hasMoreActions
+  Token *matchedToken = nullptr;
+  int curPos = 0;
+
+  for (;;)
+  {
+   EOFLoop:
+   if (reader->endOfInput())
+   {
+{{DumpGetNextToken}}
+@if(maxLexStates)
+     }
+     int error_line = reader->getEndLine();
+     int error_column = reader->getEndColumn();
+     JJString error_after = JJEMPTY;
+     bool EOFSeen = false;
+     if (reader->endOfInput()) {
+        EOFSeen = true;
+        error_after = curPos <= 1 ? JJEMPTY : reader->getImage();
+        if (curChar == '\n' || curChar == '\r') {
+           error_line++;
+           error_column = 0;
+        }
+        else
+           error_column++;
+     }
+     if (!EOFSeen) {
+        error_after = curPos <= 1 ? JJEMPTY : reader->getImage();
+     }
+     errorHandler->lexicalError(EOFSeen, curLexState, error_line, error_column, error_after, curChar);
+@fi
+@if(hasMore)
+ }
+@fi
+  }
+}
+
+
+@if(hasSkipActions)
+{{DumpSkipActions}}
+@fi
+@if(hasMoreActions)
 {{DumpMoreActions(}}
 @fi
-@if hasTokenActions) {
-{{DumpTokenActions()}}
+@if(hasTokenActions)
+{{DumpTokenActions}}
 @fi
 /** Reinitialise parser. */
 void {{PARSER_NAME}}TokenManager::ReInit(Reader * stream, int lexState)
@@ -154,6 +198,6 @@ const  TokenManagerErrorHandler* OQLTokenManager::getErrorHandler() const {
     if (errorHandler) delete errorHandler, errorHandler = nullptr;    
   }
 
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi

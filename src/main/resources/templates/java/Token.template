@@ -33,7 +33,7 @@ public class Token {
    * it (without an intervening regular token). If there is no such token, this field is null.
    */
   public Token  specialToken;
-@if KEEP_LINE_COLUMN
+@if(KEEP_LINE_COLUMN)
 
 
   // The location in the file stream of the token.

@@ -1,21 +1,21 @@
 #include "Node.h"
 #include <stdio.h>
 
-@if VISITOR
+@if(VISITOR)
 #include "{{PARSER_NAME}}Visitor.h"
 @fi
 
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 
 Node::Node(int id) 
     : id(id), parser(nullptr), parent(nullptr), value(nullptr)
-@if NODE_EXTENDS
+@if(NODE_EXTENDS)
     , {{NODE_EXTENDS}}()
 @fi
 {
-@if TRACK_TOKENS
+@if(TRACK_TOKENS)
     firstToken = nullptr;
     lastToken  = nullptr;
 @fi
@@ -23,11 +23,11 @@ Node::Node(int id)
 
 Node::Node({{PARSER_NAME}} *parser, int id) :
     id(id), parser(parser), parent(nullptr), value(nullptr)
-@if NODE_EXTENDS
+@if(NODE_EXTENDS)
     , {{NODE_EXTENDS}}()
 @fi
 {
-@if TRACK_TOKENS
+@if(TRACK_TOKENS)
     firstToken = nullptr;
     lastToken  = nullptr;
 @fi
@@ -73,17 +73,17 @@ void* Node::jjtGetValue() const {
     return value;
 }
 
-@if TRACK_TOKENS
+@if(TRACK_TOKENS)
 Token* Node::jjtGetFirstToken() const       { return firstToken; }
 void   Node::jjtSetFirstToken(Token* token) { this->firstToken = token; }
 Token* Node::jjtGetLastToken() const        { return lastToken; }
 void   Node::jjtSetLastToken(Token* token)  { this->lastToken = token; }
 
 @fi
-@if VISITOR
+@if(VISITOR)
 {{VISITOR_RETURN_TYPE}} Node::jjtAccept({{PARSER_NAME}}Visitor *visitor, {{VISITOR_DATA_TYPE:-void *}} data) const
 {
-@if VISITOR_RETURN_TYPE_VOID
+@if(VISITOR_RETURN_TYPE_VOID)
     visitor->visit(this, data);
 @else
     return visitor->visit(this, data);
@@ -136,6 +136,6 @@ void Node::dump(const JJString& prefix) const {
 }
 
 
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi

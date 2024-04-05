@@ -45,6 +45,7 @@ import it.smartio.fastcc.parser.TokenProduction;
 import it.smartio.fastcc.utils.DigestOptions;
 import it.smartio.fastcc.utils.DigestWriter;
 import it.smartio.fastcc.utils.Encoding;
+import it.smartio.fastcc.utils.TemplateOptions;
 
 /**
  * Generates the Constants file.
@@ -75,45 +76,18 @@ public class JavaFileGenerator extends AbstractFileGenerator implements FileGene
 
   @Override
   public final void handleRequest(JavaCCRequest request, LexerData context) throws ParseException {
-    if (JavaCCErrors.hasError()) {
-      throw new ParseException();
-    }
-
-    handleToken(request, context);
-    handleProvider(request, context);
-    handleException(request, context);
-
-    handleParserConstants(request, context);
-  }
-
-  protected final void handleToken(JavaCCRequest request, LexerData context) throws ParseException {
-    generateFile("Token.java", context);
-    generateFile("TokenException.java", context);
-  }
-
-  protected final void handleProvider(JavaCCRequest request, LexerData context) throws ParseException {
-    generateFile("Provider.java", context);
-    generateFile("StringProvider.java", context);
-    generateFile("StreamProvider.java", context);
-    generateFile("JavaCharStream.java", context);
-  }
-
-  protected final void handleException(JavaCCRequest request, LexerData context) throws ParseException {
-    generateFile("ParseException.java", context);
-  }
-
-  protected final void handleParserConstants(JavaCCRequest request, LexerData context) throws ParseException {
     List<RegularExpression> expressions = new ArrayList<>();
     for (TokenProduction tp : request.getTokenProductions()) {
       for (RegExprSpec res : tp.getRespecs()) {
         expressions.add(res.rexp);
       }
     }
-    
-    DigestOptions options = new DigestOptions(context.options());
-    options.addValues("STATES", context.getStateCount()).add(i -> String.valueOf(i)).add(i -> context.getStateName(i));
-    options.addValues("TOKENS", request.getOrderedsTokens()).add(r -> "" + r.getOrdinal()).add(r -> r.getLabel());
-    options.addValues("PRODUCTIONS", expressions).add(re -> {
+
+    TemplateOptions options = new TemplateOptions();
+    options.add("STATES", context.getStateCount()).set("name", i -> context.getStateName(i));
+    options.add("TOKENS", request.getOrderedsTokens()).set("label", r -> r.getLabel()).set("ordinal",
+        r -> r.getOrdinal());
+    options.add("PRODUCTIONS", expressions).set("label", re -> {
       StringBuffer buffer = new StringBuffer();
 
       if (re instanceof RStringLiteral) {
@@ -131,6 +105,17 @@ public class JavaFileGenerator extends AbstractFileGenerator implements FileGene
       return buffer.toString();
     });
 
-    generateFile("ParserConstants.java", request.getParserName() + "Constants.java", options);
+    generateFile("Token.java", new DigestOptions(context.options()));
+    generateFile("TokenException.java", new DigestOptions(context.options()));
+
+    generateFile("Provider.java", new DigestOptions(context.options()));
+    generateFile("StringProvider.java", new DigestOptions(context.options()));
+    generateFile("StreamProvider.java", new DigestOptions(context.options()));
+    generateFile("JavaCharStream.java", new DigestOptions(context.options()));
+
+    generateFile("ParseException.java", new DigestOptions(context.options()));
+
+    generateFile("ParserConstants.java", request.getParserName() + "Constants.java",
+        new DigestOptions(context.options(), options));
   }
 }

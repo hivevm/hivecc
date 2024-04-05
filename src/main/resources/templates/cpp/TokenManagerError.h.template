@@ -3,7 +3,7 @@
 
 #include "JavaCC.h"
 
-@if NAMESPACE
+@if(NAMESPACE)
 namespace {{NAMESPACE}} {
 @fi
 
@@ -57,7 +57,7 @@ private:
     JJString message;
 };
 
-@if NAMESPACE
+@if(NAMESPACE)
 }
 @fi
 

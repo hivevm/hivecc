@@ -8,20 +8,20 @@ public interface {{PARSER_NAME}}Constants {
   int EOF = 0;
 
   // RegularExpression Ids
-@FOREACH(TOKENS, ordinal, label)
-  int {{label}} = {{ordinal}};
+@forEach(token : TOKENS)
+  int {{token.label}} = {{token.ordinal}};
 @end
 
   // Lexical states
-@FOREACH(STATES, index, state)
-  int {{state}} = {{index}};
+@forEach(index : STATES)
+  int {{index.name}} = {{index}};
 @end
 
   // Literal token values
   String[] tokenImage = {
     "<EOF>",
-@FOREACH(PRODUCTIONS, regexp)
-    {{regexp}}
-@END
+@forEach(regexp : PRODUCTIONS)
+    {{regexp.label}}
+@end
   };
 }

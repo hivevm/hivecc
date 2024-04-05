@@ -21,7 +21,6 @@ import java.io.StringWriter;
 
 import it.smartio.fastcc.FastCC;
 import it.smartio.fastcc.parser.JavaCCErrors;
-import it.smartio.fastcc.parser.Options;
 import it.smartio.fastcc.utils.DigestOptions;
 import it.smartio.fastcc.utils.DigestWriter;
 
@@ -40,7 +39,7 @@ public class CppWriter extends SourceWriter {
    * @param name
    * @param options
    */
-  public CppWriter(String name, Options options) {
+  public CppWriter(String name, DigestOptions options) {
     super(name, options);
     this.writer = (StringWriter) this.out;
     this.header.append("#ifndef JAVACC_" + name.replace('.', '_').toUpperCase() + "_H\n");
