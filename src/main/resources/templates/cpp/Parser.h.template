@@ -25,15 +25,15 @@ namespace {{NAMESPACE}} {
 
 class {{PARSER_NAME}} {
 public:
-@forEach(p : PRODUCTIONS_LHS)
+@foreach(p : PRODUCTIONS_LHS)
   void {{p.lhs}}();
 @end
 
-@forEach(la : LOOKAHEADS)
+@foreach(la : LOOKAHEADS)
 {{la.phase}}
 @end
 
-@forEach(e : EXPANSIONS)
+@foreach(e : EXPANSIONS)
 {{e.phase}}
 @end
 

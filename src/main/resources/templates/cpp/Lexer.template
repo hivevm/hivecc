@@ -3,7 +3,7 @@
 #include "TokenManagerErrorHandler.h"
 
 
-@forEach(index : LOHI_BYTES)
+@foreach(index : LOHI_BYTES)
 static const unsigned long long jjbitVec{{index}}[] = { {{index.bytes}} };
 @end
 {{DumpStrLiteralImages}}
@@ -26,7 +26,7 @@ namespace {{NAMESPACE}} {
 @fi
 
   void {{PARSER_NAME}}TokenManager::setDebugStream(FILE *ds) { debugStream = ds; }
-@forEach(name : STATES)
+@foreach(name : STATES)
 {{name.body}}
 @end
 
@@ -84,7 +84,7 @@ Token * {{PARSER_NAME}}TokenManager::jjFillToken() {
 
    return t;
 }
-@forEach(name : NON_ASCII_TABLE)
+@foreach(name : NON_ASCII_TABLE)
 {{name.method}}
 @end
 /** Get the next Token. */

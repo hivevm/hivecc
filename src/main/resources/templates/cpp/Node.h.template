@@ -51,10 +51,10 @@ public:
     Node({{PARSER_NAME}}* parser, int id);
     virtual ~Node();
 
-//@if(!NODE_FACTORY)
+//@_if(!NODE_FACTORY)
 //#define jjtCreate(id) new Node(id)
 //#define jjtCreate(p, id) new Node(p, id)
-//@fi
+//@_fi
     virtual void jjtOpen() const;
     virtual void jjtClose() const;
     virtual void jjtSetParent(Node *n);
@@ -73,9 +73,9 @@ public:
 
 @fi
 @if(VISITOR)
-    virtual {{VISITOR_RETURN_TYPE:-void}} jjtAccept({{PARSER_NAME}}Visitor* visitor,{{VISITOR_DATA_TYPE:-void*}} data) const;
-    virtual void jjtChildrenAccept({{PARSER_NAME}}Visitor* visitor, {{VISITOR_DATA_TYPE:-void*}} data) const;
-    virtual void jjtChildAccept(int childNo, {{PARSER_NAME}}Visitor* visitor, {{VISITOR_DATA_TYPE:-void*}} data) const;
+    virtual {{VISITOR_RETURN_TYPE:void}} jjtAccept({{PARSER_NAME}}Visitor* visitor,{{VISITOR_DATA_TYPE:void*}} data) const;
+    virtual void jjtChildrenAccept({{PARSER_NAME}}Visitor* visitor, {{VISITOR_DATA_TYPE:void*}} data) const;
+    virtual void jjtChildAccept(int childNo, {{PARSER_NAME}}Visitor* visitor, {{VISITOR_DATA_TYPE:void*}} data) const;
 @fi
     virtual std::vector<Node*>& jjtChildren();
 

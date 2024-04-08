@@ -1,7 +1,7 @@
-@forEach(index : LOHI_BYTES)
+@foreach(index : LOHI_BYTES)
 static final long[] jjbitVec{{index}} = { {{index.bytes}} };
 @end
-@forEach(name: STATES)
+@foreach(name: STATES)
 {{name.NfaAndDfa}}
 @end
 /** Token literal values. */
@@ -61,7 +61,7 @@ protected Token jjFillToken()
 }
 
 {{DumpStateSets}}
-@forEach(nfa : NON_ASCII_TABLE)
+@foreach(nfa : NON_ASCII_TABLE)
 {{nfa.AsciiMove}}
 @end
 {{DumpGetNextToken}}

@@ -84,7 +84,6 @@ public class DigestWriter extends PrintWriter {
     if (this.isCpp) {
       println();
       println("#pragma GCC diagnostic pop");
-      println();
     }
 
     super.close();
@@ -92,6 +91,7 @@ public class DigestWriter extends PrintWriter {
     String checksum = DigestWriter.toChecksum(this.digest.getMessageDigest().digest());
     try (PrintWriter writer = new PrintWriter(this.stream)) {
       this.stream.write(this.bytes.toByteArray());
+      writer.println();
       writer.printf("// FastCC Checksum=%s (Do not edit this line!)\n", checksum);
       if (this.options.hasConsumed()) {
         writer.printf("// FastCC Options: %s\n", this.options.consumed().collect(Collectors.joining(", ")));

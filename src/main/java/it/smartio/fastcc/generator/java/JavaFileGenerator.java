@@ -69,8 +69,8 @@ public class JavaFileGenerator extends AbstractFileGenerator implements FileGene
    */
   protected final DigestWriter createDigestWriter(File file, DigestOptions options) throws FileNotFoundException {
     DigestWriter writer = DigestWriter.create(file, FastCC.VERSION, options);
-    writer.println("package " + options.getOptions().getJavaPackage() + ";");
-    writer.println();
+//    writer.println("package " + options.getOptions().getJavaPackage() + ";");
+//    writer.println();
     return writer;
   }
 

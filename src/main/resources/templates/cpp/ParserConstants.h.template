@@ -12,31 +12,31 @@ namespace {{NAMESPACE}} {
 
 // RegularExpressions
 const int _EOF = 0; // End of File
-@forEach(token : TOKENS)
+@foreach(token : TOKENS)
 const int {{token.label}} = {{token.ordinal}};
 @end
 
 // Lexical states
-@forEach(index : STATES)
+@foreach(index : STATES)
 const int {{index.name}} = {{index}};
 @end
 
 // Literal token images
-@forEach(index : REGEXPS)
-static const JJChar tokenImage_{{index}}[] = { {{index.image}}0};
+@foreach(index : REGEXPS)
+static const JJChar tokenImage_{{index}}[] = {{{index.image}}0};
 @end
 static const JJChar* const tokenImages[] = {
-@forEach(index : REGEXPS)
+@foreach(index : REGEXPS)
     tokenImage_{{index}},
 @end
 };
 
 // Literal token labels
-@forEach(index : REGEXPS)
-static const JJChar tokenLabel_{{index}}[] = { {{index.label}}0};
+@foreach(index : REGEXPS)
+static const JJChar tokenLabel_{{index}}[] = {{{index.label}}0};
 @end
 static const JJChar* const tokenLabels[] = {
-@forEach(index : REGEXPS)
+@foreach(index : REGEXPS)
     tokenLabel_{{index}},
 @end
 };

@@ -81,7 +81,7 @@ void   Node::jjtSetLastToken(Token* token)  { this->lastToken = token; }
 
 @fi
 @if(VISITOR)
-{{VISITOR_RETURN_TYPE}} Node::jjtAccept({{PARSER_NAME}}Visitor *visitor, {{VISITOR_DATA_TYPE:-void *}} data) const
+{{VISITOR_RETURN_TYPE}} Node::jjtAccept({{PARSER_NAME}}Visitor *visitor, {{VISITOR_DATA_TYPE:void *}} data) const
 {
 @if(VISITOR_RETURN_TYPE_VOID)
     visitor->visit(this, data);
@@ -90,13 +90,13 @@ void   Node::jjtSetLastToken(Token* token)  { this->lastToken = token; }
 @fi
 }
 
-void Node::jjtChildrenAccept({{PARSER_NAME}}Visitor *visitor, {{VISITOR_DATA_TYPE:-void *}} data) const {
+void Node::jjtChildrenAccept({{PARSER_NAME}}Visitor *visitor, {{VISITOR_DATA_TYPE:void *}} data) const {
     for (int i = 0; i < children.size(); ++i) {
       children[i]->jjtAccept(visitor, data);
     }
 }
 
-void Node::jjtChildAccept(int childNo, {{PARSER_NAME}}Visitor *visitor, {{VISITOR_DATA_TYPE:-void *}} data) const {
+void Node::jjtChildAccept(int childNo, {{PARSER_NAME}}Visitor *visitor, {{VISITOR_DATA_TYPE:void *}} data) const {
     if (0 <= childNo && childNo < children.size())
       children[childNo]->jjtAccept(visitor, data);
 }    	

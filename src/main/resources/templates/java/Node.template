@@ -82,7 +82,7 @@ public class Node implements Tree {
 @fi
 @if(VISITOR)
   /** Accept the visitor. **/
-  public {{VISITOR_RETURN_TYPE}} jjtAccept({{PARSER_NAME}}Visitor visitor, {{VISITOR_DATA_TYPE:-Object}} data)
+  public {{VISITOR_RETURN_TYPE}} jjtAccept({{PARSER_NAME}}Visitor visitor, {{VISITOR_DATA_TYPE:Object}} data)
 @if(VISITOR_EXCEPTION)
      throws {{VISITOR_EXCEPTION}}
 @fi
@@ -95,7 +95,7 @@ public class Node implements Tree {
   }
 
   /** Accept the visitor. **/
-  public Object childrenAccept({{PARSER_NAME}}Visitor visitor, {{VISITOR_DATA_TYPE:-Object}} data)
+  public Object childrenAccept({{PARSER_NAME}}Visitor visitor, {{VISITOR_DATA_TYPE:Object}} data)
 @if(VISITOR_EXCEPTION)
      throws {{VISITOR_EXCEPTION}}
 @fi
@@ -145,4 +145,3 @@ public class Node implements Tree {
     return this.id;
   }
 }
-

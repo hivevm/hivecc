@@ -269,7 +269,7 @@ public class CppTreeGenerator extends JJTreeCodeGenerator {
       for (int i = 0; i < nodeNames.size(); ++i) {
         ostr.print("static JJChar jjtNodeName_arr_" + i + "[] = ");
         String n = nodeNames.get(i);
-        ostr.print("{ ");
+        ostr.print("{");
         CppFileGenerator.printCharArray(ostr, n);
         ostr.println("0};");
       }

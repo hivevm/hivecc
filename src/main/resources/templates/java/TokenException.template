@@ -1,3 +1,5 @@
+package {{PACKAGE}};
+
 /** Token Manager Error. */
 class TokenException extends RuntimeException {
 

@@ -1,29 +1,20 @@
 package {{PACKAGE}};
 
-@forEach(name : IMPORTS)
+@foreach(name : IMPORTS)
 import {{name}};
 @end
-public class {{PARSER_NAME}}
-@if(EXTENDS)
-extends {{EXTENDS}}
-@fi
-implements
-@if(IS_GENERATED)
-{{PARSER_NAME}}TreeConstants, 
-@fi
-{{PARSER_NAME}}Constants {
+public class {{PARSER_NAME}}@if(EXTENDS) extends {{EXTENDS}}@fi implements @if(IS_GENERATED){{PARSER_NAME}}TreeConstants, @fi{{PARSER_NAME}}Constants {
 @if(IS_GENERATED)
   protected JJT{{PARSER_NAME}}State jjtree = new JJT{{PARSER_NAME}}State();
 @fi
 
-
-@forEach(p : NORMALPRODUCTIONS)
+@foreach(p : NORMALPRODUCTIONS)
 {{p.routine}}
 @end
-@forEach(la : LOOKAHEADS)
+@foreach(la : LOOKAHEADS)
 {{la.routine}}
 @end
-@forEach(e : EXPANSIONS)
+@foreach(e : EXPANSIONS)
 {{e.routine}}
 @end
 
@@ -52,7 +43,7 @@ implements
 @if(ERROR_REPORTING)
   private int                jj_gen;
   private final int[]        jj_la1    = new int[{{maskIndex}}];
-@forEach(index : TOKEN_MAX_SIZE)
+@foreach(index : TOKEN_MAX_SIZE)
   private static final int[] jj_la1_{{index}}  = { {{index.mask}}};
 @end
 @fi
@@ -295,7 +286,7 @@ implements
     else
       return (jj_ntk = jj_nt.kind);
   }
-
+@fi
 @fi
 
 @if(ERROR_REPORTING)
@@ -305,6 +296,7 @@ implements
 @if(jj2Index)
   private final int[]                 jj_lasttokens = new int[100];
   private int                         jj_endpos;
+@fi
 
   private void jj_add_error_token(int kind, int pos) {
     if (pos >= 100) {
@@ -355,7 +347,7 @@ implements
     for (int i = 0; i < {{maskIndex}}; i++) {
       if (this.jj_la1[i] == this.jj_gen) {
         for (int j = 0; j < 32; j++) {
-@forEach(index : TOKEN_MAX_SIZE)
+@foreach(index : TOKEN_MAX_SIZE)
           if (({{PARSER_NAME}}.jj_la1_{{index}}[i] & (1 << j)) != 0) {
             la1tokens[{{index.la1}}j] = true;
           }
@@ -399,6 +391,7 @@ implements
   	 return new ParseException("Parse error at <unknown location>.  Encountered: " + mess);
 @fi
   }
+
 @fi
   private boolean trace_enabled;
 
@@ -481,7 +474,7 @@ implements
             this.jj_la = p.arg;
             this.jj_lastpos = this.jj_scanpos = p.first;
             switch (i) {
-@forEach(index : JJ2_INDEX)
+@foreach(index : JJ2_INDEX)
               case {{index}}:
                 jj_3_{{index.offset}}();
                 break;

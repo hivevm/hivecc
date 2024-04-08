@@ -15,11 +15,11 @@ public:
 
   FILE *debugStream;
   void setDebugStream(FILE *ds);
-@forEach(name : STATES)
+@foreach(name : STATES)
 {{name.head}}
 @end
 Token * jjFillToken();
-@forEach(nfa : NON_ASCII_TABLE)
+@foreach(nfa : NON_ASCII_TABLE)
 bool jjCanMove_{{nfa.offset}}(int hiByte, int i1, int i2, unsigned long long l1, unsigned long long l2);
 @end
 public:

@@ -3,7 +3,7 @@
 #include "{{PARSER_NAME}}Tree.h"
 
 @if(ERROR_REPORTING)
-@forEach(index : TOKEN_MAX_SIZE)
+@foreach(index : TOKEN_MAX_SIZE)
 {{index.masks}}
 @end
 @fi
@@ -13,7 +13,7 @@
 namespace {{NAMESPACE}} {
 @fi
 
-@forEach(p : NORMALPRODUCTIONS)
+@foreach(p : NORMALPRODUCTIONS)
 {{p.phase}}
 @end
 
@@ -362,7 +362,7 @@ Token * {{PARSER_NAME}}::getToken(int index)
         if (p->gen > jj_gen) {
           jj_la = p->arg; jj_lastpos = jj_scanpos = p->first;
           switch (i) {
-@forEach(index : JJ2_INDEX)
+@foreach(index : JJ2_INDEX)
             case {{index}}: jj_3_{{index.offset}}(); break;
 @end
           }
