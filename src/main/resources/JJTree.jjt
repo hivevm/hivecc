@@ -219,7 +219,7 @@ void option_binding() #OptionBinding :
   ( o=<IDENTIFIER> ) < COLON >
   ( IntegerLiteral() | BooleanLiteral() | StringLiteral() )
   @java
-    jjtThis.initialize(o.image, setInputOption(o, this.token));
+    SELF.initialize(o.image, setInputOption(o, this.token));
   @end
   ( < COMMA > )?
 }
@@ -246,7 +246,7 @@ void bnf_production() #BNF :
 @end
 {
   @java
-    prod = jjtThis;
+    prod = SELF;
   @end
   ResultType() t1=identifier() < LPAREN > [ FormalParameter() ( < COMMA > FormalParameter() )* ] < RPAREN >
   [ nd=node_descriptor() ]
@@ -259,7 +259,7 @@ void bnf_production() #BNF :
   < ECODE_END > ) ?
   (
     @java
-	  jjtThis.node_scope = ns;
+	  SELF.node_scope = ns;
 	@end
   ) #BNFDeclaration
 
@@ -267,8 +267,8 @@ void bnf_production() #BNF :
   (
     eu=expansion_choices(prod)
     @java
-	  jjtThis.node_scope = ns;
-	  jjtThis.expansion_unit = eu;
+	  SELF.node_scope = ns;
+	  SELF.expansion_unit = eu;
 	@end
   ) #BNFNodeScope
  < RBRACE >
@@ -322,8 +322,8 @@ void expansion(ASTProduction p) #BNFSequence(>1) :
       [ nd=node_descriptor() ]
       @java
 	    if (jjtree.nodeCreated()) {
-	      jjtThis.node_scope = new NodeScope(p, nd);
-	      jjtThis.expansion_unit = eu;
+	      SELF.node_scope = new NodeScope(p, nd);
+	      SELF.expansion_unit = eu;
 	    }
 	  @end
     ) #ExpansionNodeScope(>1)
@@ -482,19 +482,19 @@ ASTNodeDescriptor node_descriptor() #NodeDescriptor :
 @end
 {
   < HASH >
-  ( s=Name() @java jjtThis.name = s; @end
-  | t=<VOID> @java jjtThis.name = t.image; @end
+  ( s=Name() @java SELF.name = s; @end
+  | t=<VOID> @java SELF.name = t.image; @end
   )
   [
    LOOKAHEAD(1)
    < LPAREN >
-      [ < GT > @java jjtThis.isGT = true; @end ]
-      t=value() @java jjtThis.setExpressionText(t.image); @end
+      [ < GT > @java SELF.isGT = true; @end ]
+      t=value() @java SELF.setExpressionText(t.image); @end
    < RPAREN >
   ]
 @java
-  jjtThis.setNodeIdValue();
-  return jjtThis;
+  SELF.setNodeIdValue();
+  return SELF;
 @end
 }
 

@@ -28,6 +28,10 @@ import it.smartio.fastcc.utils.Encoding;
  */
 public class JJTreeWriter extends PrintWriter {
 
+  private static final String SELF   = "SELF";
+  private static final String JJTREE = "jjtree";
+
+
   private final JJLanguage language;
 
 
@@ -92,7 +96,7 @@ public class JJTreeWriter extends PrintWriter {
     /*
      * If we're within a node scope we modify the source in the following ways:
      *
-     * 1) we rename all references to `jjtThis' to be references to the actual node variable. 2) we
+     * 1) we rename all references to `SELF' to be references to the actual node variable. 2) we
      * replace all calls to `jjtree.currentNode()' with references to the node variable.
      */
 
@@ -105,13 +109,13 @@ public class JJTreeWriter extends PrintWriter {
       return;
     }
 
-    if (token.image.contains("jjtThis")) {
+    if (token.image.contains(SELF)) {
       String text = Encoding.escapeUnicode(node.translateImage(token));
-      print(text.replace("jjtThis", s.getNodeVariable()));
+      print(text.replace(SELF, s.getNodeVariable()));
       return;
     }
     if (this.whitingOut) {
-      if (token.image.equals("jjtree")) {
+      if (token.image.equals(JJTREE)) {
         print(s.getNodeVariable());
         print(" ");
       } else if (token.image.equals(")")) {
