@@ -39,9 +39,9 @@ import it.smartio.fastcc.parser.TokenProduction.Kind;
 /**
  * The {@link LexerBuilder} class.
  */
-class LexerBuilder {
+public class LexerBuilder {
 
-  LexerData build(JavaCCRequest request) throws IOException {
+	public   LexerData build(JavaCCRequest request) throws IOException {
     if (JavaCCErrors.hasError()) {
       return null;
     }

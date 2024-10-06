@@ -7,7 +7,6 @@ import java.io.File;
 
 import it.smartio.fastcc.FastCCBuilder.Language;
 
-
 class SmartIOTest {
 
   public static final File ROOT        = new File("/data/smartIO/develop");
@@ -29,5 +28,12 @@ class SmartIOTest {
     builder.setOutputDirectory(SmartIOTest.PARSER_JAVA);
     builder.setJJTreeFile(SmartIOTest.PARSER_JJT, "OQL.jjt");
     builder.build();
+  }
+
+  public static void main(String... args) throws Exception {
+    FastCCBuilder builder = FastCCBuilder.of(Language.Java);
+    builder.setOutputDirectory(SmartIOTest.PARSER_JAVA);
+    builder.setJJTreeFile(SmartIOTest.PARSER_JJT, "OQL.jjt");
+    builder.interpret("Attr gt 1");
   }
 }

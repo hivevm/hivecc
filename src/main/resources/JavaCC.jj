@@ -234,15 +234,13 @@ void bnf_production() :
     Container c = new Container();
     Token t = getToken(1);
     p.setFirstToken(t);
-    String lhs;
     p.setThrowsList(new ArrayList<>());
     p.setLocation(t);
 @end
 {
   ResultType(p.getReturnTypeTokens())
-  lhs=identifier()
   @java
-    p.setLhs(lhs);
+    p.setLhs(identifier());
   @end
   FormalParameters(p.getParameterListTokens())
   < COLON >

@@ -2,9 +2,17 @@
 package it.smartio.fastcc;
 
 
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+
+import it.smartio.fastcc.parser.Options;
 
 /**
  * The {@link FastCCBuilder} class.
@@ -98,6 +106,26 @@ public class FastCCBuilder {
       }
 
       JJParser.main(arguments.toArray(new String[arguments.size()]));
+    } catch (Throwable e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * Run the parser generator.
+   */
+  public final void interpret(String text) {
+    Options options = new Options();
+    try {
+      FastCCInterpreter interpreter = new FastCCInterpreter(options);
+      File file = this.jj;
+      if (file == null) {
+        String name = this.jjt.getName();
+        String jjName = name.substring(0, name.length() - 1);
+        file = new File(this.outputDirectory, jjName);
+      }
+      String grammar = new String(Files.readAllBytes(file.toPath()));
+      interpreter.runTokenizer(grammar, text);
     } catch (Throwable e) {
       e.printStackTrace();
     }
