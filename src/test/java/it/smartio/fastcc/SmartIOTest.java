@@ -4,6 +4,7 @@ package it.smartio.fastcc;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.nio.file.Files;
 
 import it.smartio.fastcc.FastCCBuilder.Language;
 
@@ -31,9 +32,12 @@ class SmartIOTest {
   }
 
   public static void main(String... args) throws Exception {
+    File inputFile = new File("/data/smartIO/fastcc/JavaGrammars/Test.java");
+    String input = new String(Files.readAllBytes(inputFile.toPath()));
+
     FastCCBuilder builder = FastCCBuilder.of(Language.Java);
     builder.setOutputDirectory(SmartIOTest.PARSER_JAVA);
-    builder.setJJTreeFile(SmartIOTest.PARSER_JJT, "OQL.jjt");
-    builder.interpret("Attr gt 1");
+    builder.setJJFile(new File("/data/smartIO/fastcc/JavaGrammars"), "Java1.1.jj");
+    builder.interpret(input);
   }
 }
