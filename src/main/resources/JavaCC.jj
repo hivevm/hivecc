@@ -1,6 +1,6 @@
 PARSER_BEGIN(JavaCCParser)
   LEGACY: true,
-  PACKAGE: "it.smartio.fastcc.parser",
+  PACKAGE: "org.hivevm.cc.parser",
   IMPORTS: "java.util.List,java.util.ArrayList",
   EXTENDS: "AbstractJavaCCParser"
 PARSER_END

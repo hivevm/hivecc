@@ -3,12 +3,12 @@
 	<property name="java-src" value="src/main/java" />
 	<property name="resources-src" value="src/main/resources" />
 	<property name="generated-src" value="src/main/generated" />
-	<property name="parser-generated-src" value="${generated-src}/it/smartio/fastcc/parser" />
-	<property name="jjtree-generated-src" value="${generated-src}/it/smartio/fastcc/jjtree" />
+	<property name="parser-generated-src" value="${generated-src}/org/hivevm/cc/parser" />
+	<property name="jjtree-generated-src" value="${generated-src}/org/hivevm/cc/jjtree" />
 
 	<property name="bootstrap-jar" value="bootstrap/javacc.jar" />
-	<property name="jjtree-class-name" value="it.smartio.fastcc.JJTree" />
-	<property name="javacc-class-name" value="it.smartio.fastcc.JJParser" />
+	<property name="jjtree-class-name" value="org.hivevm.cc.JJTree" />
+	<property name="javacc-class-name" value="org.hivevm.cc.JJParser" />
 
 	<property name="target-folder" value="target" />
 
@@ -34,7 +34,7 @@
 
 	<!-- Build the new version with the old jar (current bootstrap jar) and create the new version jar
        (named javacc.jar with a copy named javacc-x.y.z.jar)  -->
-	<!-- Here the new version jar does not benefit from enhancements of FastCC itself (e.g. performance) -->
+	<!-- Here the new version jar does not benefit from enhancements of JavaCC itself (e.g. performance) -->
 	<!-- The tests will benefit from these enhancements -->
 	<target name="jar" depends="clean">
 		<antcall target="compile_create-jars" />

@@ -29,6 +29,6 @@ public final class javacc {
   private javacc() {}
 
   public static void main(String[] args) throws Exception {
-    it.smartio.fastcc.JJParser.main(args);
+    org.hivevm.cc.JJParser.main(args);
   }
 }

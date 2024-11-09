@@ -6,7 +6,7 @@ PARSER_BEGIN(JJTreeParser)
   NODE_CLASS: "JJTreeNode",
   VISITOR: true,
   VISITOR_DATA_TYPE: "JJTreeWriter",
-  PACKAGE: "it.smartio.fastcc.jjtree",
+  PACKAGE: "org.hivevm.cc.jjtree",
   EXTENDS: "AbstractJJTreeParser"
 PARSER_END
 
