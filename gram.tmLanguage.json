@@ -1,0 +1,28 @@
+{
+    "name": "HIVEVM",
+    "scopeName": "source.gram",
+    "patterns": [
+        {
+            "name": "keyword",
+            "match": "@[^\\(]+(\\(([^\\)]+)\\))?",
+            "captures": {
+                "2": {
+                    "name": "invalid.illegal"
+                }
+            }
+        },
+        {
+            "name": "keyword",
+            "match": "{{([^}{]+)}}",
+            "captures": {
+                "1": {
+                    "name": "invalid.illegal"
+                }
+            }
+        },
+        {
+            "name": "punctuation",
+            "match": "."
+        }
+    ]
+}
